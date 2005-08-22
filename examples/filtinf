@@ -1,0 +1,30 @@
+#!/usr/local/bin/perl
+
+use Compress::Zlib 2 ;
+
+use strict ;
+local ($^W) = 1; #use warnings ;
+
+binmode STDIN;
+binmode STDOUT;
+
+my $x = new Compress::Zlib::Inflate
+   or die "Cannot create a inflation stream\n" ;
+
+my $input = '' ;
+my $output = '' ;
+my $status ;
+
+while (read(STDIN, $input, 4096))
+{
+    $status = $x->inflate($input, $output) ;
+
+    print $output 
+        if $status == Z_OK or $status == Z_STREAM_END ;
+
+    last if $status != Z_OK ;
+}
+
+die "inflation failed\n"
+    unless $status == Z_STREAM_END ;
+

@@ -1,0 +1,24 @@
+#!/usr/local/bin/perl
+
+use strict ;
+local ($^W) = 1; #use warnings ;
+use IO::Gzip qw(gzip $GzipError);
+
+gzip '-' => '-', Minimal => 1
+  or die "gzstream: $GzipError\n" ;
+
+#exit 0;
+
+__END__
+
+#my $gz = new IO::Gzip *STDOUT 
+my $gz = new IO::Gzip '-'
+	  or die "gzstream: Cannot open stdout as gzip stream: $GzipError\n" ;
+
+while (<>) {
+    $gz->write($_) 
+	or die "gzstream: Error writing gzip output stream: $GzipError\n" ;
+}
+
+$gz->close
+    or die "gzstream: Error closing gzip output stream: $GzipError\n" ;
