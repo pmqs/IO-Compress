@@ -874,7 +874,7 @@ some text
 EOM
 
     my $good ;
-    ok my $x = new IO::Gzip \$good, -HeaderCRC => 1 ;
+    ok my $x = new IO::Gzip \$good, Append => 1, -HeaderCRC => 1 ;
     ok $x->write($string) ;
     ok  $x->close ;
 
@@ -920,7 +920,7 @@ some text
 EOM
 
     my $truncated ;
-    ok  my $x = new IO::Gzip \$truncated, -HeaderCRC => 1, Strict => 0,
+    ok  my $x = new IO::Gzip \$truncated, Append => 1, -HeaderCRC => 1, Strict => 0,
 				-ExtraField => "hello" x 10  ;
     ok  $x->write($string) ;
     ok  $x->close ;
@@ -941,7 +941,7 @@ some text
 EOM
 
     my $truncated ;
-    ok  my $x = new IO::Gzip \$truncated, -Name => $Name;
+    ok  my $x = new IO::Gzip \$truncated, Append => 1, -Name => $Name;
     ok  $x->write($string) ;
     ok  $x->close ;
 
@@ -992,6 +992,7 @@ EOM
 
     my $buffer ;
     ok  my $x = new IO::Gzip \$buffer, 
+                             -Append     => 1,
                              -Strict     => 0,
                              -HeaderCRC  => 1,
                              -Name       => "Fred",
@@ -1016,7 +1017,7 @@ some text
 EOM
 
     my $good ;
-    ok  my $x = new IO::Gzip \$good ;
+    ok  my $x = new IO::Gzip \$good, Append => 1 ;
     ok  $x->write($string) ;
     ok  $x->close ;
 

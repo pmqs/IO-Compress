@@ -108,8 +108,8 @@ for my $wrap (0 .. 2)
         }
 
         my $gzip = new IO::Gzip \$compressed,
-                                -HeaderCRC  => 1 ,
-                                -AutoClose  => 1 ;
+                                -Append     => 0,
+                                -HeaderCRC  => 1;
 
         ok $gzip, "  Created IO::Gzip object";
 
@@ -132,7 +132,7 @@ for my $wrap (0 .. 2)
         }
 
         is $status, 0, '  IO::Gunzip::read returned 0'
-            or diag "error status is $GunzipError" ;
+            or diag "error status is $status, error is $GunzipError" ;
 
         ok $gunzip->close(), "  IO::Gunzip Closed ok" ;
 

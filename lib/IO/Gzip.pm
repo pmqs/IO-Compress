@@ -12,7 +12,7 @@ require Exporter ;
 
 use vars qw($VERSION @ISA @EXPORT_OK %EXPORT_TAGS $GzipError);
 
-$VERSION = '2.000_00';
+$VERSION = '2.000_02';
 $GzipError = '' ;
 
 @ISA    = qw(Exporter IO::BaseDeflate);
@@ -95,7 +95,7 @@ BEGIN
 }
  
 
-$VERSION = '2.000_00';
+$VERSION = '2.000_02';
 
 #Can't locate object method "SWASHNEW" via package "utf8" (perhaps you forgot to load "utf8"?) at .../ext/Compress-Zlib/Gzip/blib/lib/Compress/Zlib/Common.pm line 16.
 
@@ -452,8 +452,8 @@ sub checkParams
             'AutoClose'=> [Parse_boolean,   0],
             #'Encoding'=> [Parse_any,       undef],
             'Strict'   => [Parse_boolean,   1],
-            #'Lax'      => [Parse_boolean,   0],
             'Append'   => [Parse_boolean,   0],
+            'Merge'    => [Parse_boolean,   0],
 
             # zlib behaviour
             #'Method'   => [Parse_unsigned,  Z_DEFLATED],
@@ -477,9 +477,9 @@ sub checkParams
             #'Encoding' => [Parse_any,       undef],
             'CRC32'     => [Parse_boolean,   0],
             'ADLER32'   => [Parse_boolean,   0],
-            'Strict'   => [Parse_boolean,   1],
-            #'Lax'      => [Parse_boolean,   0],
+            'Strict'    => [Parse_boolean,   1],
             'Append'    => [Parse_boolean,   0],
+            'Merge'     => [Parse_boolean,   0],
 
             # zlib behaviour
             #'Method'   => [Parse_unsigned,  Z_DEFLATED],
@@ -502,9 +502,11 @@ sub new
         if ! @_ && ! $got ;
 
     my $outValue = shift ;
+    my $oneShot = 1 ;
 
     if (! $got)
     {
+        $oneShot = 0 ;
         $got = checkParams($class, $type, @_)
             or return undef ;
     }
@@ -522,7 +524,7 @@ sub new
 
     my $lax = ! $got->value('Strict') ;
 
-    my $outType = whatIs($outValue);
+    my $outType = whatIsOutput($outValue);
 
     ckOutputParam($class, $outValue, $error_ref)
         or return undef ;
@@ -535,22 +537,27 @@ sub new
         *$obj->{Buffer} = \$buff ;
     }
 
- 
-    if ($got->value('Append'))
+    # Merge implies Append
+    my $merge = $got->value('Merge') ;
+    my $appendOutput = $got->value('Append') || $merge ;
+
+    if ($merge)
     {
-        # Switch off append mode if output file/buffer is empty/doesn't exist
+        # Switch off Merge mode if output file/buffer is empty/doesn't exist
         if (($outType eq 'buffer' && length $$outValue == 0 ) ||
             ($outType ne 'buffer' && (! -e $outValue || (-w _ && -z _))) )
-          { $got->value('Append' => 0) }
-
-        # If output is a file, check that it is writable
-        elsif ($outType eq 'filename' && ! -w $outValue)
-          { return $obj->saveErrorString(undef, "Output file '$outValue' is not writable" ) }
-
-        elsif ($outType eq 'handle'  && ! -w $outValue)
-          { return $obj->saveErrorString(undef, "Output filehandle is not writable" ) }
+          { $merge = 0 }
     }
 
+    # If output is a file, check that it is writable
+    if ($outType eq 'filename' && -e $outValue && ! -w _)
+      { return $obj->saveErrorString(undef, "Output file '$outValue' is not writable" ) }
+
+    elsif ($outType eq 'handle'  && ! -w $outValue)
+      { return $obj->saveErrorString(undef, "Output filehandle is not writable" ) }
+
+
+#    TODO - encoding
 #    if ($got->parsed('Encoding')) { 
 #        croak("$class: Encode module needed to use -Encoding")
 #            if ! $got_encode;
@@ -564,7 +571,7 @@ sub new
 #        *$obj->{Encoding} = $encoding;
 #    }
 
-    if ($rfc1952 && ! $got->value('Append')) {
+    if ($rfc1952 && ! $merge) {
 
         if (! $got->parsed('Time') ) {
             # Modification time defaults to now.
@@ -605,7 +612,7 @@ sub new
             
         }
 
-        # gzip only supports Deflate
+        # gzip only supports Deflate at present
         $got->value('Method' => Z_DEFLATED) ;
 
         if ( ! $got->parsed('ExtraFlags')) {
@@ -632,55 +639,59 @@ sub new
 
     my $end_offset = 0;
     my $status ;
-    if (! $got->value('Append'))
+    if (! $merge)
     {
         (*$obj->{Deflate}, $status) = new Compress::Zlib::Deflate
-                        -AppendOutput   => $outType eq 'buffer',
+                        -AppendOutput   => 1,
                         -CRC32          => $rfc1952 || $got->value('CRC32'),
                         -ADLER32        => $rfc1950 || $got->value('ADLER32'),
                         -Level          => $got->value('Level'),
                         -Strategy       => $got->value('Strategy'),
                         -WindowBits     => - MAX_WBITS;
-                        #-WindowBits     => $rfc1952 || $type eq 'rfc1952' 
-                        #                            ? - MAX_WBITS 
-                        #                            :   MAX_WBITS;
         return $obj->saveErrorString(undef, "Cannot create Deflate object: $status" ) 
             if $obj->saveStatus($status) != Z_OK ;
 
         *$obj->{BytesWritten} = 0 ;
         *$obj->{ISize} = 0 ;
 
+        *$obj->{Header} = mkDeflateHeader($got) 
+            if $rfc1950 ;
+        *$obj->{Header} = ''
+            if $rfc1951 ;
+        *$obj->{Header} = mkGzipHeader($got) 
+            if $rfc1952 ;
+
         if ( $outType eq 'buffer') {
-            *$obj->{Header} = mkGzipHeader($got) 
-                if $rfc1952 ;
-            *$obj->{Header} = mkDeflateHeader($got) 
-                if $rfc1950 ;
-            ${ *$obj->{Buffer} }  = *$obj->{Header};
+            ${ *$obj->{Buffer} }  = ''
+                unless $appendOutput ;
+            ${ *$obj->{Buffer} } .= *$obj->{Header};
         }
         else {
             if ($outType eq 'handle') {
                 $outValue->flush() ;
                 *$obj->{FH} = $outValue ;
                 *$obj->{Handle} = 1 ;
+                if ($appendOutput)
+                {
+                    seek(*$obj->{FH}, 0, SEEK_END)
+                        or return $obj->saveErrorString(undef, "Cannot seek to end of output filehandle: $!", $!) ;
+
+                }
             }
             elsif ($outType eq 'filename') {    
-                *$obj->{FH} = new IO::File "> $outValue" 
+                my $mode = '>' ;
+                $mode = '>>'
+                    if $appendOutput;
+                *$obj->{FH} = new IO::File "$mode $outValue" 
                     or return $obj->saveErrorString(undef, "cannot open file '$outValue': $!", $!) ;
+                *$obj->{StdIO} = ($outValue eq '-'); 
             }
 
-            binmode *$obj->{FH} ;
+            setBinModeOutput(*$obj->{FH}) ;
 
-            if ($rfc1952) {
-                my $hdr = mkGzipHeader $got;
-                defined *$obj->{FH}->write($hdr, length($hdr))
+            if (!$rfc1951) {
+                defined *$obj->{FH}->write(*$obj->{Header}, length(*$obj->{Header}))
                     or return $obj->saveErrorString(undef, $!, $!) ;
-                *$obj->{Header} = $hdr ;
-            }
-            elsif ($rfc1950) {
-                my $hdr = mkDeflateHeader $got;
-                defined *$obj->{FH}->write($hdr, length($hdr))
-                    or return $obj->saveErrorString(undef, $!, $!) ;
-                *$obj->{Header} = $hdr ;
             }
         }
     }
@@ -902,6 +913,7 @@ sub _wr2
             $fh = new IO::File "<$input"
                 or return $self->saveErrorString(undef, "cannot open file '$input': $!", $!) ;
         }
+        setBinModeInput($fh) ;
 
         my $status ;
         my $buff ;
@@ -915,7 +927,7 @@ sub _wr2
         return $self->saveErrorString(undef, $!, $!) 
             if $status < 0 ;
 
-        if ( !$isFilehandle || *$self->{AutoClose} )
+        if ( (!$isFilehandle || *$self->{AutoClose}) && $input ne '-')
         {    
             $fh->close() 
                 or return undef ;
@@ -1336,7 +1348,8 @@ sub close
   }
 
     if (defined *$self->{FH}) {
-        if (! *$self->{Handle} || *$self->{AutoClose}) {
+        #if (! *$self->{Handle} || *$self->{AutoClose}) {
+        if ((! *$self->{Handle} || *$self->{AutoClose}) && ! *$self->{StdIO}) {
             $! = 0 ;
             *$self->{FH}->close()
                 or return $self->saveErrorString(0, $!, $!); 
@@ -1456,7 +1469,11 @@ sub seek
 
 sub binmode
 {
-    return 1 ;
+    1;
+#    my $self     = shift ;
+#    return defined *$self->{FH} 
+#            ? binmode *$self->{FH} 
+#            : 1 ;
 }
 
 sub fileno
@@ -1576,7 +1593,6 @@ this module.
 For reading RFC 1952 files/buffers, see the companion module 
 L<IO::Gunzip|IO::Gunzip>.
 
-The tied file interface is only available if you use Perl 5.005 or better.
 
 =head1 Functional Interface
 
@@ -1795,6 +1811,9 @@ This parameter defaults to 0.
 
 
 
+=item -Append =E<gt> 0|1
+
+TODO
 
 
 =back
@@ -1860,9 +1879,20 @@ and if you want to compress each file one at a time, this will do the trick
 The format of the constructor for C<IO::Gzip> is shown below
 
     my $z = new IO::Gzip $output [,OPTS]
+        or die "IO::Gzip failed: $GzipError\n";
 
 It returns an C<IO::Gzip> object on success and undef on failure. 
 The variable C<$GzipError> will contain an error message on failure.
+
+If you are running Perl 5.005 or better the object, C<$z>, returned from 
+IO::Gzip can be used exactly like an L<IO::File|IO::File> filehandle. 
+This means that all normal output file operations can be carried out 
+with C<$z>. 
+For example, to write to a compressed file/buffer you can use either of 
+these forms
+
+    $z->print("hello world\n");
+    print $z "hello world\n";
 
 The mandatory parameter C<$output> is used to control the destination
 of the compressed data. This parameter can take one of these forms.
@@ -1900,10 +1930,10 @@ C<OPTS> is any combination of the following options:
 
 =item -AutoClose =E<gt> 0|1
 
-This option is only valid when the C<$output> parameter is a
-a filehandle. If specified, and the value is true,
-it will result in the file being closed once either the C<close> method is
-called or the C<IO::Gzip> object is destroyed.
+This option is only valid when the C<$output> parameter is a filehandle. If
+specified, and the value is true, it will result in the C<$output> being closed
+once either the C<close> method is called or the C<IO::Gzip> object is
+destroyed.
 
 This parameter defaults to 0.
 
@@ -1911,22 +1941,57 @@ This parameter defaults to 0.
 
 Opens C<$output> in append mode. 
 
-This feature operates by first scanning the complete contents of
-C<$output> to locate and change a number of markers in the compressed data.
+The behaviour of this option is dependant on the type of C<$output>.
 
-Apart from having to scan the existing compressed data, there are a
-number of other limitations with append mode.
+=over 5
+
+=item * A Buffer
+
+If C<$output> is a buffer and C<Append> is enabled, all compressed data will be
+append to the end if C<$output>. Otherwise C<$output> will be cleared before
+any data is written to it.
+
+=item * A Filename
+
+If C<$output> is a filename and C<Append> is enabled, the file will be opened
+in append mode. Otherwise the contents of the file, if any, will be truncated
+before any compressed data is written to it.
+
+=item * A Filehandle
+
+If C<$output> is a filehandle, the file pointer will be positioned to the end
+of the file via a call to C<seek> before any compressed data is written to it.
+Otherwise the file pointer will not be moved.
+
+=back
+
+This parameter defaults to 0.
+
+=item -Merge =E<gt> 0|1
+
+This option is used to compress input data and append it to an existing
+compressed data stream in C<$output>. The end result is a single compressed
+data stream stored in C<$output>. 
+
+
+
+It is a fatal error to attempt to use this option when C<$output> is not an RFC
+1952 data stream.
+
+
+
+There are a number of other limitations with the C<Merge> option:
 
 =over 5 
 
 =item 1
 
-This feature requires zlib 1.2.1 or better to work. A fatal error will
-be thrown if C<Append> is used with an older version of zlib.
+This module needs to have been built with zlib 1.2.1 or better to work. A fatal
+error will be thrown if C<Merge> is used with an older version of zlib.  
 
 =item 2
 
-If a file if being written to it must be seekable.
+If C<$output> is a file or a filehandle, it must be seekable.
 
 =back
 
@@ -2087,7 +2152,7 @@ The maximum size of the Extra Field 65535 bytes.
 
 =item -ExtraFlags =E<gt> $value
 
-Sets ths XFL byte in the gzip header to C<$value>.
+Sets the XFL byte in the gzip header to C<$value>.
 
 If this option is not present, the value stored in XFL field will be determined
 by the setting of the C<Level> option.
@@ -2431,9 +2496,13 @@ TODO
 
 
 
+
+
 =head1 SEE ALSO
 
 L<Compress::Zlib>, L<IO::Gunzip>, L<IO::Deflate>, L<IO::Inflate>, L<IO::RawDeflate>, L<IO::RawInflate>, L<IO::AnyInflate>
+
+L<Compress::Zlib::FAQ|Compress::Zlib::FAQ>
 
 L<File::GlobMapper|File::GlobMapper>, L<Archive::Tar|Archive::Zip>,
 L<IO::Zlib|IO::Zlib>

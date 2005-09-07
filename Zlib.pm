@@ -16,7 +16,7 @@ local ($^W) = 1; #use warnings ;
 # use bytes ;
 use vars qw($VERSION $XS_VERSION @ISA @EXPORT $AUTOLOAD);
 
-$VERSION = '2.000_00';
+$VERSION = '2.000_02';
 $XS_VERSION = $VERSION; 
 $VERSION = eval $VERSION;
 
@@ -958,8 +958,45 @@ A number of functions are supplied in I<zlib> for reading and writing
 I<gzip> files that conform to RFC1952. This module provides an interface
 to most of them. 
 
-Note that a more complete and flexible interface for reading/writing gzip
-files/buffers is included with this module.  See L<IO::Gzip|IO::Gzip> and
+If you are upgrading from C<Compress::Zlib> 1.x, the following enhancements
+have been made to the C<gzopen> interface:
+
+=over 5
+
+=item 1
+
+If you want to to open either STDIN or STDOUT with C<gzopen>, you can
+optionally use the special filename "C<->" as a synonym for C<\*STDIN> and
+C<\*STDOUT>.
+
+=item 2 
+
+In C<Compress::Zlib> version 1.x, C<gzopen> used the zlib library to open the
+underlying file. This made things especially tricky when a Perl filehandle was
+passed to C<gzopen>. Behind the scenes the numeric C file descriptor had to be
+extracted from the Perl filehandle and this passed to the zlib library.
+
+Apart from being non-portable to some operating systems, this made it difficult
+to use C<gzopen> in situations where you wanted to extract/create a gzip data
+stream that is embedded in a larger file, without having to resort to opening
+and closing the file multiple times. 
+
+In C<Compress::Zlib> version 2.x, the C<gzopen> interface has been completely
+rewritten to use the L<IO::Gzip|IO::Gzip> for writing gzip files and
+L<IO::Gunzip|IO::Gunzip> for reading gzip files.
+
+=item 3
+
+Addition of C<gzseek> to provide a restricted C<seek> interface.
+
+=item 4.
+
+Added C<gztell>.
+
+=back
+
+A more complete and flexible interface for reading/writing gzip files/buffers
+is included with this module.  See L<IO::Gzip|IO::Gzip> and
 L<IO::Gunzip|IO::Gunzip> for more details.
 
 =over 5
@@ -971,6 +1008,11 @@ L<IO::Gunzip|IO::Gunzip> for more details.
 This function opens either the I<gzip> file C<$filename> for reading or writing
 or attaches to the opened filehandle, C<$filehandle>. It returns an object on
 success and C<undef> on failure.
+
+When writing a gzip file this interface will always create the smallest
+possible gzip header (exactly 10 bytes). If you want control over the
+information stored in the gzip header (like the original filename or a comment)
+use L<IO::Gzip|IO::Gzip> instead.
 
 The second parameter, C<$mode>, is used to specify whether the file is
 opened for reading or writing and to optionally specify a compression
@@ -987,12 +1029,13 @@ To specify the compression strategy when writing, append 'f' for filtered
 data, 'h' for Huffman only compression, or 'R' for run-length encoding.
 If no strategy is specified Z_DEFAULT_STRATEGY is used.
 
-So, fro example, "wb9" means open for writing with the maximum compression
+So, for example, "wb9" means open for writing with the maximum compression
 using the default strategy and "wb4R" means open for writing with compression
-level 4 and ren-lengh encoding.
+level 4 and run-length encoding.
 
 Refer to the I<zlib> documentation for the exact format of the C<$mode>
 parameter.
+
 
 =item B<$bytesread = $gz-E<gt>gzread($buffer [, $size]) ;>
 
@@ -1048,8 +1091,8 @@ Returns the uncompressed file offset.
 Sets the file position of the 
 
 Provides a sub-set of the C<seek> functionality, with the restriction
-that it is only legal to seek forwards in the compressed file.
-It is a fatal error to attempt to seek backwards.
+that it is only legal to seek forward in the compressed file.
+It is a fatal error to attempt to seek backward.
 
 When opened for writing, empty parts of the file will have NULL (0x00)
 bytes written to them.
@@ -1136,12 +1179,10 @@ I<gzcat> function.
     
     use Compress::Zlib ;
     
-    die "Usage: gzcat file...\n"
-        unless @ARGV ;
+    # use stdin if no files supplied
+    @ARGV = '-' unless @ARGV ;
     
-    my $file ;
-    
-    foreach $file (@ARGV) {
+    foreach my $file (@ARGV) {
         my $buffer ;
     
         my $gz = gzopen($file, "rb") 
@@ -1163,14 +1204,15 @@ very simple I<grep> like script.
     
     use Compress::Zlib ;
     
-    die "Usage: gzgrep pattern file...\n"
-        unless @ARGV >= 2;
+    die "Usage: gzgrep pattern [file...]\n"
+        unless @ARGV >= 1;
     
     my $pattern = shift ;
     
-    my $file ;
+    # use stdin if no files supplied
+    @ARGV = '-' unless @ARGV ;
     
-    foreach $file (@ARGV) {
+    foreach my $file (@ARGV) {
         my $gz = gzopen($file, "rb") 
              or die "Cannot open $file: $gzerrno\n" ;
     
@@ -1250,7 +1292,7 @@ data. Otherwise it returns I<undef>.
 The source buffer, C<$source>, can either be a scalar or a scalar
 reference.
 
-The C<$level> paramter defines the compression level. Valid values are
+The C<$level> parameter defines the compression level. Valid values are
 0 through 9, C<Z_NO_COMPRESSION>, C<Z_BEST_SPEED>,
 C<Z_BEST_COMPRESSION>, and C<Z_DEFAULT_COMPRESSION>.
 If C<$level> is not specified C<Z_DEFAULT_COMPRESSION> will be used.
@@ -1301,7 +1343,7 @@ the I<deflate> interface provided by zlib.
 
 Note: The interface defined in this section is different from version
 1.x of this module. The original deflate interface is still available
-for backward compatability and is documented in the section
+for backward compatibility and is documented in the section
 L<Compress::Zlib 1.x Deflate Interface>.
 
 Here is a definition of the interface available:
@@ -1449,7 +1491,7 @@ B<Note>: This method will not necessarily write compressed data to
 C<$output> every time it is called. So do not assume that there has been
 an error if the contents of C<$output> is empty on returning from
 this method. As long as the return code from the method is C<Z_OK>,
-the deflate has suceeded.
+the deflate has succeeded.
 
 =head2 B<$status = $d-E<gt>flush($output [, $flush_type]) >
 
@@ -1594,7 +1636,7 @@ the I<inflate> interface provided by zlib.
 
 Note: The interface defined in this section is different from version
 1.x of this module. The original inflate interface is still available
-for backward compatability and is documented in the section
+for backward compatibility and is documented in the section
 L<Compress::Zlib 1.x Inflate Interface>.
 
 Here is a definition of the interface:
@@ -2157,7 +2199,7 @@ Here is an example of using C<inflate>.
 
 Although it is possible (with some effort on your part) to use this
 module to access .zip files, there is a module on CPAN that will do all
-the hard work for you. Check out the C<Archive::Zip> mpodule on CPAN at
+the hard work for you. Check out the C<Archive::Zip> module on CPAN at
 
     http://www.cpan.org/modules/by-module/Archive/Archive-Zip-*.tar.gz    
 
@@ -2171,6 +2213,8 @@ of I<Compress::Zlib>.
 =head1 SEE ALSO
 
 L<IO::Gzip>, L<IO::Gunzip>, L<IO::Deflate>, L<IO::Inflate>, L<IO::RawDeflate>, L<IO::RawInflate>, L<IO::AnyInflate>
+
+L<Compress::Zlib::FAQ|Compress::Zlib::FAQ>
 
 L<File::GlobMapper|File::GlobMapper>, L<Archive::Tar|Archive::Zip>,
 L<IO::Zlib|IO::Zlib>
@@ -2204,6 +2248,7 @@ See the Changes file.
 Copyright (c) 1995-2005 Paul Marquess. All rights reserved.
 This program is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.
+
 
 
 

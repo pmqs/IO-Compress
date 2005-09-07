@@ -11,7 +11,7 @@ require Exporter ;
 
 use vars qw($VERSION @ISA @EXPORT_OK %EXPORT_TAGS $RawDeflateError);
 
-$VERSION = '2.000_00';
+$VERSION = '2.000_02';
 $RawDeflateError = '';
 
 @ISA = qw(Exporter IO::BaseDeflate);
@@ -113,7 +113,6 @@ to use in isolation, especially if you want to auto-detect it.
 For reading RFC 1951 files/buffers, see the companion module 
 L<IO::RawInflate|IO::RawInflate>.
 
-The tied file interface is only available if you use Perl 5.005 or better.
 
 =head1 Functional Interface
 
@@ -320,6 +319,9 @@ This parameter defaults to 0.
 
 
 
+=item -Append =E<gt> 0|1
+
+TODO
 
 
 =back
@@ -385,9 +387,20 @@ and if you want to compress each file one at a time, this will do the trick
 The format of the constructor for C<IO::RawDeflate> is shown below
 
     my $z = new IO::RawDeflate $output [,OPTS]
+        or die "IO::RawDeflate failed: $RawDeflateError\n";
 
 It returns an C<IO::RawDeflate> object on success and undef on failure. 
 The variable C<$RawDeflateError> will contain an error message on failure.
+
+If you are running Perl 5.005 or better the object, C<$z>, returned from 
+IO::RawDeflate can be used exactly like an L<IO::File|IO::File> filehandle. 
+This means that all normal output file operations can be carried out 
+with C<$z>. 
+For example, to write to a compressed file/buffer you can use either of 
+these forms
+
+    $z->print("hello world\n");
+    print $z "hello world\n";
 
 The mandatory parameter C<$output> is used to control the destination
 of the compressed data. This parameter can take one of these forms.
@@ -425,10 +438,10 @@ C<OPTS> is any combination of the following options:
 
 =item -AutoClose =E<gt> 0|1
 
-This option is only valid when the C<$output> parameter is a
-a filehandle. If specified, and the value is true,
-it will result in the file being closed once either the C<close> method is
-called or the C<IO::RawDeflate> object is destroyed.
+This option is only valid when the C<$output> parameter is a filehandle. If
+specified, and the value is true, it will result in the C<$output> being closed
+once either the C<close> method is called or the C<IO::RawDeflate> object is
+destroyed.
 
 This parameter defaults to 0.
 
@@ -436,22 +449,57 @@ This parameter defaults to 0.
 
 Opens C<$output> in append mode. 
 
-This feature operates by first scanning the complete contents of
-C<$output> to locate and change a number of markers in the compressed data.
+The behaviour of this option is dependant on the type of C<$output>.
 
-Apart from having to scan the existing compressed data, there are a
-number of other limitations with append mode.
+=over 5
+
+=item * A Buffer
+
+If C<$output> is a buffer and C<Append> is enabled, all compressed data will be
+append to the end if C<$output>. Otherwise C<$output> will be cleared before
+any data is written to it.
+
+=item * A Filename
+
+If C<$output> is a filename and C<Append> is enabled, the file will be opened
+in append mode. Otherwise the contents of the file, if any, will be truncated
+before any compressed data is written to it.
+
+=item * A Filehandle
+
+If C<$output> is a filehandle, the file pointer will be positioned to the end
+of the file via a call to C<seek> before any compressed data is written to it.
+Otherwise the file pointer will not be moved.
+
+=back
+
+This parameter defaults to 0.
+
+=item -Merge =E<gt> 0|1
+
+This option is used to compress input data and append it to an existing
+compressed data stream in C<$output>. The end result is a single compressed
+data stream stored in C<$output>. 
+
+
+
+It is a fatal error to attempt to use this option when C<$output> is not an RFC
+1951 data stream.
+
+
+
+There are a number of other limitations with the C<Merge> option:
 
 =over 5 
 
 =item 1
 
-This feature requires zlib 1.2.1 or better to work. A fatal error will
-be thrown if C<Append> is used with an older version of zlib.
+This module needs to have been built with zlib 1.2.1 or better to work. A fatal
+error will be thrown if C<Merge> is used with an older version of zlib.  
 
 =item 2
 
-If a file if being written to it must be seekable.
+If C<$output> is a file or a filehandle, it must be seekable.
 
 =back
 
@@ -760,9 +808,13 @@ TODO
 
 
 
+
+
 =head1 SEE ALSO
 
 L<Compress::Zlib>, L<IO::Gzip>, L<IO::Gunzip>, L<IO::Deflate>, L<IO::Inflate>, L<IO::RawInflate>, L<IO::AnyInflate>
+
+L<Compress::Zlib::FAQ|Compress::Zlib::FAQ>
 
 L<File::GlobMapper|File::GlobMapper>, L<Archive::Tar|Archive::Zip>,
 L<IO::Zlib|IO::Zlib>

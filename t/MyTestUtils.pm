@@ -23,9 +23,18 @@ sub like_eval
 {
     package LexFile ;
 
+    use vars qw($index);
+    $index = '00000';
+    
     sub new
     {
         my $self = shift ;
+        foreach (@_)
+        {
+            # autogenerate the name unless if none supplied
+            $_ = "tst" . $index ++ . ".tmp"
+                unless defined $_;
+        }
         unlink @_ ;
         bless [ @_ ], $self ;
     }
@@ -35,6 +44,7 @@ sub like_eval
         my $self = shift ;
         unlink @{ $self } ;
     }
+
 }
 
 {
@@ -302,15 +312,48 @@ use IO::AnyInflate qw($AnyInflateError);
 sub anyUncompress
 {
     my $buffer = shift ;
+    my $already = shift;
+
+    my @opts = ();
+    if (ref $buffer && ref $buffer eq 'ARRAY')
+    {
+        @opts = @$buffer;
+        $buffer = shift @opts;
+    }
 
     if (ref $buffer)
     {
         croak "buffer is undef" unless defined $$buffer;
         croak "buffer is empty" unless length $$buffer;
+
+    }
+
+
+    my $data ;
+    if (Compress::Zlib::Common::isaFilehandle($buffer))
+    {
+        $data = readFile($buffer);
+    }
+    elsif (Compress::Zlib::Common::isaFilename($buffer))
+    {
+        $data = readFile($buffer);
+    }
+    else
+    {
+        $data = $$buffer ;
+    }
+
+    if (defined $already && length $already)
+    {
+
+        my $got = substr($data, 0, length($already));
+        substr($data, 0, length($already)) = '';
+
+        is $got, $already, '  Already OK' ;
     }
 
     my $out = '';
-    my $o = new IO::AnyInflate $buffer, -Append => 1, Transparent => 0
+    my $o = new IO::AnyInflate \$data, -Append => 1, Transparent => 0, @opts
         or croak "Cannot open buffer/file: $AnyInflateError" ;
 
     1 while $o->read($out) > 0 ;

@@ -14,7 +14,7 @@ BEGIN
     $extra = 1
         if eval { require Test::NoWarnings ;  import Test::NoWarnings; 1 };
 
-    plan tests => 1628 + $extra ;
+    plan tests => 1781 + $extra ;
 
     use_ok('Compress::Zlib', 2) ;
 
@@ -119,8 +119,7 @@ foreach my $CompressClass ('IO::Gzip',
     eval qq[\$a = new $UncompressClass \$out ;] ;
     like $@, mkEvalErr("^$UncompressClass: input filename is undef or null string");
 
-    my $name = "test.gz" ;
-    my $lex = new LexFile $name ;
+    my $lex = new LexFile my $name ;
 
     ok ! -e $name, "  $name does not exist";
     
@@ -192,8 +191,7 @@ foreach my $CompressClass ('IO::Gzip',
         #========================================
 
 
-        my $name = "test.gz" ;
-        my $lex = new LexFile $name ;
+        my $lex = new LexFile my $name ;
 
         my $hello = <<EOM ;
 hello world
@@ -309,8 +307,7 @@ EOM
         #========================================
 
 
-        my $name = "test.gz" ;
-        my $lex = new LexFile $name ;
+        my $lex = new LexFile my $name ;
 
         my $hello = <<EOM ;
 hello world
@@ -318,7 +315,7 @@ this is a test
 EOM
 
         {
-          title "Input from typeglob filehandle";  
+          title "$CompressClass: Input from typeglob filehandle";  
           ok open FH, ">$name" ;
  
           my $x = new $CompressClass *FH  ;
@@ -330,11 +327,12 @@ EOM
           ok $x->write($hello), "  Write ok" ;
           ok $x->flush(), "  Flush";
           ok $x->close, "  Close" ;
+          close FH;
         }
 
         my $uncomp;
         {
-          title "Input from typeglob filehandle, append output";  
+          title "$UncompressClass: Input from typeglob filehandle, append output";  
           my $x ;
           ok open FH, "<$name" ;
           ok $x = new $UncompressClass *FH, -Append => 1  ;
@@ -345,7 +343,7 @@ EOM
           ok $x->close, "  close" ;
         }
 
-        is $hello, $uncomp, "  expected output" ;
+        is $uncomp, $hello, "  expected output" ;
     }
 
     {
@@ -419,13 +417,14 @@ EOM
           ok $x->close ;
       
           writeFile($name, $buffer) ;
+          #is anyUncompress(\$buffer), $hello, "  any ok";
         }
 
         my $keep = $buffer ;
         my $uncomp;
         {
           my $x ;
-          ok $x = new $UncompressClass(\$buffer, -Append => 1)  ;
+          ok $x = new $UncompressClass(\$buffer, Append => 1)  ;
 
           ok ! defined $x->fileno() ;
           1 while $x->read($uncomp) > 0  ;
@@ -433,9 +432,8 @@ EOM
           ok $x->close ;
         }
 
-        ok $hello eq $uncomp ;
+        is $uncomp, $hello ;
         ok $buffer eq $keep ;
-
     }
 
     if ($CompressClass ne 'RawDeflate')
@@ -472,8 +470,7 @@ EOM
         #========================================
 
 
-        my $name = "test.gz" ;
-        my $lex = new LexFile $name ;
+        my $lex = new LexFile my $name ;
 
         my $hello = <<EOM ;
 hello world
@@ -491,6 +488,9 @@ EOM
           $input .= $hello ;
           ok $x->write("another line"), "  write ok" ;
           $input .= "another line" ;
+          # all characters
+          foreach (0 .. 255)
+            { $contents .= chr int $_ }
           # generate a long random string
           foreach (1 .. 5000)
             { $contents .= chr int rand 256 }
@@ -501,6 +501,8 @@ EOM
         }
 
         ok myGZreadFile($name) eq $input ;
+        my $x =  readFile($name) ;
+        #print "length " . length($x) . " \n";
     }
 
     {
@@ -899,7 +901,7 @@ EOT
                         writeFile($name, $str) ;
                     }
                     else {
-                        my $iow = new $CompressClass $name ;
+                        my $iow = new $CompressClass $name;
                         $iow->print($str) ;
                         $iow->close ;
                     }
@@ -1035,6 +1037,159 @@ EOT
         like $@, mkErr("^${UncompressClass}::seek: cannot seek backwards");
     }
     
+    foreach my $fb (qw(filename buffer filehandle))
+    {
+        foreach my $append (0, 1)
+        {
+            {
+                title "$CompressClass -- Append $append, Output to $fb" ;
+
+                my $name = "test.gz" ;
+                my $lex = new LexFile $name ;
+
+                my $already = 'already';
+                my $buffer = $already;
+                my $output;
+
+                if ($fb eq 'buffer')
+                  { $output = \$buffer }
+                elsif ($fb eq 'filename')
+                {
+                    $output = $name ;
+                    writeFile($name, $buffer);
+                }
+                elsif ($fb eq 'filehandle')
+                {
+                    $output = new IO::File ">$name" ;
+                    print $output $buffer;
+                }
+
+                my $a = new $CompressClass($output, Append => $append)  ;
+                ok $a, "  Created $CompressClass";
+                my $string = "appended";
+                $a->write($string);
+                $a->close ;
+
+                my $data ; 
+                if ($fb eq 'buffer')
+                {
+                    $data = $buffer;
+                }
+                else
+                {
+                    $output->close
+                        if $fb eq 'filehandle';
+                    $data = readFile($name);
+                }
+
+                if ($append || $fb eq 'filehandle')
+                {
+                    is substr($data, 0, length($already)), $already, "  got prefix";
+                    substr($data, 0, length($already)) = '';
+                }
+
+
+                my $uncomp;
+                my $x = new $UncompressClass(\$data, Append => 1)  ;
+                ok $x, "  created $UncompressClass";
+
+                my $len ;
+                1 while ($len = $x->read($uncomp)) > 0 ;
+
+                $x->close ;
+                is $uncomp, $string, '  Got uncompressed data' ;
+                
+            }
+        }
+    }
+
+    foreach my $type (qw(buffer filename filehandle))
+    {
+        title "$UncompressClass -- InputLength, read from $type";
+
+        my $compressed ; 
+        my $string = "some data";
+        my $c = new $CompressClass(\$compressed);
+        $c->write($string);
+        $c->close();
+
+        my $appended = "append";
+        my $comp_len = length $compressed;
+        $compressed .= $appended;
+
+        my $name = "test.gz" ;
+        my $lex = new LexFile $name ;
+        my $input ;
+        writeFile ($name, $compressed);
+
+        if ($type eq 'buffer')
+        {
+            $input = \$compressed;
+        }
+        if ($type eq 'filename')
+        {
+            $input = $name;
+        }
+        elsif ($type eq 'filehandle')
+        {
+            my $fh = new IO::File "<$name" ;
+            ok $fh, "opened file $name ok";
+            $input = $fh ;
+        }
+
+        my $x = new $UncompressClass($input, InputLength => $comp_len)  ;
+        ok $x, "  created $UncompressClass";
+
+        my $len ;
+        my $output;
+        $len = $x->read($output, 100);
+        is $len, length($string);
+        is $output, $string;
+
+        if ($type eq 'filehandle')
+        {
+            my $rest ;
+            $input->read($rest, 1000);
+            is $rest, $appended;
+        }
+
+
+    }
+    
+    foreach my $append (0, 1)
+    {
+        title "$UncompressClass -- Append $append" ;
+
+        my $name = "test.gz" ;
+        my $lex = new LexFile $name ;
+
+        my $string = "appended";
+        my $compressed ; 
+        my $c = new $CompressClass(\$compressed);
+        $c->write($string);
+        $c->close();
+
+        my $x = new $UncompressClass(\$compressed, Append => $append)  ;
+        ok $x, "  created $UncompressClass";
+
+        my $already = 'already';
+        my $output = $already;
+
+        my $len ;
+        $len = $x->read($output, 100);
+        is $len, length($string);
+
+        $x->close ;
+
+        if ($append)
+        {
+            is substr($output, 0, length($already)), $already, "  got prefix";
+            substr($output, 0, length($already)) = '';
+        }
+        is $output, $string, '  Got uncompressed data' ;
+    }
+    
+
     foreach my $file (0, 1)
     {
         foreach my $trans (0, 1)
@@ -1384,6 +1539,8 @@ EOT
 #        
 #    }
 }
+
+
 
 
 

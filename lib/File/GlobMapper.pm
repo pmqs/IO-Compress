@@ -271,7 +271,7 @@ sub _parseInputGlob
     $self->{InputGlob} =~ s/$noPreBS[\(\)]//g;
     $self->{InputPattern} = $out ;
 
-    print "# INPUT '$self->{InputGlob}' => '$out'\n";
+    #print "# INPUT '$self->{InputGlob}' => '$out'\n";
 
     return 1 ;
 

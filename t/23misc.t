@@ -13,7 +13,7 @@ BEGIN {
     $extra = 1
         if eval { require Test::NoWarnings ;  import Test::NoWarnings; 1 };
 
-    plan tests => 21 + $extra ;
+    plan tests => 29 + $extra ;
 
 
     use_ok('Compress::Zlib::Common');
@@ -83,17 +83,41 @@ My::testParseParameters();
 }
 
 {
-    title "whatIs" ;
+    title "whatIsInput" ;
 
     my $out_file = "abc";
     my $lex = new LexFile($out_file) ;
     open FH, ">$out_file" ;
-    is whatIs(*FH), 'handle', "Match filehandle" ;
+    is whatIsInput(*FH), 'handle', "Match filehandle" ;
     close FH ;
 
-    is whatIs("abc"),        'filename', "Match filename";
-    is whatIs(\"abc"),       'buffer',   "Match buffer";
-    is whatIs(sub { 1 }, 1), 'code',     "Match code";
-    is whatIs(sub { 1 }),    ''   ,      "Don't match code";
+    my $stdin = '-';
+    is whatIsInput($stdin),       'handle',   "Match '-' as stdin";
+    #is $stdin,                    \*STDIN,    "'-' changed to *STDIN";
+    #isa_ok $stdin,                'IO::File',    "'-' changed to IO::File";
+    is whatIsInput("abc"),        'filename', "Match filename";
+    is whatIsInput(\"abc"),       'buffer',   "Match buffer";
+    is whatIsInput(sub { 1 }, 1), 'code',     "Match code";
+    is whatIsInput(sub { 1 }),    ''   ,      "Don't match code";
+
+}
+
+{
+    title "whatIsOutput" ;
+
+    my $out_file = "abc";
+    my $lex = new LexFile($out_file) ;
+    open FH, ">$out_file" ;
+    is whatIsOutput(*FH), 'handle', "Match filehandle" ;
+    close FH ;
+
+    my $stdout = '-';
+    is whatIsOutput($stdout),     'handle',   "Match '-' as stdout";
+    #is $stdout,                   \*STDOUT,   "'-' changed to *STDOUT";
+    #isa_ok $stdout,               'IO::File',    "'-' changed to IO::File";
+    is whatIsOutput("abc"),        'filename', "Match filename";
+    is whatIsOutput(\"abc"),       'buffer',   "Match buffer";
+    is whatIsOutput(sub { 1 }, 1), 'code',     "Match code";
+    is whatIsOutput(sub { 1 }),    ''   ,      "Don't match code";
 
 }

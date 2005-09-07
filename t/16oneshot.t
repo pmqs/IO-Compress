@@ -8,8 +8,7 @@ use Test::More ;
 use MyTestUtils;
 
 BEGIN {
-    plan(skip_all => "Top-level needs Perl 5.005 or better - you have
-Perl $]" )
+    plan(skip_all => "oneshot needs Perl 5.005 or better - you have Perl $]" )
         if $] < 5.005 ;
 
 
@@ -18,7 +17,7 @@ Perl $]" )
     $extra = 1
         if eval { require Test::NoWarnings ;  import Test::NoWarnings; 1 };
 
-    plan tests => 1827 + $extra ;
+    plan tests => 2544 + $extra ;
 
     use_ok('Compress::Zlib', 2) ;
 
@@ -191,225 +190,230 @@ foreach my $bit ('IO::Gzip',
     my $TopTypeInverse = getInverse($bit);
     my $FuncInverse = getTopFuncRef($TopTypeInverse);
 
-    for my $buffer ( undef, '', "abcde" )
+    for my $append ( 1, 0 )
     {
+        my $already = '';
+        $already = 'abcde' if $append ;
 
-        my $disp_content = defined $buffer ? $buffer : '<undef>' ;
-
-        my $keep = $buffer;
-        my $out_file = "abcde.out";
-        my $in_file = "abcde.in";
-
+        for my $buffer ( undef, '', "abcde" )
         {
-            title "$TopType - From Buff to Buff content '$disp_content'" ;
 
-            my $output ;
-            ok &$Func(\$buffer, \$output), '  Compressed ok' ;
+            my $disp_content = defined $buffer ? $buffer : '<undef>' ;
 
-            is $keep, $buffer, "  Input buffer not changed" ;
-            my $got = anyUncompress(\$output);
-            $got = undef if ! defined $buffer && $got eq '' ;
-            is $got, $buffer, "  Uncompressed matches original";
+            my $keep = $buffer;
+            my $out_file = "abcde.out";
+            my $in_file = "abcde.in";
 
-            my $output1 ;
-            ok &$FuncInverse(\$output, \$output1), '  UnCompressed ok' ;
-            $output1 = '' if ! defined $output1 ;
-            my $x = $buffer ;
-            $x = '' if ! defined $x ;
-            is $output1, $x, "  Uncompressed matches original";
+            {
+                title "$TopType - From Buff to Buff content '$disp_content' Append $append" ;
+
+                my $output = $already;
+                ok &$Func(\$buffer, \$output, Append => $append), '  Compressed ok' ;
+
+                is $keep, $buffer, "  Input buffer not changed" ;
+                my $got = anyUncompress(\$output, $already);
+                $got = undef if ! defined $buffer && $got eq '' ;
+                is $got, $buffer, "  Uncompressed matches original";
+
+            }
+
+            {
+                title "$TopType - From Buff to Array Ref content '$disp_content' Append $append" ;
+
+                my @output = ('first') ;
+                ok &$Func(\$buffer, \@output, Append => $append), '  Compressed ok' ;
+
+                is $output[0], 'first', "  Array[0] unchanged";
+                is $keep, $buffer, "  Input buffer not changed" ;
+                my $got = anyUncompress($output[1]);
+                $got = undef if ! defined $buffer && $got eq '' ;
+                is $got, $buffer, "  Uncompressed matches original";
+            }
+
+            {
+                title "$TopType - From Array Ref to Array Ref content '$disp_content' Append $append" ;
+
+                my @output = ('first') ;
+                my @input = ( \$buffer);
+                ok &$Func(\@input, \@output, Append => $append), '  Compressed ok' ;
+
+                is $output[0], 'first', "  Array[0] unchanged";
+                is $keep, $buffer, "  Input buffer not changed" ;
+                my $got = anyUncompress($output[1]);
+                $got = undef if ! defined $buffer && $got eq '' ;
+                is $got, $buffer, "  Uncompressed matches original";
+
+            }
+
+            {
+                title "$TopType - From Buff to Filename content '$disp_content' Append $append" ;
+
+                my $lex = new LexFile($out_file) ;
+                ok ! -e $out_file, "  Output file does not exist";
+                writeFile($out_file, $already);
+
+                ok &$Func(\$buffer, $out_file, Append => $append), '  Compressed ok' ;
+
+                ok -e $out_file, "  Created output file";
+                my $got = anyUncompress($out_file, $already);
+                $got = undef if ! defined $buffer && $got eq '' ;
+                is $got, $buffer, "  Uncompressed matches original";
+            }
+
+            {
+                title "$TopType - From Buff to Handle content '$disp_content' Append $append" ;
+
+                my $lex = new LexFile($out_file) ;
+
+                ok ! -e $out_file, "  Output file does not exist";
+                writeFile($out_file, $already);
+                my $of = new IO::File ">>$out_file" ;
+                ok $of, "  Created output filehandle" ;
+
+                ok &$Func(\$buffer, $of, AutoClose => 1, Append => $append), '  Compressed ok' ;
+
+                ok -e $out_file, "  Created output file";
+                my $got = anyUncompress($out_file, $already);
+                $got = undef if ! defined $buffer && $got eq '' ;
+                is $got, $buffer, "  Uncompressed matches original";
+            }
+
+
+            {
+                title "$TopType - From Filename to Filename content '$disp_content' Append $append" ;
+
+                my $lex = new LexFile($in_file, $out_file) ;
+                writeFile($in_file, $buffer);
+
+                ok ! -e $out_file, "  Output file does not exist";
+                writeFile($out_file, $already);
+
+                ok &$Func($in_file => $out_file, Append => $append), '  Compressed ok' ;
+
+                ok -e $out_file, "  Created output file";
+                my $got = anyUncompress($out_file, $already);
+                $got = undef if ! defined $buffer && $got eq '' ;
+                is $got, $buffer, "  Uncompressed matches original";
+
+            }
+
+            {
+                title "$TopType - From Filename to Handle content '$disp_content' Append $append" ;
+
+                my $lex = new LexFile($in_file, $out_file) ;
+                writeFile($in_file, $buffer);
+
+                ok ! -e $out_file, "  Output file does not exist";
+                writeFile($out_file, $already);
+                my $out = new IO::File ">>$out_file" ;
+
+                ok &$Func($in_file, $out, AutoClose => 1, Append => $append), '  Compressed ok' ;
+
+                ok -e $out_file, "  Created output file";
+                my $got = anyUncompress($out_file, $already);
+                $got = undef if ! defined $buffer && $got eq '' ;
+                is $got, $buffer, "  Uncompressed matches original";
+
+            }
+
+            {
+                title "$TopType - From Filename to Buffer content '$disp_content' Append $append" ;
+
+                my $lex = new LexFile($in_file, $out_file) ;
+                writeFile($in_file, $buffer);
+
+                my $out = $already;
+
+                ok &$Func($in_file => \$out, Append => $append), '  Compressed ok' ;
+
+                my $got = anyUncompress(\$out, $already);
+                $got = undef if ! defined $buffer && $got eq '' ;
+                is $got, $buffer, "  Uncompressed matches original";
+
+            }
+            
+            {
+                title "$TopType - From Handle to Filename content '$disp_content' Append $append" ;
+
+                my $lex = new LexFile($in_file, $out_file) ;
+                writeFile($in_file, $buffer);
+                my $in = new IO::File "<$in_file" ;
+
+                ok ! -e $out_file, "  Output file does not exist";
+                writeFile($out_file, $already);
+
+                ok &$Func($in, $out_file, Append => $append), '  Compressed ok' 
+                    or diag "error is $GzipError" ;
+
+                ok -e $out_file, "  Created output file";
+                my $got = anyUncompress($out_file, $already);
+                $got = undef if ! defined $buffer && $got eq '' ;
+                is $buffer, $got, "  Uncompressed matches original";
+
+            }
+
+            {
+                title "$TopType - From Handle to Handle content '$disp_content' Append $append" ;
+
+                my $lex = new LexFile($in_file, $out_file) ;
+                writeFile($in_file, $buffer);
+                my $in = new IO::File "<$in_file" ;
+
+                ok ! -e $out_file, "  Output file does not exist";
+                writeFile($out_file, $already);
+                my $out = new IO::File ">>$out_file" ;
+
+                ok &$Func($in, $out, AutoClose => 1, Append => $append), '  Compressed ok' ;
+
+                ok -e $out_file, "  Created output file";
+                my $got = anyUncompress($out_file, $already);
+                $got = undef if ! defined $buffer && $got eq '' ;
+                is $buffer, $got, "  Uncompressed matches original";
+
+            }
+
+            {
+                title "$TopType - From Handle to Buffer content '$disp_content' Append $append" ;
+
+                my $lex = new LexFile($in_file, $out_file) ;
+                writeFile($in_file, $buffer);
+                my $in = new IO::File "<$in_file" ;
+
+                my $out = $already ;
+
+                ok &$Func($in, \$out, Append => $append), '  Compressed ok' ;
+
+                my $got = anyUncompress(\$out, $already);
+                $got = undef if ! defined $buffer && $got eq '' ;
+                is $buffer, $got, "  Uncompressed matches original";
+
+            }
+
+            {
+                title "$TopType - From stdin (via '-') to Buffer content '$disp_content' Append $append" ;
+
+                my $lex = new LexFile($in_file, $out_file) ;
+                writeFile($in_file, $buffer);
+
+                ok open(SAVEIN, "<&STDIN"), "  save STDIN";
+                my $dummy = fileno SAVEIN ;
+                ok open(STDIN, "<$in_file"), "  redirect STDIN";
+
+                my $out = $already;
+
+                ok &$Func('-', \$out, Append => $append), '  Compressed ok' 
+                    or diag $$Error ;
+
+                ok open(STDIN, "<&SAVEIN"), "  put STDIN back";
+
+                my $got = anyUncompress(\$out, $already);
+                $got = undef if ! defined $buffer && $got eq '' ;
+                is $buffer, $got, "  Uncompressed matches original";
+
+            }
+
         }
-
-        {
-            title "$TopType - From Buff to Array Ref content '$disp_content'" ;
-
-            my @output = ('first') ;
-            ok &$Func(\$buffer, \@output), '  Compressed ok' ;
-
-            is $output[0], 'first', "  Array[0] unchanged";
-            is $keep, $buffer, "  Input buffer not changed" ;
-            my $got = anyUncompress($output[1]);
-            $got = undef if ! defined $buffer && $got eq '' ;
-            is $got, $buffer, "  Uncompressed matches original";
-        }
-
-        {
-            title "$TopType - From Array Ref to Array Ref content '$disp_content'" ;
-
-            my @output = ('first') ;
-            my @input = ( \$buffer);
-            ok &$Func(\@input, \@output), '  Compressed ok' ;
-
-            is $output[0], 'first', "  Array[0] unchanged";
-            is $keep, $buffer, "  Input buffer not changed" ;
-            my $got = anyUncompress($output[1]);
-            $got = undef if ! defined $buffer && $got eq '' ;
-            is $got, $buffer, "  Uncompressed matches original";
-
-        }
-
-        {
-            title "$TopType - From Buff to Filename content '$disp_content'" ;
-
-            my $lex = new LexFile($out_file) ;
-            ok ! -e $out_file, "  Output file does not exist";
-
-            ok &$Func(\$buffer, $out_file), '  Compressed ok' ;
-
-            ok -e $out_file, "  Created output file";
-            my $got = anyUncompress($out_file);
-            $got = undef if ! defined $buffer && $got eq '' ;
-            is $got, $buffer, "  Uncompressed matches original";
-        }
-
-        {
-            title "$TopType - From Buff to Handle content '$disp_content'" ;
-
-            my $lex = new LexFile($out_file) ;
-
-            ok ! -e $out_file, "  Output file does not exist";
-            my $of = new IO::File ">$out_file" ;
-            ok $of, "  Created output filehandle" ;
-
-            ok &$Func(\$buffer, $of, AutoClose => 1), '  Compressed ok' ;
-
-            ok -e $out_file, "  Created output file";
-            my $got = anyUncompress($out_file);
-            $got = undef if ! defined $buffer && $got eq '' ;
-            is $got, $buffer, "  Uncompressed matches original";
-        }
-
-
-        {
-            title "$TopType - From Filename to Filename content '$disp_content'" ;
-
-            my $lex = new LexFile($in_file, $out_file) ;
-            writeFile($in_file, $buffer);
-
-            ok ! -e $out_file, "  Output file does not exist";
-
-            ok &$Func($in_file, $out_file), '  Compressed ok' ;
-
-            ok -e $out_file, "  Created output file";
-            my $got = anyUncompress($out_file);
-            $got = undef if ! defined $buffer && $got eq '' ;
-            is $got, $buffer, "  Uncompressed matches original";
-
-        }
-
-        {
-            title "$TopType - From Filename to Handle content '$disp_content'" ;
-
-            my $lex = new LexFile($in_file, $out_file) ;
-            writeFile($in_file, $buffer);
-
-            ok ! -e $out_file, "  Output file does not exist";
-            my $out = new IO::File ">$out_file" ;
-
-            ok &$Func($in_file, $out, AutoClose => 1), '  Compressed ok' ;
-
-            ok -e $out_file, "  Created output file";
-            my $got = anyUncompress($out_file);
-            $got = undef if ! defined $buffer && $got eq '' ;
-            is $got, $buffer, "  Uncompressed matches original";
-
-        }
-
-        {
-            title "$TopType - From Filename to Buffer content '$disp_content'" ;
-
-            my $lex = new LexFile($in_file, $out_file) ;
-            writeFile($in_file, $buffer);
-
-            my $out ;
-
-            ok &$Func($in_file, \$out), '  Compressed ok' ;
-
-            my $got = anyUncompress(\$out);
-            $got = undef if ! defined $buffer && $got eq '' ;
-            is $got, $buffer, "  Uncompressed matches original";
-
-        }
-        
-        {
-            title "$TopType - From Handle to Filename content '$disp_content'" ;
-
-            my $lex = new LexFile($in_file, $out_file) ;
-            writeFile($in_file, $buffer);
-            my $in = new IO::File "<$in_file" ;
-
-            ok ! -e $out_file, "  Output file does not exist";
-
-            ok &$Func($in, $out_file), '  Compressed ok' 
-                or diag "error is $GzipError" ;
-
-            ok -e $out_file, "  Created output file";
-            my $got = anyUncompress($out_file);
-            $got = undef if ! defined $buffer && $got eq '' ;
-            is $buffer, $got, "  Uncompressed matches original";
-
-        }
-
-        {
-            title "$TopType - From Handle to Handle content '$disp_content'" ;
-
-            my $lex = new LexFile($in_file, $out_file) ;
-            writeFile($in_file, $buffer);
-            my $in = new IO::File "<$in_file" ;
-
-            ok ! -e $out_file, "  Output file does not exist";
-            my $out = new IO::File ">$out_file" ;
-
-            ok &$Func($in, $out, AutoClose => 1), '  Compressed ok' ;
-
-            ok -e $out_file, "  Created output file";
-            my $got = anyUncompress($out_file);
-            $got = undef if ! defined $buffer && $got eq '' ;
-            is $buffer, $got, "  Uncompressed matches original";
-
-        }
-
-        {
-            title "$TopType - From Handle to Buffer content '$disp_content'" ;
-
-            my $lex = new LexFile($in_file, $out_file) ;
-            writeFile($in_file, $buffer);
-            my $in = new IO::File "<$in_file" ;
-
-            my $out ;
-
-            ok &$Func($in, \$out), '  Compressed ok' ;
-
-            my $got = anyUncompress(\$out);
-            $got = undef if ! defined $buffer && $got eq '' ;
-            is $buffer, $got, "  Uncompressed matches original";
-
-        }
-
-        {
-            title "$TopType - From stdin (via '-') to Buffer content '$disp_content'" ;
-
-            my $lex = new LexFile($in_file, $out_file) ;
-            writeFile($in_file, $buffer);
-
-            ok open(SAVEIN, "<&STDIN"), "  save STDIN";
-            my $dummy = fileno SAVEIN ;
-            ok open(STDIN, "<$in_file"), "  redirect STDIN";
-
-            my $out ;
-
-            ok &$Func('-', \$out), '  Compressed ok' 
-                or diag $$Error ;
-
-            ok open(STDIN, "<&SAVEIN"), "  put STDIN back";
-
-            my $got = anyUncompress(\$out);
-            $got = undef if ! defined $buffer && $got eq '' ;
-            is $buffer, $got, "  Uncompressed matches original";
-
-        }
-
     }
-
 }
 
 foreach my $bit ('IO::Gzip',     
@@ -601,7 +605,6 @@ foreach my $bit ('IO::Gzip',
         }
     }
 
-    #exit;
 
 #    if (0)
 #    {
@@ -746,7 +749,7 @@ foreach my $bit ('IO::Gzip',
 
             #hexDump(\$buffer);
 
-            my $got = anyUncompress(\$buffer, MultiStream => 1);
+            my $got = anyUncompress([ \$buffer, MultiStream => 1 ]);
 
             is $got, join("", @expected), "  got expected" ;
         }
@@ -762,7 +765,7 @@ foreach my $bit ('IO::Gzip',
 
             #hexDump(\$buffer);
 
-            my $got = anyUncompress($filename, MultiStream => 1);
+            my $got = anyUncompress([$filename, MultiStream => 1]);
 
             is $got, join("", @expected), "  got expected" ;
         }
@@ -779,7 +782,7 @@ foreach my $bit ('IO::Gzip',
 
             #hexDump(\$buffer);
 
-            my $got = anyUncompress($filename, MultiStream => 1);
+            my $got = anyUncompress([$filename, MultiStream => 1]);
 
             is $got, join("", @expected), "  got expected" ;
         }
@@ -798,10 +801,11 @@ foreach my $bit ('IO::Gunzip',
     my $TopType = getTopFuncName($bit);
 
     my $buffer = "abcde" ;
+    my $buffer2 = "ABCDE" ;
     my $keep_orig = $buffer;
 
-
     my $comp = compressBuffer($TopType, $buffer) ;
+    my $comp2 = compressBuffer($TopType, $buffer2) ;
     my $keep_comp = $comp;
 
     my $incumbent = "incumbent data" ;
@@ -1039,6 +1043,77 @@ foreach my $bit ('IO::Gunzip',
         }
     }
 
+    {
+        title "$TopType - From Handle to Buffer, InputLength" ;
+
+        my $out_file = "abcde.out";
+        my $in_file = "abcde.in";
+        my $lex = new LexFile($in_file, $out_file) ;
+        my $out ;
+
+        my $expected = $buffer ;
+        my $appended = 'appended';
+        my $len_appended = length $appended;
+        writeFile($in_file, $comp . $appended . $comp . $appended) ;
+        my $in = new IO::File "<$in_file" ;
+
+        ok &$Func($in, \$out, Transparent => 0, InputLength => length $comp), '  Uncompressed ok' ;
+
+        is $out, $expected, "  Uncompressed matches original";
+
+        my $buff;
+        is $in->read($buff, $len_appended), $len_appended, "  Length of Appended data ok";
+        is $buff, $appended, "  Appended data ok";
+
+        $out = '';
+        ok &$Func($in, \$out, Transparent => 0, InputLength => length $comp), '  Uncompressed ok' ;
+
+        is $out, $expected, "  Uncompressed matches original";
+
+        $buff = '';
+        is $in->read($buff, $len_appended), $len_appended, "  Length of Appended data ok";
+        is $buff, $appended, "  Appended data ok";
+    }
+
+    for my $stdin ('-', *STDIN) # , \*STDIN)
+    {
+        title "$TopType - From stdin (via $stdin) to Buffer content, InputLength" ;
+
+        my $in_file = "abcde.in";
+        my $lex = new LexFile($in_file) ;
+        my $expected = $buffer ;
+        my $appended = 'appended';
+        my $len_appended = length $appended;
+        writeFile($in_file, $comp . $appended . $comp . $appended) ;
+
+        ok open(SAVEIN, "<&STDIN"), "  save STDIN";
+        my $dummy = fileno SAVEIN ;
+        ok open(STDIN, "<$in_file"), "  redirect STDIN";
+
+        my $output ;
+
+        ok &$Func($stdin, \$output, Transparent => 0, InputLength => length $comp), '  Uncompressed ok' 
+            or diag $$Error ;
+
+        my $buff ;
+        is read(STDIN, $buff, $len_appended), $len_appended, "  Length of Appended data ok";
+
+        is $output, $expected, "  Uncompressed matches original";
+        is $buff, $appended, "  Appended data ok";
+
+        $output = '';
+        ok &$Func($stdin, \$output, Transparent => 0, InputLength => length $comp), '  Uncompressed ok' 
+            or diag $$Error ;
+
+        $buff = '';
+        is read(STDIN, $buff, $len_appended), $len_appended, "  Length of Appended data ok"
+            or diag "read failed $!";
+
+        is $output, $expected, "  Uncompressed matches original";
+        is $buff, $appended, "  Appended data ok";
+
+        ok open(STDIN, "<&SAVEIN"), "  put STDIN back";
+    }
 }
 
 foreach my $bit ('IO::Gunzip',     

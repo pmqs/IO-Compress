@@ -10,7 +10,7 @@ require Exporter ;
 
 use vars qw($VERSION @ISA @EXPORT_OK %EXPORT_TAGS $AnyInflateError);
 
-$VERSION = '2.000_00';
+$VERSION = '2.000_02';
 $AnyInflateError = '';
 
 @ISA    = qw(Exporter IO::BaseInflate);
@@ -320,6 +320,12 @@ This parameter defaults to 0.
 
 
 
+=item -Append =E<gt> 0|1
+
+TODO
+
+
+
 =back
 
 
@@ -384,9 +390,20 @@ and if you want to compress each file one at a time, this will do the trick
 The format of the constructor for IO::AnyInflate is shown below
 
 
-    my $z = new IO::AnyInflate $input [OPTS];
+    my $z = new IO::AnyInflate $input [OPTS]
+        or die "IO::AnyInflate failed: $AnyInflateError\n";
 
-Returns an IO::AnyInflate object on success and undef on failure.
+Returns an C<IO::AnyInflate> object on success and undef on failure.
+The variable C<$AnyInflateError> will contain an error message on failure.
+
+If you are running Perl 5.005 or better the object, C<$z>, returned from 
+IO::AnyInflate can be used exactly like an L<IO::File|IO::File> filehandle. 
+This means that all normal input file operations can be carried out with C<$z>. 
+For example, to read a line from a compressed file/buffer you can use either 
+of these forms
+
+    $line = $z->getline();
+    $line = <$z>;
 
 The mandatory parameter C<$input> is used to determine the source of the
 compressed data. This parameter can take one of three forms.
@@ -474,14 +491,30 @@ of C<$num> bytes.
 
 This option defaults to 4096.
 
+=item -InputLength =E<gt> $size
+
+When present this option will limit the number of compressed bytes read from
+the input file/buffer to C<$size>. This option can be used in the situation
+where there is useful data directly after the compressed data stream and you
+know beforehand the exact length of the compressed data stream. 
+
+This option is mostly used when reading from a filehandle, in which case the
+file pointer will be left pointing to the first byte directly after the
+compressed data stream.
+
+
+
+This option defaults to off.
+
 =item -Append =E<gt> 0|1
 
 This option controls what the C<read> method does with uncompressed data.
 
-If set to 1, all uncompressed data will be appended to the output parameter.
+If set to 1, all uncompressed data will be appended to the output parameter of
+the C<read> method.
 
-If set to 0, the contents of the output parameter will be overwritten by the
-uncompressed data.
+If set to 0, the contents of the output parameter of the C<read> method will be
+overwritten by the uncompressed data.
 
 Defaults to 0.
 
@@ -790,6 +823,8 @@ Same as doing this
 =head1 SEE ALSO
 
 L<Compress::Zlib>, L<IO::Gzip>, L<IO::Gunzip>, L<IO::Deflate>, L<IO::Inflate>, L<IO::RawDeflate>, L<IO::RawInflate>
+
+L<Compress::Zlib::FAQ|Compress::Zlib::FAQ>
 
 L<File::GlobMapper|File::GlobMapper>, L<Archive::Tar|Archive::Zip>,
 L<IO::Zlib|IO::Zlib>

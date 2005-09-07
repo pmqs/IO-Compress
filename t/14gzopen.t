@@ -14,7 +14,7 @@ BEGIN {
     $extra = 1
         if eval { require Test::NoWarnings ;  import Test::NoWarnings; 1 };
 
-    plan tests => 186 + $extra ;
+    plan tests => 212 + $extra ;
 
     use_ok('Compress::Zlib', 2) ;
     use_ok('Compress::Gzip::Constants') ;
@@ -282,7 +282,7 @@ unlink $name ;
 }
 
 {
-    title "Pass gzopen a filehandle" ;
+    title "Pass gzopen a filehandle - use IO::File" ;
 
     my $name = "test.gz" ;
     my $lex = new LexFile $name ;
@@ -319,8 +319,9 @@ unlink $name ;
 
 }
 
+
 {
-    title "Pass gzopen a filehandle" ;
+    title "Pass gzopen a filehandle - use open" ;
 
     my $name = "test.gz" ;
     my $lex = new LexFile $name ;
@@ -355,6 +356,61 @@ unlink $name ;
 
 
 }
+
+foreach my $stdio ( ['-', '-'], [*STDIN, *STDOUT])
+{
+    my $stdin = $stdio->[0];
+    my $stdout = $stdio->[1];
+
+    title "Pass gzopen a filehandle - use $stdin" ;
+
+    my $name = "test.gz" ;
+    my $lex = new LexFile $name ;
+
+    my $hello = "hello" ;
+    my $len = length $hello ;
+
+    unlink $name ;
+
+    ok open(SAVEOUT, ">&STDOUT"), "  save STDOUT";
+    my $dummy = fileno SAVEOUT;
+    ok open(STDOUT, ">$name"), "  redirect STDOUT" ;
+    
+    my $status = 0 ;
+
+    my $fil = gzopen($stdout, "wb") ;
+
+    $status = $fil && 
+              ($fil->gzwrite($hello) == $len) &&
+              ($fil->gzclose == 0) ;
+
+    open(STDOUT, ">&SAVEOUT");
+
+    ok $status, "  wrote to stdout";
+
+    ok open(SAVEIN, "<&STDIN"), "  save STDIN";
+    ok open(STDIN, "<$name"), "  redirect STDIN";
+    $dummy = fileno SAVEIN;
+
+    ok $fil = gzopen($stdin, "rb") ;
+
+    my $uncmomp;
+    ok (($x = $fil->gzread($uncomp)) == $len) 
+        or print "# length $x, expected $len\n" ;
+
+    ok   $fil->gzeof() ;
+    ok ! $fil->gzclose ;
+    ok   $fil->gzeof() ;
+
+    ok open(STDIN, "<&SAVEIN"), "  put STDIN back";
+
+    unlink $name ;
+
+    ok $hello eq $uncomp ;
+
+
+}
+
 {
     title 'test parameters for gzopen';
     my $name = "test.gz" ;

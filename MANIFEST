@@ -7,13 +7,13 @@ lib/IO/AnyInflate.pm
 lib/IO/Deflate.pm
 lib/IO/RawDeflate.pm
 lib/Compress/Gzip/Constants.pm
-lib/Compress/Gzip/Info.pm
 lib/Compress/Zlib/FileConstants.pm
 lib/Compress/Zlib/Common.pm
 lib/Compress/Zlib/ParseParameters.pm
 lib/File/GlobMapper.pm
 MANIFEST
 Makefile.PL
+pod/FAQ.pod
 README
 Zlib.pm
 Zlib.xs
@@ -41,13 +41,13 @@ t/12any.t
 t/13prime.t
 t/14gzopen.t
 t/15multi.t
-t/16top.t
+t/16oneshot.t
 t/17isize.t
 t/18lvalue.t
 t/19destroy.t
 t/20tied.t
 t/21newtied.t
-t/22append.t
+t/22merge.t
 t/23misc.t
 t/99pod.t
 t/globmapper.t
@@ -77,4 +77,4 @@ zlib-src/zconf.h
 zlib-src/zlib.h
 zlib-src/zutil.c
 zlib-src/zutil.h
-META.yml
+META.yml                                 Module meta-data (added by MakeMaker)

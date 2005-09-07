@@ -11,16 +11,57 @@ use File::GlobMapper;
 require Exporter;
 use vars qw($VERSION @ISA @EXPORT);
 @ISA = qw(Exporter);
-$VERSION = '2.000_00';
+$VERSION = '2.000_02';
 
-@EXPORT = qw( isaFilehandle isaFilename whatIs ckInputParam 
+@EXPORT = qw( isaFilehandle isaFilename whatIsInput whatIsOutput ckInputParam 
               isaFileGlobString cleanFileGlobString oneTarget
+              setBinModeInput setBinModeOutput
               ckOutputParam ckInOutParams 
               WANT_CODE
               WANT_EXT
               WANT_UNDEF
               WANT_HASH
           );  
+
+sub setBinModeInput($)
+{
+    my $handle = shift ;
+
+    #binmode $handle if $] == 5.008 ;
+    #binmode $handle unless isSTDIN($handle) ;
+}
+
+sub setBinModeOutput($)
+{
+    my $handle = shift ;
+
+    #binmode $handle if $] == 5.008;
+    #binmode $handle unless isSTDOUT($handle) ;
+}
+
+#sub isSTDIO($)
+#{
+#    my $handle = shift ;
+#
+#    return 0 unless isaFilehandle($handle);
+#    return fileno $handle == fileno STDIN || fileno $handle == fileno STDOUT;
+#}
+#
+#sub isSTDIN($)
+#{
+#    my $handle = shift ;
+#
+#    return 0 unless isaFilehandle($handle);
+#    return fileno $handle == fileno STDIN;
+#}
+#
+#sub isSTDOUT($)
+#{
+#    my $handle = shift ;
+#
+#    return 0 unless isaFilehandle($handle);
+#    return fileno $handle == fileno STDOUT;
+#}
 
 sub isaFilehandle($)
 {
@@ -56,6 +97,35 @@ use constant WANT_EXT   => 2 ;
 use constant WANT_UNDEF => 4 ;
 use constant WANT_HASH  => 8 ;
 
+sub whatIsInput($;$)
+{
+    my $got = whatIs(@_);
+    #return $got;
+    if (defined $got && $got eq 'filename' && defined $_[0] && $_[0] eq '-')
+    {
+        use IO::File;
+        $got = 'handle';
+        #$_[0] = \*STDIN;
+        $_[0] = new IO::File("<-");
+    }
+
+    return $got;
+}
+
+sub whatIsOutput($;$)
+{
+    my $got = whatIs(@_);
+    #return $got;
+    if (defined $got && $got eq 'filename' && defined $_[0] && $_[0] eq '-')
+    {
+        $got = 'handle';
+        #$_[0] = \*STDOUT;
+        $_[0] = new IO::File(">-");
+    }
+    
+    return $got;
+}
+
 sub whatIs ($;$)
 {
     return 'handle' if isaFilehandle($_[0]);
@@ -89,7 +159,7 @@ sub oneTarget
 sub ckInputParam ($$$;$)
 {
     my $from = shift ;
-    my $inType = whatIs($_[0], $_[2]);
+    my $inType = whatIsInput($_[0], $_[2]);
     local $Carp::CarpLevel = 1;
 
     croak "$from: input parameter not a filename, filehandle, array ref or scalar ref"
@@ -113,7 +183,7 @@ sub ckInputParam ($$$;$)
 sub ckOutputParam ($$$)
 {
     my $from = shift ;
-    my $outType = whatIs($_[0]);
+    my $outType = whatIsOutput($_[0]);
     local $Carp::CarpLevel = 1;
 
     croak "$from: output parameter not a filename, filehandle or scalar ref"
@@ -170,8 +240,8 @@ sub Validator::new
 
     local $Carp::CarpLevel = 1;
 
-    my $inType    = $data{inType}    = whatIs($_[0], WANT_EXT|WANT_HASH);
-    my $outType   = $data{outType}   = whatIs($_[1], WANT_EXT|WANT_HASH);
+    my $inType    = $data{inType}    = whatIsInput($_[0], WANT_EXT|WANT_HASH);
+    my $outType   = $data{outType}   = whatIsOutput($_[1], WANT_EXT|WANT_HASH);
 
     my $oneInput  = $data{oneInput}  = oneTarget($inType);
     my $oneOutput = $data{oneOutput} = oneTarget($outType);
@@ -309,7 +379,7 @@ sub Validator::validateInputArray
 
     foreach my $element ( @{ $_[0] } )
     {
-        my $inType  = whatIs($element);
+        my $inType  = whatIsInput($element);
     
         if (! $inType)
         {
@@ -328,8 +398,8 @@ sub Validator::validateHash
 
     while (my($k, $v) = each %$href)
     {
-        my $ktype = whatIs($k);
-        my $vtype = whatIs($v, WANT_EXT|WANT_UNDEF) ;
+        my $ktype = whatIsInput($k);
+        my $vtype = whatIsOutput($v, WANT_EXT|WANT_UNDEF) ;
 
         if ($ktype ne 'filename')
         {

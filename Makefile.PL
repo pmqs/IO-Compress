@@ -182,6 +182,18 @@ else {
     }
 }
 
+sub MY::libscan
+{
+    my $self = shift;
+    my $path = shift;
+
+    return undef
+        if $path =~ /(~|\.bak|_bak)$/ ||
+           $path =~ /\..*\.swp$/ ;
+
+    return $path;
+}
+
 sub MY::postamble 
 {
     my $postamble = <<'EOM';
@@ -433,6 +445,8 @@ sub doUpDown
 {
     my $our_sub = shift;
     my $warn_sub = shift;
+
+    return if -d $_[0];
 
     local ($^I) = ($^O eq 'VMS') ? "_bak" : ".bak";
     local (@ARGV) = shift;

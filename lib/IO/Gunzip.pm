@@ -14,7 +14,7 @@ use vars qw($VERSION @ISA @EXPORT_OK $GunzipError);
 @EXPORT_OK = qw( $GunzipError gunzip );
 $GunzipError = '';
 
-$VERSION = '2.000_00';
+$VERSION = '2.000_02';
 
 sub new
 {
@@ -35,7 +35,7 @@ local ($^W) = 1; #use warnings;
 
 use vars qw($VERSION %EXPORT_TAGS);
 
-$VERSION = '2.000_00';
+$VERSION = '2.000_02';
 
 use Compress::Zlib 2 ;
 use Compress::Zlib::Common ;
@@ -46,6 +46,7 @@ use Compress::Zlib::FileConstants;
 use IO::File ;
 use Symbol;
 use Scalar::Util qw(readonly);
+use List::Util qw(min);
 use Carp ;
 
 %EXPORT_TAGS = ( );
@@ -62,16 +63,27 @@ sub smartRead
 
     my $offset = 0 ;
 
+
     if ( length *$self->{Prime} ) {
         #$$out = substr(*$self->{Prime}, 0, $size, '') ;
         $$out = substr(*$self->{Prime}, 0, $size) ;
         substr(*$self->{Prime}, 0, $size) =  '' ;
-        return length $$out 
-            if length $$out == $size ;
+        if (length $$out == $size) {
+            #*$self->{InputLengthRemaining} -= length $$out;
+            return length $$out ;
+        }
         $offset = length $$out ;
     }
 
     my $get_size = $size - $offset ;
+
+    if ( defined *$self->{InputLength} ) {
+        #*$self->{InputLengthRemaining} += length *$self->{Prime} ;
+        #*$self->{InputLengthRemaining} = *$self->{InputLength}
+        #    if *$self->{InputLengthRemaining} > *$self->{InputLength};
+        $get_size = min($get_size, *$self->{InputLengthRemaining});
+    }
+
     if (defined *$self->{FH})
       { *$self->{FH}->read($$out, $get_size, $offset) }
     elsif (defined *$self->{InputEvent}) {
@@ -98,6 +110,8 @@ sub smartRead
        *$self->{BufferOffset} += length($$out) - $offset ;
     }
 
+    *$self->{InputLengthRemaining} -= length $$out;
+        
     $self->saveStatus(length $$out < 0 ? Z_DATA_ERROR : 0) ;
 
     return length $$out;
@@ -594,6 +608,8 @@ sub checkParams
                     'MultiStream'   => [Parse_boolean,  0],
                     'Transparent'   => [Parse_any,      1],
                     'Scan'          => [Parse_boolean,  0],
+                    'InputLength'   => [Parse_unsigned, undef],
+
                     #'Todo - Revert to ordinary file on end Z_STREAM_END'=> 0,
                     # ContinueAfterEof
                 } ;
@@ -628,7 +644,7 @@ sub new
             or return undef ;
     }
 
-    my $inType  = whatIs($inValue, 1);
+    my $inType  = whatIsInput($inValue, 1);
 
     ckInputParam($class, $inValue, $error_ref, 1) 
         or return undef ;
@@ -657,17 +673,23 @@ sub new
         else {    
             my $mode = '<';
             $mode = '+<' if $got->value('Scan');
+            *$obj->{StdIO} = ($inValue eq '-');
             *$obj->{FH} = new IO::File "$mode $inValue"
                 or return $obj->saveErrorString(undef, "cannot open file '$inValue': $!", $!) ;
             *$obj->{LineNo} = 0;
         }
-        binmode *$obj->{FH};
+        # Setting STDIN to binmode causes grief
+        setBinModeInput(*$obj->{FH}) ;
 
         my $buff = "" ;
         *$obj->{Buffer} = \$buff ;
     }
 
 
+    *$obj->{InputLength}       = $got->parsed('InputLength') 
+                                    ? $got->value('InputLength')
+                                    : undef ;
+    *$obj->{InputLengthRemaining} = $got->value('InputLength');
     *$obj->{BufferOffset}      = 0 ;
     *$obj->{AutoClose}         = $got->value('AutoClose');
     *$obj->{Strict}            = $got->value('Strict');
@@ -920,6 +942,8 @@ sub _singleTarget
     my $input     = shift;
     my $output    = shift;
     
+    $x->{buff} = '' ;
+
     my $fh ;
     if ($x->{outType} eq 'filename') {
         my $mode = '>' ;
@@ -927,20 +951,26 @@ sub _singleTarget
             if $x->{Got}->value('Append') ;
         $x->{fh} = new IO::File "$mode $output" 
             or return retErr($x, "cannot open file '$output': $!") ;
-            #or return $gunzip->saveErrorString(undef, "cannot open file '$output': $!", $!) ;
+        setBinModeOutput($x->{fh});
+
     }
 
-    if ($x->{outType} eq 'handle') {
+    elsif ($x->{outType} eq 'handle') {
         $x->{fh} = $output;
+        setBinModeOutput($x->{fh});
         if ($x->{Got}->value('Append')) {
                 seek($x->{fh}, 0, SEEK_END)
                     or return retErr($x, "Cannot seek to end of output filehandle: $!") ;
-                #    or return $gunzip->saveErrorString(undef, "Cannot seek to end of output filehandle: $!", $!) ;
             }
     }
 
-    $x->{buff} = '' ;
-    $x->{buff} = $output if $x->{outType} eq 'buffer' ;
+    
+    elsif ($x->{outType} eq 'buffer' )
+    {
+        $$output = '' 
+            unless $x->{Got}->value('Append');
+        $x->{buff} = $output ;
+    }
 
     if ($x->{oneInput})
     {
@@ -959,7 +989,7 @@ sub _singleTarget
     }
 
 
-    if (  $x->{outType} eq 'filename' || 
+    if ( ($x->{outType} eq 'filename' && $output ne '-') || 
          ($x->{outType} eq 'handle' && $x->{Got}->value('AutoClose'))) {
         $x->{fh}->close() 
             or return retErr($x, $!); 
@@ -1496,7 +1526,7 @@ sub close
     my $status = 1 ;
 
     if (defined *$self->{FH}) {
-        if (! *$self->{Handle} || *$self->{AutoClose}) {
+        if ((! *$self->{Handle} || *$self->{AutoClose}) && ! *$self->{StdIO}) {
         #if ( *$self->{AutoClose}) {
             $! = 0 ;
             $status = *$self->{FH}->close();
@@ -1568,7 +1598,11 @@ sub fileno
 
 sub binmode
 {
-    return 1 ;
+    1;
+#    my $self     = shift ;
+#    return defined *$self->{FH} 
+#            ? binmode *$self->{FH} 
+#            : 1 ;
 }
 
 *BINMODE  = \&binmode;
@@ -1952,6 +1986,12 @@ This parameter defaults to 0.
 
 
 
+=item -Append =E<gt> 0|1
+
+TODO
+
+
+
 =back
 
 
@@ -2016,9 +2056,20 @@ and if you want to compress each file one at a time, this will do the trick
 The format of the constructor for IO::Gunzip is shown below
 
 
-    my $z = new IO::Gunzip $input [OPTS];
+    my $z = new IO::Gunzip $input [OPTS]
+        or die "IO::Gunzip failed: $GunzipError\n";
 
-Returns an IO::Gunzip object on success and undef on failure.
+Returns an C<IO::Gunzip> object on success and undef on failure.
+The variable C<$GunzipError> will contain an error message on failure.
+
+If you are running Perl 5.005 or better the object, C<$z>, returned from 
+IO::Gunzip can be used exactly like an L<IO::File|IO::File> filehandle. 
+This means that all normal input file operations can be carried out with C<$z>. 
+For example, to read a line from a compressed file/buffer you can use either 
+of these forms
+
+    $line = $z->getline();
+    $line = <$z>;
 
 The mandatory parameter C<$input> is used to determine the source of the
 compressed data. This parameter can take one of three forms.
@@ -2106,14 +2157,30 @@ of C<$num> bytes.
 
 This option defaults to 4096.
 
+=item -InputLength =E<gt> $size
+
+When present this option will limit the number of compressed bytes read from
+the input file/buffer to C<$size>. This option can be used in the situation
+where there is useful data directly after the compressed data stream and you
+know beforehand the exact length of the compressed data stream. 
+
+This option is mostly used when reading from a filehandle, in which case the
+file pointer will be left pointing to the first byte directly after the
+compressed data stream.
+
+
+
+This option defaults to off.
+
 =item -Append =E<gt> 0|1
 
 This option controls what the C<read> method does with uncompressed data.
 
-If set to 1, all uncompressed data will be appended to the output parameter.
+If set to 1, all uncompressed data will be appended to the output parameter of
+the C<read> method.
 
-If set to 0, the contents of the output parameter will be overwritten by the
-uncompressed data.
+If set to 0, the contents of the output parameter of the C<read> method will be
+overwritten by the uncompressed data.
 
 Defaults to 0.
 
@@ -2421,6 +2488,8 @@ Same as doing this
 =head1 SEE ALSO
 
 L<Compress::Zlib>, L<IO::Gzip>, L<IO::Deflate>, L<IO::Inflate>, L<IO::RawDeflate>, L<IO::RawInflate>, L<IO::AnyInflate>
+
+L<Compress::Zlib::FAQ|Compress::Zlib::FAQ>
 
 L<File::GlobMapper|File::GlobMapper>, L<Archive::Tar|Archive::Zip>,
 L<IO::Zlib|IO::Zlib>

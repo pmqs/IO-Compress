@@ -22,7 +22,7 @@ use IO::RawInflate qw($RawInflateError);
 
 BEGIN 
 { 
-    plan(skip_all => "Append needs Zlib 1.2.1 or better - you have Zlib "  
+    plan(skip_all => "Merge needs Zlib 1.2.1 or better - you have Zlib "  
                 . Compress::Zlib::zlib_version()) 
         if ZLIB_VERNUM() < 0x1210 ;
 
@@ -68,9 +68,9 @@ foreach my $CompressClass ( map { "IO::$_" } qw( Gzip RawDeflate Deflate) )
     foreach my $to_file (0,1)
     {
         if ($to_file)
-          { title "$CompressClass - Append to filename that isn't writable" }
+          { title "$CompressClass - Merge to filename that isn't writable" }
         else  
-          { title "$CompressClass - Append to filehandle that isn't writable" }
+          { title "$CompressClass - Merge to filehandle that isn't writable" }
 
         my $out_file = 'abcde.out';
         my $lex = new LexFile($out_file) ;
@@ -92,7 +92,7 @@ foreach my $CompressClass ( map { "IO::$_" } qw( Gzip RawDeflate Deflate) )
         else
           { $dest = new IO::File "<$out_file"  }
 
-        my $gz = $CompressClass->new($dest, Append => 1) ;
+        my $gz = $CompressClass->new($dest, Merge => 1) ;
         
         ok ! $gz, "  Did not create $CompressClass object";
 
@@ -146,7 +146,7 @@ foreach my $CompressClass ( map { "IO::$_" } qw( Gzip RawDeflate Deflate) )
               { $buffer = $out_file }
         }
 
-        ok ! $CompressClass->new($buffer, Append => 1), "  constructor fails";
+        ok ! $CompressClass->new($buffer, Merge => 1), "  constructor fails";
         {
             like $$Error, '/Cannot create InflateScan object: (Header Error|unexpected end of file)/', "  got Bad Magic" ;
         }
@@ -189,7 +189,7 @@ foreach my $CompressClass ( map { "IO::$_" } qw( Gzip RawDeflate Deflate) )
               { $buffer = $out_file }
         }
 
-        ok my $gz = $CompressClass->new($buffer, Append => 1, AutoClose => 1), "  constructor passes";
+        ok my $gz = $CompressClass->new($buffer, Merge => 1, AutoClose => 1), "  constructor passes";
 
         $gz->write("FGHI");
         $gz->close();
@@ -197,7 +197,7 @@ foreach my $CompressClass ( map { "IO::$_" } qw( Gzip RawDeflate Deflate) )
         #hexDump($buffer);
         my $out = anyUncompress($dest);
 
-        is $out, "FGHI", '  Appended OK';
+        is $out, "FGHI", '  Merge OK';
     }
 }
 
@@ -205,14 +205,14 @@ foreach my $CompressClass ( map { "IO::$_" } qw( Gzip RawDeflate Deflate) )
 {
     my $Error = getErrorRef($CompressClass);
 
-    title "$CompressClass - Append to file that doesn't exist";
+    title "$CompressClass - Merge to file that doesn't exist";
 
     my $out_file = 'abcd.out';
     my $lex = new LexFile($out_file) ;
     
     ok ! -e $out_file, "  Destination file, '$out_file', does not exist";
 
-    ok my $gz1 = $CompressClass->new($out_file, Append => 1)
+    ok my $gz1 = $CompressClass->new($out_file, Merge => 1)
         or die "# $CompressClass->new failed: $GzipError\n";
     #hexDump($buffer);
     $gz1->write("FGHI");
@@ -221,7 +221,7 @@ foreach my $CompressClass ( map { "IO::$_" } qw( Gzip RawDeflate Deflate) )
     #hexDump($buffer);
     my $out = anyUncompress($out_file);
 
-    is $out, "FGHI", '  Appended OK';
+    is $out, "FGHI", '  Merged OK';
 }
 
 foreach my $CompressClass ( map { "IO::$_" } qw( Gzip RawDeflate Deflate) )
@@ -280,7 +280,7 @@ foreach my $CompressClass ( map { "IO::$_" } qw( Gzip RawDeflate Deflate) )
                 $dest = new IO::File "+<$buffer" ;
             }
 
-            my $gz1 = $CompressClass->new($dest, Append => 1, AutoClose => 1)
+            my $gz1 = $CompressClass->new($dest, Merge => 1, AutoClose => 1)
                 or die "## $GzipError\n";
             #print "YYY\n";
             hexDump($buffer);
@@ -291,7 +291,7 @@ foreach my $CompressClass ( map { "IO::$_" } qw( Gzip RawDeflate Deflate) )
             hexDump($buffer);
             my $out = anyUncompress($buffer);
 
-            is $out, $str_content . "FGHI", '  Appended OK';
+            is $out, $str_content . "FGHI", '  Merged OK';
             #exit;
         }
     }
@@ -336,12 +336,12 @@ foreach my $CompressClass ( map { "IO::$_" } qw( Gzip RawDeflate Deflate) )
             is anyUncompress($buffer), $str_content, '  Destination is ok';
 
 
-            ok $Func->(\"FGHI", $buffer, Append => 1), "  Append content";
+            ok $Func->(\"FGHI", $buffer, Merge => 1), "  Merge content";
 
             #hexDump($buffer);
             my $out = anyUncompress($buffer);
 
-            is $out, $str_content . "FGHI", '  Appended OK';
+            is $out, $str_content . "FGHI", '  Merged OK';
         }
     }
 

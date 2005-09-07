@@ -1,13 +1,33 @@
 CHANGES
 -------
 
+  2.000_02 6 September 2005
+
+      * Split Append mode into Append and Merge
+
+      * Fixed typos in the documentation.
+
+      * Added pod/FAQ.pod
+
+      * Added libscan to Makefile.PL
+
+      * Added InputLength for IO::Gunzip et al
+
+  2.000_01 22 August 2005
+
+      * Fixed VERSION in Compress::Gzip::Constants
+
+      * Removed Compress::Gzip::Info from the distribution.
+
   2.000_00 21 August 2005
 
       * First Beta relase of Compress::zlib rewrite.
 
-  1.38 - 21 August 2005
+  1.38 - 6 September 2005
 
       * Integrate core change 25304 -- Symbian Update
+
+      * Added libscan to Makefile.PL
 
   1.37 - 12 August 2005
 
