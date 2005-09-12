@@ -19,7 +19,7 @@ BEGIN {
     use_ok('Compress::Zlib', 2) ;
     use_ok('Compress::Gzip::Constants') ;
 
-    use_ok('IO::Gzip', qw(gzip $GzipError)) ;
+    use_ok('IO::Gzip', qw($GzipError)) ;
 }
 
 
@@ -472,7 +472,7 @@ foreach my $stdio ( ['-', '-'], [*STDIN, *STDOUT])
     my $name = "test.gz" ;
     my $lex = new LexFile $name ;
     writeFile($name, "abc");
-    chmod 0, $name ;
+    chmod 0444, $name ;
 
     ok ! -w $name, "  input file not writable";
 
@@ -483,7 +483,9 @@ foreach my $stdio ( ['-', '-'], [*STDIN, *STDOUT])
 
     SKIP:
     {
-        skip "Cannot create non-readable file",3 if -r $name ;
+        chmod 0222, $name ;
+        skip "Cannot create non-readable file", 3 
+            if -r $name ;
 
         ok ! -r $name, "  input file not readable";
         $gzerrno = 0;

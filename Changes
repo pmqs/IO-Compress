@@ -1,6 +1,12 @@
 CHANGES
 -------
 
+  2.000_03 12 September 2005
+
+      * Fixed some non-portable test that were failing on VMS.
+
+      * Fixed export of zlib constants from the IO::* classes
+
   2.000_02 6 September 2005
 
       * Split Append mode into Append and Merge

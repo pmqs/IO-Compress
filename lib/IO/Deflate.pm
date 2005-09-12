@@ -1,22 +1,22 @@
 package IO::Deflate ;
 
-# create RFC1950
 use strict ;
 local ($^W) = 1; #use warnings;
 require Exporter ;
 
-use IO::Gzip;
-use IO::Inflate;
+use IO::Gzip ;
+
 
 use vars qw($VERSION @ISA @EXPORT_OK %EXPORT_TAGS $DeflateError);
 
-$VERSION = '2.000_02';
+$VERSION = '2.000_03';
 $DeflateError = '';
 
 @ISA = qw(Exporter IO::BaseDeflate);
 @EXPORT_OK = qw( $DeflateError deflate ) ;
 %EXPORT_TAGS = %IO::BaseDeflate::EXPORT_TAGS ;
 push @{ $EXPORT_TAGS{all} }, @EXPORT_OK ;
+Exporter::export_ok_tags('all');
 
 
 

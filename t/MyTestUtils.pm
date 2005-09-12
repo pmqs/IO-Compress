@@ -252,7 +252,7 @@ my %inverse  = ( 'IO::Gzip'                    => 'IO::Gunzip',
                  'IO::Deflate'                 => 'IO::Inflate',
                  'IO::Deflate::deflate'        => 'IO::Inflate::inflate',
                  'IO::RawDeflate'              => 'IO::RawInflate',
-                 'IO::RawDeflate::rawdeflate'  => 'IO::RawInflate:;rawinflate',
+                 'IO::RawDeflate::rawdeflate'  => 'IO::RawInflate::rawinflate',
              );
 
 %inverse  = map { ($_ => $inverse{$_}, $inverse{$_} => $_) } keys %inverse;

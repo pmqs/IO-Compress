@@ -12,13 +12,14 @@ require Exporter ;
 
 use vars qw($VERSION @ISA @EXPORT_OK %EXPORT_TAGS $GzipError);
 
-$VERSION = '2.000_02';
+$VERSION = '2.000_03';
 $GzipError = '' ;
 
 @ISA    = qw(Exporter IO::BaseDeflate);
 @EXPORT_OK = qw( $GzipError gzip ) ;
 %EXPORT_TAGS = %IO::BaseDeflate::EXPORT_TAGS ;
 push @{ $EXPORT_TAGS{all} }, @EXPORT_OK ;
+Exporter::export_ok_tags('all');
 
 sub new
 {
@@ -44,12 +45,13 @@ use IO::Gunzip;
 
 use IO::File ;
 #use File::Glob;
+require Exporter ;
 use Carp ;
 use Symbol;
 # use bytes;
 
-use vars qw(@ISA $VERSION %EXPORT_TAGS $got_encode);
-@ISA    = qw(IO::File);
+use vars qw(@ISA $VERSION @EXPORT_OK %EXPORT_TAGS $got_encode);
+@ISA    = qw(Exporter IO::File);
 %EXPORT_TAGS = ( flush     => [qw{  
                                     Z_NO_FLUSH
                                     Z_PARTIAL_FLUSH
@@ -84,6 +86,8 @@ use vars qw(@ISA $VERSION %EXPORT_TAGS $got_encode);
     }
     $EXPORT_TAGS{all} = $EXPORT_TAGS{constants} ;
 }
+
+Exporter::export_ok_tags('all');
               
 
 BEGIN
@@ -95,7 +99,7 @@ BEGIN
 }
  
 
-$VERSION = '2.000_02';
+$VERSION = '2.000_03';
 
 #Can't locate object method "SWASHNEW" via package "utf8" (perhaps you forgot to load "utf8"?) at .../ext/Compress-Zlib/Gzip/blib/lib/Compress/Zlib/Common.pm line 16.
 

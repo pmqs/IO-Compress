@@ -523,8 +523,8 @@ foreach my $bit ('IO::Gzip',
     my $TopTypeInverse = getInverse($bit);
     my $FuncInverse = getTopFuncRef($TopTypeInverse);
 
-    my @inFiles  = map { "in$_"  } 1..4;
-    my @outFiles = map { "out$_" } 1..4;
+    my @inFiles  = map { "in$_.tmp"  } 1..4;
+    my @outFiles = map { "out$_.tmp" } 1..4;
     my $lex = new LexFile(@inFiles, @outFiles);
 
     writeFile($_, "data $_") foreach @inFiles ;
@@ -594,7 +594,7 @@ foreach my $bit ('IO::Gzip',
         title "$TopType - File Glob to Hash Ref" ;
 
         my %output ;
-        ok &$Func( '<in[1234]>' => \%output), '  Compressed ok' ;
+        ok &$Func( '<in*.tmp>' => \%output), '  Compressed ok' ;
 
         is keys %output, 4, "  four pairs in hash" ;
         foreach my $fil (@inFiles)
@@ -701,7 +701,7 @@ foreach my $bit ('IO::Gzip',
         ok   -d $tmpDir1, "  Temp Directory $tmpDir1 exists";
         #ok ! -d $tmpDir2, "  Temp Directory $tmpDir2 does not exist";
 
-        my @files = map { "$tmpDir1/$_" } @$files ;
+        my @files = map { "$tmpDir1/$_.tmp" } @$files ;
         foreach (@files) { writeFile($_, "abc $_") }
 
         my @expected = map { "abc $_" } @files ;
@@ -710,7 +710,7 @@ foreach my $bit ('IO::Gzip',
         {
             title "$TopType - From FileGlob to FileGlob files [@$files]" ;
 
-            ok &$Func("<$tmpDir1/a*>" => "<$tmpDir2/a#1>"), '  Compressed ok' 
+            ok &$Func("<$tmpDir1/a*.tmp>" => "<$tmpDir2/a#1.tmp>"), '  Compressed ok' 
                 or diag $$Error ;
 
             my @copy = @expected;
@@ -726,7 +726,7 @@ foreach my $bit ('IO::Gzip',
             title "$TopType - From FileGlob to Array files [@$files]" ;
 
             my @buffer = ('first') ;
-            ok &$Func("<$tmpDir1/a*>" => \@buffer), '  Compressed ok' 
+            ok &$Func("<$tmpDir1/a*.tmp>" => \@buffer), '  Compressed ok' 
                 or diag $$Error ;
 
             is shift @buffer, 'first';
@@ -744,7 +744,7 @@ foreach my $bit ('IO::Gzip',
             title "$TopType - From FileGlob to Buffer files [@$files]" ;
 
             my $buffer ;
-            ok &$Func("<$tmpDir1/a*>" => \$buffer), '  Compressed ok' 
+            ok &$Func("<$tmpDir1/a*.tmp>" => \$buffer), '  Compressed ok' 
                 or diag $$Error ;
 
             #hexDump(\$buffer);
@@ -760,7 +760,7 @@ foreach my $bit ('IO::Gzip',
             my $filename = "abcde";
             my $lex = new LexFile($filename) ;
             
-            ok &$Func("<$tmpDir1/a*>" => $filename), '  Compressed ok' 
+            ok &$Func("<$tmpDir1/a*.tmp>" => $filename), '  Compressed ok' 
                 or diag $$Error ;
 
             #hexDump(\$buffer);
@@ -777,7 +777,7 @@ foreach my $bit ('IO::Gzip',
             my $lex = new LexFile($filename) ;
             my $fh = new IO::File ">$filename";
             
-            ok &$Func("<$tmpDir1/a*>" => $fh, AutoClose => 1), '  Compressed ok' 
+            ok &$Func("<$tmpDir1/a*.tmp>" => $fh, AutoClose => 1), '  Compressed ok' 
                 or diag $$Error ;
 
             #hexDump(\$buffer);
@@ -1225,7 +1225,7 @@ foreach my $bit ('IO::Gunzip',
     ok   -d $tmpDir1, "  Temp Directory $tmpDir1 exists";
     #ok ! -d $tmpDir2, "  Temp Directory $tmpDir2 does not exist";
 
-    my @files = map { "$tmpDir1/$_" } qw( a1 a2 a3) ;
+    my @files = map { "$tmpDir1/$_.tmp" } qw( a1 a2 a3) ;
     foreach (@files) { writeFile($_, compressBuffer($TopType, "abc $_")) }
 
     my @expected = map { "abc $_" } @files ;
@@ -1234,7 +1234,7 @@ foreach my $bit ('IO::Gunzip',
     {
         title "$TopType - From FileGlob to FileGlob" ;
 
-        ok &$Func("<$tmpDir1/a*>" => "<$tmpDir2/a#1>"), '  UnCompressed ok' 
+        ok &$Func("<$tmpDir1/a*.tmp>" => "<$tmpDir2/a#1.tmp>"), '  UnCompressed ok' 
             or diag $$Error ;
 
         my @copy = @expected;
@@ -1250,7 +1250,7 @@ foreach my $bit ('IO::Gunzip',
         title "$TopType - From FileGlob to Arrayref" ;
 
         my @output = (\'first');
-        ok &$Func("<$tmpDir1/a*>" => \@output), '  UnCompressed ok' 
+        ok &$Func("<$tmpDir1/a*.tmp>" => \@output), '  UnCompressed ok' 
             or diag $$Error ;
 
         my @copy = ('first', @expected);
@@ -1266,7 +1266,7 @@ foreach my $bit ('IO::Gunzip',
         title "$TopType - From FileGlob to Buffer" ;
 
         my $output ;
-        ok &$Func("<$tmpDir1/a*>" => \$output), '  UnCompressed ok' 
+        ok &$Func("<$tmpDir1/a*.tmp>" => \$output), '  UnCompressed ok' 
             or diag $$Error ;
 
         is $output, join('', @expected), "  got expected uncompressed data";
@@ -1278,7 +1278,7 @@ foreach my $bit ('IO::Gunzip',
         my $output = 'abc' ;
         my $lex = new LexFile $output ;
         ok ! -e $output, "  $output does not exist" ;
-        ok &$Func("<$tmpDir1/a*>" => $output), '  UnCompressed ok' 
+        ok &$Func("<$tmpDir1/a*.tmp>" => $output), '  UnCompressed ok' 
             or diag $$Error ;
 
         ok -e $output, "  $output does exist" ;
@@ -1291,7 +1291,7 @@ foreach my $bit ('IO::Gunzip',
         my $output = 'abc' ;
         my $lex = new LexFile $output ;
         my $fh = new IO::File ">$output" ;
-        ok &$Func("<$tmpDir1/a*>" => $fh, AutoClose => 1), '  UnCompressed ok' 
+        ok &$Func("<$tmpDir1/a*.tmp>" => $fh, AutoClose => 1), '  UnCompressed ok' 
             or diag $$Error ;
 
         ok -e $output, "  $output does exist" ;

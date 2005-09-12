@@ -10,13 +10,14 @@ require Exporter ;
 
 use vars qw($VERSION @ISA @EXPORT_OK %EXPORT_TAGS $AnyInflateError);
 
-$VERSION = '2.000_02';
+$VERSION = '2.000_03';
 $AnyInflateError = '';
 
 @ISA    = qw(Exporter IO::BaseInflate);
 @EXPORT_OK = qw( $AnyInflateError anyinflate ) ;
 %EXPORT_TAGS = %IO::BaseInflate::EXPORT_TAGS ;
 push @{ $EXPORT_TAGS{all} }, @EXPORT_OK ;
+Exporter::export_ok_tags('all');
 
 
 

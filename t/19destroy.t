@@ -19,10 +19,10 @@ BEGIN
 
     plan tests => 23 + $extra ;
 
-    use_ok('IO::Gzip', qw(gzip $GzipError)) ;
-    use_ok('IO::Deflate', qw(deflate $DeflateError)) ;
-    use_ok('IO::AnyInflate', qw(anyinflate $AnyInflateError)) ;
-    use_ok('IO::RawDeflate', qw(rawdeflate $RawDeflateError)) ;
+    use_ok('IO::Gzip', qw($GzipError)) ;
+    use_ok('IO::Deflate', qw($DeflateError)) ;
+    use_ok('IO::AnyInflate', qw($AnyInflateError)) ;
+    use_ok('IO::RawDeflate', qw($RawDeflateError)) ;
     use_ok('IO::File') ;
 }
 

@@ -1,7 +1,7 @@
 # http://module-build.sourceforge.net/META-spec.html
 #XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
 name:         Compress-Zlib
-version:      2.000_02
+version:      2.000_03
 version_from: Zlib.pm
 installdirs:  site
 requires:

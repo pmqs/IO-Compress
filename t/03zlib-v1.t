@@ -29,7 +29,7 @@ BEGIN
     use_ok('Compress::Zlib', 2) ;
     use_ok('Compress::Gzip::Constants') ;
 
-    use_ok('IO::Gzip', qw(gzip $GzipError)) ;
+    use_ok('IO::Gzip', qw($GzipError)) ;
 }
 
 

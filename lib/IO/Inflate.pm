@@ -9,13 +9,14 @@ use IO::Gunzip ;
 require Exporter ;
 use vars qw($VERSION @ISA @EXPORT_OK %EXPORT_TAGS $InflateError);
 
-$VERSION = '2.000_02';
+$VERSION = '2.000_03';
 $InflateError = '';
 
 @ISA    = qw( Exporter IO::BaseInflate );
 @EXPORT_OK = qw( $InflateError inflate ) ;
 %EXPORT_TAGS = %IO::BaseInflate::EXPORT_TAGS ;
 push @{ $EXPORT_TAGS{all} }, @EXPORT_OK ;
+Exporter::export_ok_tags('all');
 
 
 sub new

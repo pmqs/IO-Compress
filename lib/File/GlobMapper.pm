@@ -25,9 +25,9 @@ BEGIN
 
 use vars qw($Error);
 
-use vars qw($VERSION @Export_OK);
-$VERSION = '0.000_01';
-@Export_OK = qw( globmap );
+use vars qw($VERSION @EXPORT_OK);
+$VERSION = '0.000_02';
+@EXPORT_OK = qw( globmap );
 
 
 use vars qw($noPreBS $metachars $matchMetaRE %mapping %wildCount);
@@ -97,6 +97,7 @@ sub new
         return undef ;
     }
 
+    #if (whatever)
     {
         my $missing = grep { ! -e $_ } @inputFiles ;
 
@@ -443,7 +444,8 @@ Below is a possible implementation of a script to carry out the rename
         my $new = $old;
         $new =~ s#(.*)\.tar\.gz$#$1.tgz# ;
 
-        rename $old => $new ;
+        rename $old => $new 
+            or die "Cannot rename '$old' to '$new': $!\n;
     }
 
 Notice that a file glob pattern C<*.tar.gz> was used to match the
@@ -462,13 +464,22 @@ Here is same snippet of code rewritten using C<globmap>
     for my $pair (globmap '<*.tar.gz>' => '<#1.tgz>' )
     {
         my ($from, $to) = @$pair;
-        rename $from => $to ;
+        rename $from => $to 
+            or die "Cannot rename '$old' to '$new': $!\n;
     }
 
 So how does it work?
+
 Behind the scenes the C<globmap> function does a combination of a
 file glob to match existing filenames followed by a substitute
 to create the new filenames. 
+
+Notice how both parameters to C<globmap> are strings that are delimired by <>.
+This is done to make them look more like file globs - it is just syntactic
+sugar, but it can be handy when you want the strings to be visually
+distinctive. The enclosing <> are optional, so you don't have to use them - in
+fact the first thing globmap will do is remove these delimeters if they are
+present.
 
 The first parameter to C<globmap>, C<*.tar.gz>, is an I<Input File Glob>. 
 Once the enclosing "< ... >" is removed, this is passed (more or
@@ -479,7 +490,7 @@ full Perl regular expression, with the additional step of wrapping each
 transformed wildcard metacharacter sequence in parenthesis.
 
 In this case the input fileglob C<*.tar.gz> will be transformed into
-the Perl regular expression 
+this Perl regular expression 
 
     ([^/]*)\.tar\.gz
 
@@ -498,7 +509,7 @@ file glob through the derived Perl regular expression in turn and
 expanding the output fileglob using it.
 
 The end result of all this is a list of pairs of filenames. By default
-that is what is returned by C<clobmap>. In this example the data structure
+that is what is returned by C<globmap>. In this example the data structure
 returned will look like this
 
      ( ['alpha.tar.gz' => 'alpha.tgz'],
@@ -515,10 +526,10 @@ derived from the I<from> filename.
 
 =head2 Limitations
 
-C<File::GlobMapper> isn't intended to be used to solve all 
-
-C<File::GlobMapper> has been kept simple deliberately, so it isn't
-supposed to solve all filename renaming operations.
+C<File::GlobMapper> has been kept simple deliberately, so it isn't intended to
+solve all filename mapping operations. Under the hood C<File::Glob> (or for
+older verions of Perl, C<File::BSDGlob>) is used to match the files, so you
+will never have the flexibility of full Perl regular expression.
 
 =head2 Input File Glob
 
@@ -617,7 +628,7 @@ The "*" chanacter will be replaced with the complete input filename.
 
 =item #1
 
-Patterns of the for /#\d/ will be replaced with the 
+Patterns of the form /#\d/ will be replaced with the 
 
 =back
 
@@ -625,6 +636,8 @@ Patterns of the for /#\d/ will be replaced with the
 
 
 =head1 EXAMPLES
+
+=head2 A Rename script
 
 Below is a simple "rename" script that uses C<globmap> to determine the
 source and destination filenames.
@@ -647,19 +660,27 @@ source and destination filenames.
         move $from => $to ;
     }
 
+
+
 Here is an example that renames all c files to cpp.
     
     $ rename '*.c' '#1.cpp'
 
-Below are a few examles of, possibly common, glob maps
+=head2 A few example globmaps
 
-To copy 
+Below are a few examles of globmaps
+
+To copy all your .c file to a backup directory
 
     '</my/home/*.c>'    '</my/backup/#1.c>'
 
+If you want to compress all    
+
     '</my/home/*.[ch]>'    '<*.gz>'
 
-To 
+To uncompress
+
+    '</my/home/*.[ch].gz>'    '</my/home/#1.#2>'
 
 =head1 SEE ALSO
 

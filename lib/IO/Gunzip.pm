@@ -1,6 +1,8 @@
 
 package IO::Gunzip ;
 
+require 5.004 ;
+
 # for RFC1952
 
 use strict ;
@@ -8,13 +10,18 @@ local ($^W) = 1; #use warnings;
 
 require Exporter ;
 
-use vars qw($VERSION @ISA @EXPORT_OK $GunzipError);
+use vars qw($VERSION @ISA @EXPORT_OK %EXPORT_TAGS $GunzipError);
 
 @ISA    = qw(Exporter IO::BaseInflate);
 @EXPORT_OK = qw( $GunzipError gunzip );
+%EXPORT_TAGS = %IO::BaseInflate::EXPORT_TAGS ;
+push @{ $EXPORT_TAGS{all} }, @EXPORT_OK ;
+Exporter::export_ok_tags('all');
+
+
 $GunzipError = '';
 
-$VERSION = '2.000_02';
+$VERSION = '2.000_03';
 
 sub new
 {
@@ -33,9 +40,9 @@ use strict ;
 local ($^W) = 1; #use warnings;
 # use bytes;
 
-use vars qw($VERSION %EXPORT_TAGS);
+use vars qw($VERSION @EXPORT_OK %EXPORT_TAGS);
 
-$VERSION = '2.000_02';
+$VERSION = '2.000_03';
 
 use Compress::Zlib 2 ;
 use Compress::Zlib::Common ;
@@ -50,6 +57,9 @@ use List::Util qw(min);
 use Carp ;
 
 %EXPORT_TAGS = ( );
+push @{ $EXPORT_TAGS{all} }, @EXPORT_OK ;
+#Exporter::export_ok_tags('all') ;
+
 
 use constant G_EOF => 0 ;
 use constant G_ERR => -1 ;
@@ -229,6 +239,14 @@ sub TruncatedHeader
     return $self->HeaderError("Truncated in $_[0] Section");
 }
 
+sub isZipMagic
+{
+    my $buffer = shift ;
+    return 0 if length $buffer < 4 ;
+    my $sig = unpack("V", $buffer) ;
+    return $sig == 0x04034b50 ;
+}
+
 sub isGzipMagic
 {
     my $buffer = shift ;
@@ -360,29 +378,6 @@ sub _readFullGzipHeader($)
     delete *$self->{Transparent} if ! defined $status ;
     return $status ;
 }
-
-#sub parseExtra
-#{
-#    my $EXTRA = shift ;
-#    my @extras = () ;
-#
-#    my $XLEN = length $data ;
-#    my $offset = 0 ;
-#    while ($offset < $XLEN) {
-#
-#        return $self->TruncatedHeader("FEXTRA Body")
-#            if $offset + GZIP_FEXTRA_HEADER_SIZE + 2 > $XLEN ;
-#
-#        my ($id1, $id2, $subLen) =  unpack("C C v", $EXTRA, $offset) ;
-#        $offset += GZIP_FEXTRA_HEADER_SIZE + 2 ;
-#
-#        return $self->TruncatedHeader("FEXTRA Body")
-#            if $offset + $subLen > $XLEN ;
-#
-#        push @EXTRA, ["$id1$id2" => substr($EXTRA, $offset, $subLen)];
-#        $offset += $subLen ;
-#    }
-#}
 
 sub _readGzipHeader($)
 {
@@ -527,6 +522,103 @@ sub _readGzipHeader($)
       }
 }
 
+sub _readFullZipHeader($)
+{
+    my ($self) = @_ ;
+    my $magic = '' ;
+
+    $self->smartReadExact(\$magic, 4);
+
+    *$self->{HeaderPending} = $magic ;
+
+    return $self->HeaderError("Minimum header size is " . 
+                              30 . " bytes") 
+        if length $magic != 4 ;                                    
+
+
+    return $self->HeaderError("Bad Magic")
+        if ! isZipMagic($magic) ;
+
+    my $status = $self->_readZipHeader($magic);
+    delete *$self->{Transparent} if ! defined $status ;
+    return $status ;
+}
+
+sub _readZipHeader($)
+{
+    my ($self, $magic) = @_ ;
+    my ($HeaderCRC) ;
+    my ($buffer) = '' ;
+
+    $self->smartReadExact(\$buffer, 30 - 4)
+        or return $self->HeaderError("Minimum header size is " . 
+                                     30 . " bytes") ;
+
+    my $keep = $magic . $buffer ;
+    *$self->{HeaderPending} = $keep ;
+
+    my $extractVersion     = unpack ("v", substr($buffer, 4-4, 2));
+    my $gpFlag             = unpack ("v", substr($buffer, 6-4, 2));
+    my $compressedMethod   = unpack ("v", substr($buffer, 8-4, 2));
+    my $lastModTime        = unpack ("v", substr($buffer, 10-4, 2));
+    my $lastModDate        = unpack ("v", substr($buffer, 12-4, 2));
+    my $crc32              = unpack ("v", substr($buffer, 14-4, 4));
+    my $compressedLength   = unpack ("V", substr($buffer, 18-4, 4));
+    my $uncompressedLength = unpack ("V", substr($buffer, 22-4, 4));
+    my $filename_length    = unpack ("v", substr($buffer, 26-4, 2)); 
+    my $extra_length       = unpack ("v", substr($buffer, 28-4, 2));
+
+    my $filename;
+    my $extraField;
+
+    if ($filename_length)
+    {
+        $self->smartReadExact(\$filename, $filename_length)
+            or return $self->HeaderError("xxx");
+        $keep .= $filename ;
+    }
+
+    if ($extra_length)
+    {
+        $self->smartReadExact(\$extraField, $extra_length)
+            or return $self->HeaderError("xxx");
+        $keep .= $extraField ;
+    }
+
+    *$self->{Type} = 'zip';
+
+    return {
+        'Type'          => 'zip',
+        'HeaderLength'  => length $keep,
+        'TrailerLength' => $gpFlag & 0x08 ? 16  : 0,
+        'Header'        => $keep,
+
+#        'MethodID'      => $cm,
+#        'MethodName'    => $cm == GZIP_CM_DEFLATED ? "Deflated" : "Unknown" ,
+#        'TextFlag'      => $flag & GZIP_FLG_FTEXT ? 1 : 0,
+#        'HeaderCRCFlag' => $flag & GZIP_FLG_FHCRC ? 1 : 0,
+#        'NameFlag'      => $flag & GZIP_FLG_FNAME ? 1 : 0,
+#        'CommentFlag'   => $flag & GZIP_FLG_FCOMMENT ? 1 : 0,
+#        'ExtraFlag'     => $flag & GZIP_FLG_FEXTRA ? 1 : 0,
+#        'Name'          => $origname,
+#        'Comment'       => $comment,
+#        'Time'          => $mtime,
+#        'OsID'          => $os,
+#        'OsName'        => defined $GZIP_OS_Names{$os} 
+#                                 ? $GZIP_OS_Names{$os} : "Unknown",
+#        'HeaderCRC'     => $HeaderCRC,
+#        'Flags'         => $flag,
+#        'ExtraFlags'    => $xfl,
+#        'ExtraFieldRaw' => $EXTRA,
+#        'ExtraField'    => [ @EXTRA ],
+
+
+        #'CompSize'=> $compsize,
+        #'CRC32'=> $CRC32,
+        #'OrigSize'=> $ISIZE,
+      }
+}
+
 sub bits
 {
     my $data   = shift ;
@@ -599,7 +691,7 @@ sub checkParams
     my $Valid = {
                     #'Input'        => [Parse_store_ref, undef],
         
-                    'BlockSize'     => [Parse_unsigned, 4096],
+                    'BlockSize'     => [Parse_unsigned, 16 * 1024],
                     'AutoClose'     => [Parse_boolean,  0],
                     'Strict'        => [Parse_boolean,  0],
                     #'Lax'           => [Parse_boolean,  1],
@@ -743,6 +835,10 @@ sub new
     if ($type eq 'rfc1952')
     {
         *$obj->{Info} = $obj->_readFullGzipHeader() ;
+    }
+    elsif ($type eq 'zip')
+    {
+        *$obj->{Info} = $obj->_readFullZipHeader() ;
     }
     elsif ($type eq 'rfc1950')
     {
@@ -1091,6 +1187,10 @@ sub _raw_read
         {
             *$self->{Info} = $self->_readFullGzipHeader() ;
         }
+        elsif (*$self->{Type} eq 'zip')
+        {
+            *$self->{Info} = $self->_readFullZipHeader() ;
+        }
         elsif (*$self->{Type} eq 'rfc1950')
         {
             *$self->{Info} = $self->_readDeflateHeader() ;
@@ -1163,7 +1263,7 @@ sub _raw_read
 
         *$self->{EndStream} = 1 ;
 
-        if (*$self->{Type} eq 'rfc1951')
+        if (*$self->{Type} eq 'rfc1951' || ! *$self->{Info}{TrailerLength})
         {
             *$self->{Trailing} = $temp_buf . $self->getTrailingBuffer();
         }
@@ -1210,6 +1310,18 @@ sub _raw_read
                         return $self->TrailerError("ISIZE mismatch. Got $ISIZE"
                                                   . ", expected $exp_isize")
                             if $ISIZE != $exp_isize ;
+                    }
+                }
+                elsif (*$self->{Type} eq 'zip') {
+                    # Check CRC & ISIZE 
+                    my ($sig, $CRC32, $cSize, $uSize) = unpack("V V V V", $trailer) ;
+                    return $self->TrailerError("Data Descriptor signature")
+                        if $sig != 0x08074b50;
+
+                    if (*$self->{Strict}) {
+                        return $self->TrailerError("CRC mismatch")
+                            if $CRC32 != *$self->{Inflate}->crc32() ;
+
                     }
                 }
                 elsif (*$self->{Type} eq 'rfc1950') {
@@ -1691,7 +1803,8 @@ sub createDeflate
     my ($status, $def) = *$self->{Inflate}->createDeflateStream(
                                     -AppendOutput   => 1,
                                     -WindowBits => - MAX_WBITS,
-                                    -CRC32      => *$self->{Type} eq 'rfc1952',
+                                    -CRC32      => *$self->{Type} eq 'rfc1952'
+                                            || *$self->{Type} eq 'zip',
                                     -ADLER32    => *$self->{Type} eq 'rfc1950',
                                 );
     

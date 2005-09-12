@@ -16,7 +16,7 @@ local ($^W) = 1; #use warnings ;
 # use bytes ;
 use vars qw($VERSION $XS_VERSION @ISA @EXPORT $AUTOLOAD);
 
-$VERSION = '2.000_02';
+$VERSION = '2.000_03';
 $XS_VERSION = $VERSION; 
 $VERSION = eval $VERSION;
 
@@ -28,8 +28,6 @@ $VERSION = eval $VERSION;
         deflateInit inflateInit
 
         compress uncompress
-
-        gzip gunzip
 
         gzopen $gzerrno
 

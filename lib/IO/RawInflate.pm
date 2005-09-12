@@ -8,13 +8,15 @@ use IO::Gunzip;
 require Exporter ;
 use vars qw($VERSION @ISA @EXPORT_OK %EXPORT_TAGS $RawInflateError);
 
-$VERSION = '2.000_02';
+$VERSION = '2.000_03';
 $RawInflateError = '';
 
 @ISA    = qw(Exporter IO::BaseInflate);
 @EXPORT_OK = qw( $RawInflateError rawinflate ) ;
 %EXPORT_TAGS = %IO::BaseInflate::EXPORT_TAGS ;
 push @{ $EXPORT_TAGS{all} }, @EXPORT_OK ;
+Exporter::export_ok_tags('all');
+
 
 
 

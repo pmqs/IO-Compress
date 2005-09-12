@@ -17,8 +17,8 @@ BEGIN {
 
     use_ok('Compress::Zlib', 2) ;
 
-    use_ok('IO::Deflate', qw(deflate $DeflateError)) ;
-    use_ok('IO::Inflate', qw(inflate $InflateError)) ;
+    use_ok('IO::Deflate', qw($DeflateError)) ;
+    use_ok('IO::Inflate', qw($InflateError)) ;
 
     use_ok('Compress::Zlib::FileConstants');
 

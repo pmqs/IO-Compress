@@ -18,14 +18,14 @@ BEGIN
 
     use_ok('Compress::Zlib', 2) ;
 
-    use_ok('IO::Gzip', qw(gzip $GzipError)) ;
-    use_ok('IO::Gunzip', qw(gunzip $GunzipError)) ;
+    use_ok('IO::Gzip', qw($GzipError)) ;
+    use_ok('IO::Gunzip', qw($GunzipError)) ;
 
-    use_ok('IO::Deflate', qw(deflate $DeflateError)) ;
-    use_ok('IO::Inflate', qw(inflate $InflateError)) ;
+    use_ok('IO::Deflate', qw($DeflateError)) ;
+    use_ok('IO::Inflate', qw($InflateError)) ;
 
-    use_ok('IO::RawDeflate', qw(rawdeflate $RawDeflateError)) ;
-    use_ok('IO::RawInflate', qw(rawinflate $RawInflateError)) ;
+    use_ok('IO::RawDeflate', qw($RawDeflateError)) ;
+    use_ok('IO::RawInflate', qw($RawInflateError)) ;
 
 }
 

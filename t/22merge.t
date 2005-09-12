@@ -265,7 +265,7 @@ foreach my $CompressClass ( map { "IO::$_" } qw( Gzip RawDeflate Deflate) )
             is $gz->write($content), $len, "  write ok";
             ok $gz->close(), " close ok";
 
-            hexDump($buffer);
+            #hexDump($buffer);
             is anyUncompress($buffer), $str_content, '  Destination is ok';
 
             #if ($corruption)
@@ -283,12 +283,12 @@ foreach my $CompressClass ( map { "IO::$_" } qw( Gzip RawDeflate Deflate) )
             my $gz1 = $CompressClass->new($dest, Merge => 1, AutoClose => 1)
                 or die "## $GzipError\n";
             #print "YYY\n";
-            hexDump($buffer);
+            #hexDump($buffer);
             #print "XXX\n";
             is $gz1->write("FGHI"), 4, "  write returned 4";
             ok $gz1->close(), "  close ok";
 
-            hexDump($buffer);
+            #hexDump($buffer);
             my $out = anyUncompress($buffer);
 
             is $out, $str_content . "FGHI", '  Merged OK';

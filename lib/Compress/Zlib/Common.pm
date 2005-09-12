@@ -11,7 +11,7 @@ use File::GlobMapper;
 require Exporter;
 use vars qw($VERSION @ISA @EXPORT);
 @ISA = qw(Exporter);
-$VERSION = '2.000_02';
+$VERSION = '2.000_03';
 
 @EXPORT = qw( isaFilehandle isaFilename whatIsInput whatIsOutput ckInputParam 
               isaFileGlobString cleanFileGlobString oneTarget

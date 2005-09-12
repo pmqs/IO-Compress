@@ -4,20 +4,21 @@ package IO::RawDeflate ;
 #
 use strict ;
 local ($^W) = 1; #use warnings;
-use IO::Gzip ;
 use IO::RawInflate;
 
 require Exporter ;
 
 use vars qw($VERSION @ISA @EXPORT_OK %EXPORT_TAGS $RawDeflateError);
 
-$VERSION = '2.000_02';
+$VERSION = '2.000_03';
 $RawDeflateError = '';
 
 @ISA = qw(Exporter IO::BaseDeflate);
 @EXPORT_OK = qw( $RawDeflateError rawdeflate ) ;
 %EXPORT_TAGS = %IO::BaseDeflate::EXPORT_TAGS ;
 push @{ $EXPORT_TAGS{all} }, @EXPORT_OK ;
+Exporter::export_ok_tags('all');
+
 
 
 sub new
