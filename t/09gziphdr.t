@@ -14,7 +14,7 @@ BEGIN {
         if eval { require Test::NoWarnings ;  import Test::NoWarnings; 1 };
 
 
-    plan tests => 790 + $extra ;
+    plan tests => 788 + $extra ;
 
     use_ok('Compress::Zlib', 2) ;
     use_ok('Compress::Gzip::Constants') ;
@@ -809,7 +809,7 @@ EOM
                 ok   $gunz->read($uncomp) > 0 ;
                 ok ! $GunzipError ;
                 my $expected = substr($buffer, - $got);
-                ok   ${ $gunz->trailingData() } eq $expected_trailing;
+                is  ${ $gunz->trailingData() },  $expected_trailing;
             }
             ok $gunz->eof() ;
             ok $uncomp eq $string;
@@ -840,7 +840,7 @@ EOM
             {
                 ok   $gunz->read($uncomp) > 0 ;
                 ok ! $GunzipError ;
-                #ok   $gunz->trailingData() eq substr($buffer, - $got) ;
+                #is   $gunz->trailingData(), substr($buffer, - $got) ;
             }
             ok ! ${ $gunz->trailingData() } ;
             ok $gunz->eof() ;
@@ -904,7 +904,6 @@ EOM
                 ok   $gunz->read($uncomp) > 0 ;
                 ok ! $GunzipError ;
             }
-            ok $gunz->trailingData() ;
             ok $gunz->eof() ;
             ok $uncomp eq $string;
             ok $gunz->close ;

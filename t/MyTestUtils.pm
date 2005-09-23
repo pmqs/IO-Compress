@@ -35,6 +35,7 @@ sub like_eval
             $_ = "tst" . $index ++ . ".tmp"
                 unless defined $_;
         }
+        chmod 0777, @_;
         unlink @_ ;
         bless [ @_ ], $self ;
     }
@@ -42,6 +43,7 @@ sub like_eval
     sub DESTROY
     {
         my $self = shift ;
+        chmod 0777, @{ $self } ;
         unlink @{ $self } ;
     }
 

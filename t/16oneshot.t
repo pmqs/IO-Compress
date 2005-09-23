@@ -17,7 +17,7 @@ BEGIN {
     $extra = 1
         if eval { require Test::NoWarnings ;  import Test::NoWarnings; 1 };
 
-    plan tests => 2544 + $extra ;
+    plan tests => 2526 + $extra ;
 
     use_ok('Compress::Zlib', 2) ;
 
@@ -167,7 +167,7 @@ foreach my $bit ('IO::Gunzip',
         {
             ok $a, "  $TopType returned true" ;
             is $out, $data, "  got expected output" ;
-            ok ! $$Error, "  no error" ;
+            ok ! $$Error, "  no error [$$Error]" ;
         }
         else
         {
@@ -176,6 +176,38 @@ foreach my $bit ('IO::Gunzip',
             ok $$Error, "  error is '$$Error'" ;
         }
     }
+}
+
+foreach my $bit ('IO::Gzip',     
+                 'IO::Deflate', 
+                 'IO::RawDeflate',
+                )
+{
+    my $Error = getErrorRef($bit);
+    my $Func = getTopFuncRef($bit);
+    my $TopType = getTopFuncName($bit);
+    my $TopTypeInverse = getInverse($bit);
+    my $FuncInverse = getTopFuncRef($TopTypeInverse);
+    my $ErrorInverse = getErrorRef($TopTypeInverse);
+
+    title "$TopTypeInverse - corrupt data";
+
+    my $data = "abcd" x 100 ;
+    my $out;
+
+    ok $Func->(\$data, \$out), "  $TopType ok";
+
+    # corrupt the compressed data
+    substr($out, -10, 10) = "x" x 10 ;
+
+    my $result;
+    ok ! $FuncInverse->(\$out => \$result, Transparent => 0), "  $TopTypeInverse ok";
+    ok $$ErrorInverse, "  Got error '$$ErrorInverse'" ;
+
+    #is $result, $data, "  data ok";
+
+    ok ! anyinflate(\$out => \$result, Transparent => 0), "  anyinflate ok";
+    ok $AnyInflateError, "  Got error '$AnyInflateError'" ;
 }
 
 
@@ -395,7 +427,7 @@ foreach my $bit ('IO::Gzip',
                 my $lex = new LexFile($in_file, $out_file) ;
                 writeFile($in_file, $buffer);
 
-                ok open(SAVEIN, "<&STDIN"), "  save STDIN";
+                   open(SAVEIN, "<&STDIN");
                 my $dummy = fileno SAVEIN ;
                 ok open(STDIN, "<$in_file"), "  redirect STDIN";
 
@@ -404,7 +436,7 @@ foreach my $bit ('IO::Gzip',
                 ok &$Func('-', \$out, Append => $append), '  Compressed ok' 
                     or diag $$Error ;
 
-                ok open(STDIN, "<&SAVEIN"), "  put STDIN back";
+                   open(STDIN, "<&SAVEIN");
 
                 my $got = anyUncompress(\$out, $already);
                 $got = undef if ! defined $buffer && $got eq '' ;
@@ -691,8 +723,8 @@ foreach my $bit ('IO::Gzip',
     for my $files ( [qw(a1)], [qw(a1 a2 a3)] )
     {
 
-        my $tmpDir1 = './tmpdir1';
-        my $tmpDir2 = './tmpdir2';
+        my $tmpDir1 = 'tmpdir1';
+        my $tmpDir2 = 'tmpdir2';
         my $lex = new LexDir($tmpDir1, $tmpDir2) ;
 
         mkdir $tmpDir1, 0777;
@@ -1215,8 +1247,8 @@ foreach my $bit ('IO::Gunzip',
     my $Func = getTopFuncRef($bit);
     my $TopType = getTopFuncName($bit);
 
-    my $tmpDir1 = './tmpdir1';
-    my $tmpDir2 = './tmpdir2';
+    my $tmpDir1 = 'tmpdir1';
+    my $tmpDir2 = 'tmpdir2';
     my $lex = new LexDir($tmpDir1, $tmpDir2) ;
 
     mkdir $tmpDir1, 0777;

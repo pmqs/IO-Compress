@@ -9,7 +9,7 @@ use IO::Gzip ;
 
 use vars qw($VERSION @ISA @EXPORT_OK %EXPORT_TAGS $DeflateError);
 
-$VERSION = '2.000_03';
+$VERSION = '2.000_04';
 $DeflateError = '';
 
 @ISA = qw(Exporter IO::BaseDeflate);

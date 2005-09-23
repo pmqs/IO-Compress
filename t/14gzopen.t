@@ -14,7 +14,7 @@ BEGIN {
     $extra = 1
         if eval { require Test::NoWarnings ;  import Test::NoWarnings; 1 };
 
-    plan tests => 212 + $extra ;
+    plan tests => 208 + $extra ;
 
     use_ok('Compress::Zlib', 2) ;
     use_ok('Compress::Gzip::Constants') ;
@@ -388,7 +388,7 @@ foreach my $stdio ( ['-', '-'], [*STDIN, *STDOUT])
 
     ok $status, "  wrote to stdout";
 
-    ok open(SAVEIN, "<&STDIN"), "  save STDIN";
+       open(SAVEIN, "<&STDIN");
     ok open(STDIN, "<$name"), "  redirect STDIN";
     $dummy = fileno SAVEIN;
 
@@ -402,7 +402,7 @@ foreach my $stdio ( ['-', '-'], [*STDIN, *STDOUT])
     ok ! $fil->gzclose ;
     ok   $fil->gzeof() ;
 
-    ok open(STDIN, "<&SAVEIN"), "  put STDIN back";
+       open(STDIN, "<&SAVEIN");
 
     unlink $name ;
 
@@ -469,21 +469,33 @@ foreach my $stdio ( ['-', '-'], [*STDIN, *STDOUT])
 {
     title 'read/write a non-readable/writable file';
 
-    my $name = "test.gz" ;
-    my $lex = new LexFile $name ;
-    writeFile($name, "abc");
-    chmod 0444, $name ;
+    SKIP:
+    {
+        my $name ;
+        my $lex = new LexFile $name ;
+        writeFile($name, "abc");
+        chmod 0444, $name ;
 
-    ok ! -w $name, "  input file not writable";
+        skip "Cannot create non-writable file", 3 
+            if -w $name ;
 
-    my $fil = gzopen($name, "wb") ;
-    ok !$fil, "  gzopen returns undef" ;
-    ok $gzerrno, "  gzerrno ok" or 
-        diag " gzerrno $gzerrno\n";
+        ok ! -w $name, "  input file not writable";
+
+        my $fil = gzopen($name, "wb") ;
+        ok !$fil, "  gzopen returns undef" ;
+        ok $gzerrno, "  gzerrno ok" or 
+            diag " gzerrno $gzerrno\n";
+
+        chmod 0777, $name ;
+    }
 
     SKIP:
     {
+        my $name ;
+        my $lex = new LexFile $name ;
+        writeFile($name, "abc");
         chmod 0222, $name ;
+
         skip "Cannot create non-readable file", 3 
             if -r $name ;
 
@@ -492,16 +504,16 @@ foreach my $stdio ( ['-', '-'], [*STDIN, *STDOUT])
         $fil = gzopen($name, "rb") ;
         ok !$fil, "  gzopen returns undef" ;
         ok $gzerrno, "  gzerrno ok";
+        chmod 0777, $name ;
     }
 
-    chmod 0777, $name ;
 }
 
 {
     title "gzseek" ;
 
     my $buff ;
-    my $name = "test.gz" ;
+    my $name ;#= "test.gz" ;
     my $lex = new LexFile $name ;
 
     my $first = "beginning" ;

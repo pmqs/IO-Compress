@@ -12,7 +12,7 @@ require Exporter ;
 
 use vars qw($VERSION @ISA @EXPORT_OK %EXPORT_TAGS $GzipError);
 
-$VERSION = '2.000_03';
+$VERSION = '2.000_04';
 $GzipError = '' ;
 
 @ISA    = qw(Exporter IO::BaseDeflate);

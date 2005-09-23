@@ -14,7 +14,7 @@ BEGIN
     $extra = 1
         if eval { require Test::NoWarnings ;  import Test::NoWarnings; 1 };
 
-    plan tests => 1781 + $extra ;
+    plan tests => 1775 + $extra ;
 
     use_ok('Compress::Zlib', 2) ;
 
@@ -149,6 +149,8 @@ foreach my $CompressClass ('IO::Gzip',
 {
     $UncompressClass = getInverse($CompressClass);
     my $Error = getErrorRef($CompressClass);
+    my $ErrorUnc = getErrorRef($UncompressClass);
+
 
     title "Testing $CompressClass and $UncompressClass";
 
@@ -335,7 +337,7 @@ EOM
           title "$UncompressClass: Input from typeglob filehandle, append output";  
           my $x ;
           ok open FH, "<$name" ;
-          ok $x = new $UncompressClass *FH, -Append => 1  ;
+          ok $x = new $UncompressClass *FH, -Append => 1, Transparent => 0  ;
           is $x->fileno(), fileno FH, "  fileno ok" ;
 
           1 while $x->read($uncomp) > 0 ;
@@ -377,7 +379,8 @@ EOM
           my $x ;
           my $uncomp ;
           my $stdinFileno = fileno(STDIN);
-          ok open(SAVEIN, "<&STDIN"), "  save STDIN";
+          # open below doesn't return 1 sometines on XP
+             open(SAVEIN, "<&STDIN");
           ok open(STDIN, "<$name"), "  redirect STDIN";
           my $dummy = fileno SAVEIN;
           $x = new $UncompressClass '-';
@@ -387,7 +390,7 @@ EOM
           1 while $x->read($uncomp) > 0 ;
 
           ok $x->close, "  close" ;
-          ok open(STDIN, "<&SAVEIN"), "  put STDIN back";
+             open(STDIN, "<&SAVEIN");
           is $hello, $uncomp, "  expected output" ;
         }
     }
@@ -550,7 +553,7 @@ EOM
         ok $uncomp eq $hello ;
         my $rest ;
         read($fh1, $rest, 5000);
-        ok $trailer eq ${ $x->trailingData() } . $rest ;
+        is ${ $x->trailingData() } . $rest, $trailer ;
         #print ${ $x->trailingData() } . $rest ;
 
     }
@@ -1539,6 +1542,7 @@ EOT
 #        
 #    }
 }
+
 
 
 

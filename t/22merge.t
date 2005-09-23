@@ -82,28 +82,34 @@ foreach my $CompressClass ( map { "IO::$_" } qw( Gzip RawDeflate Deflate) )
         
         # make unwritable
         is chmod(0444, $out_file), 1, "  chmod worked" ;
-
         ok   -e $out_file, "  still exists after chmod" ;
-        ok ! -w $out_file, "  chmod made file unwritable" ;
 
-        my $dest ;
-        if ($to_file)
-          { $dest = $out_file }
-        else
-          { $dest = new IO::File "<$out_file"  }
-
-        my $gz = $CompressClass->new($dest, Merge => 1) ;
-        
-        ok ! $gz, "  Did not create $CompressClass object";
-
+        SKIP:
         {
-            if ($to_file) {
-                is $$Error, "Output file '$out_file' is not writable",
-                        "  Got non-writable filename message" ;
-            }
-            else {
-                is $$Error, "Output filehandle is not writable",
-                        "  Got non-writable filehandle message" ;
+            skip "Cannot create non-writable file", 3 
+                if -w $out_file ;
+
+            ok ! -w $out_file, "  chmod made file unwritable" ;
+
+            my $dest ;
+            if ($to_file)
+              { $dest = $out_file }
+            else
+              { $dest = new IO::File "<$out_file"  }
+
+            my $gz = $CompressClass->new($dest, Merge => 1) ;
+            
+            ok ! $gz, "  Did not create $CompressClass object";
+
+            {
+                if ($to_file) {
+                    is $$Error, "Output file '$out_file' is not writable",
+                            "  Got non-writable filename message" ;
+                }
+                else {
+                    is $$Error, "Output filehandle is not writable",
+                            "  Got non-writable filehandle message" ;
+                }
             }
         }
 
