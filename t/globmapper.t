@@ -4,7 +4,7 @@ use strict ;
 local ($^W) = 1; #use warnings ;
 
 use Test::More ;
-use MyTestUtils;
+use ZlibTestUtils;
 
 
 BEGIN 

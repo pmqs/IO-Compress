@@ -5,7 +5,7 @@ local ($^W) = 1; #use warnings;
 # use bytes;
 
 use Test::More ;
-use MyTestUtils;
+use ZlibTestUtils;
 
 BEGIN {
     # use Test::NoWarnings, if available
@@ -17,8 +17,8 @@ BEGIN {
 
     use_ok('Compress::Zlib', 2) ;
 
-    use_ok('IO::Deflate', qw($DeflateError)) ;
-    use_ok('IO::Inflate', qw($InflateError)) ;
+    use_ok('IO::Compress::Deflate', qw($DeflateError)) ;
+    use_ok('IO::Uncompress::Inflate', qw($InflateError)) ;
 
     use_ok('Compress::Zlib::FileConstants');
 
@@ -31,12 +31,12 @@ sub ReadHeaderInfo
     my %opts = @_ ;
 
     my $buffer ;
-    ok my $def = new IO::Deflate \$buffer, %opts ;
+    ok my $def = new IO::Compress::Deflate \$buffer, %opts ;
     is $def->write($string), length($string) ;
     ok $def->close ;
     #print "ReadHeaderInfo\n"; hexDump(\$buffer);
 
-    ok my $inf = new IO::Inflate \$buffer  ;
+    ok my $inf = new IO::Uncompress::Inflate \$buffer  ;
     my $uncomp ;
     #ok $inf->read($uncomp) ;
     my $actual = 0 ;
@@ -66,7 +66,7 @@ sub ReadHeaderInfoZlib
     cmp_ok $def->flush($buffer), '==', Z_OK;
     #print "ReadHeaderInfoZlib\n"; hexDump(\$buffer);
     
-    ok my $inf = new IO::Inflate \$buffer  ;
+    ok my $inf = new IO::Uncompress::Inflate \$buffer  ;
     my $uncomp ;
     #ok $inf->read($uncomp) ;
     my $actual = 0 ;
@@ -88,7 +88,7 @@ sub ReadHeaderInfoZlib
 sub printHeaderInfo
 {
     my $buffer = shift ;
-    my $inf = new IO::Inflate \$buffer  ;
+    my $inf = new IO::Uncompress::Inflate \$buffer  ;
     my $hdr = $inf->getHeaderInfo();
 
     local ($^W) = 0; #no warnings 'uninitialized' ;
@@ -205,7 +205,7 @@ some text
 EOM
 
     my $good ;
-    ok my $x = new IO::Deflate \$good ;
+    ok my $x = new IO::Compress::Deflate \$good ;
     ok $x->write($string) ;
     ok $x->close ;
 
@@ -214,8 +214,8 @@ EOM
         my $buffer = $good ;
         substr($buffer, 0, 1) = "\x00" ;
 
-        ok ! new IO::Inflate \$buffer, -Transparent => 0  ;
-        like $IO::Inflate::InflateError, '/Header Error: CRC mismatch/',
+        ok ! new IO::Uncompress::Inflate \$buffer, -Transparent => 0  ;
+        like $IO::Uncompress::Inflate::InflateError, '/Header Error: CRC mismatch/',
             "CRC mismatch";
     }
 
@@ -224,8 +224,8 @@ EOM
         my $buffer = $good ;
         substr($buffer, 1, 1) = "\x00" ;
 
-        ok ! new IO::Inflate \$buffer, -Transparent => 0  ;
-        like $IO::Inflate::InflateError, '/Header Error: CRC mismatch/',
+        ok ! new IO::Uncompress::Inflate \$buffer, -Transparent => 0  ;
+        like $IO::Uncompress::Inflate::InflateError, '/Header Error: CRC mismatch/',
             "CRC mismatch";
     }
 
@@ -255,9 +255,9 @@ EOM
 
         substr($buffer, 0, 2) = $header;
 
-        my $un = new IO::Inflate \$buffer, -Transparent => 0  ;
-        ok ! new IO::Inflate \$buffer, -Transparent => 0  ;
-        like $IO::Inflate::InflateError, '/Header Error: Not Deflate \(CM is 3\)/',
+        my $un = new IO::Uncompress::Inflate \$buffer, -Transparent => 0  ;
+        ok ! new IO::Uncompress::Inflate \$buffer, -Transparent => 0  ;
+        like $IO::Uncompress::Inflate::InflateError, '/Header Error: Not Deflate \(CM is 3\)/',
             "  Not Deflate";
     }
 
@@ -271,7 +271,7 @@ some text
 EOM
 
     my $good ;
-    ok my $x = new IO::Deflate \$good ;
+    ok my $x = new IO::Compress::Deflate \$good ;
     ok $x->write($string) ;
     ok $x->close ;
 
@@ -288,12 +288,12 @@ EOM
             substr($buffer, $trim) = '';
             writeFile($name, $buffer) ;
 
-            ok my $gunz = new IO::Inflate $name, Strict => $s;
+            ok my $gunz = new IO::Uncompress::Inflate $name, Strict => $s;
             my $uncomp ;
             if ($s)
             {
                 ok $gunz->read($uncomp) < 0 ;
-                like $IO::Inflate::InflateError,"/Trailer Error: trailer truncated. Expected 4 bytes, got $got/",
+                like $IO::Uncompress::Inflate::InflateError,"/Trailer Error: trailer truncated. Expected 4 bytes, got $got/",
                     "Trailer Error";
             }
             else
@@ -314,10 +314,10 @@ EOM
         substr($buffer, -4, 4) = pack('N', $crc+1);
         writeFile($name, $buffer) ;
 
-        ok my $gunz = new IO::Inflate $name, Strict => 1;
+        ok my $gunz = new IO::Uncompress::Inflate $name, Strict => 1;
         my $uncomp ;
         ok $gunz->read($uncomp) < 0 ;
-        like $IO::Inflate::InflateError,'/Trailer Error: CRC mismatch/',
+        like $IO::Uncompress::Inflate::InflateError,'/Trailer Error: CRC mismatch/',
             "Trailer Error: CRC mismatch";
         ok $gunz->eof() ;
         ok ! ${ $gunz->trailingData() } ;
@@ -332,7 +332,7 @@ EOM
         substr($buffer, -4, 4) = pack('N', $crc+1);
         writeFile($name, $buffer) ;
 
-        ok my $gunz = new IO::Inflate $name, Strict => 0;
+        ok my $gunz = new IO::Uncompress::Inflate $name, Strict => 0;
         my $uncomp ;
         ok $gunz->read($uncomp) >= 0  ;
         ok $gunz->eof() ;

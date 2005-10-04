@@ -5,7 +5,7 @@ local ($^W) = 1; #use warnings;
 # use bytes;
 
 use Test::More ;
-use MyTestUtils;
+use ZlibTestUtils;
 
 BEGIN
 {
@@ -19,17 +19,17 @@ BEGIN
 
     plan tests => 23 + $extra ;
 
-    use_ok('IO::Gzip', qw($GzipError)) ;
-    use_ok('IO::Deflate', qw($DeflateError)) ;
-    use_ok('IO::AnyInflate', qw($AnyInflateError)) ;
-    use_ok('IO::RawDeflate', qw($RawDeflateError)) ;
+    use_ok('IO::Compress::Gzip', qw($GzipError)) ;
+    use_ok('IO::Compress::Deflate', qw($DeflateError)) ;
+    use_ok('IO::Uncompress::AnyInflate', qw($AnyInflateError)) ;
+    use_ok('IO::Compress::RawDeflate', qw($RawDeflateError)) ;
     use_ok('IO::File') ;
 }
 
 
-foreach my $CompressClass ('IO::Gzip',     
-                           'IO::Deflate', 
-                           'IO::RawDeflate')
+foreach my $CompressClass ('IO::Compress::Gzip',     
+                           'IO::Compress::Deflate', 
+                           'IO::Compress::RawDeflate')
 {
     title "Testing $CompressClass";
 

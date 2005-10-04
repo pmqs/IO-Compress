@@ -178,12 +178,23 @@ static int
 constant_11 (pTHX_ const char *name, IV *iv_return) {
   /* When generated this function returned values for the list of names given
      here.  However, subsequent manual editing may have added or removed some.
-     ZLIB_VERNUM Z_BUF_ERROR Z_MEM_ERROR Z_NEED_DICT */
-  /* Offset 2 gives the best switch position.  */
-  switch (name[2]) {
-  case 'B':
+     Z_BUF_ERROR Z_MEM_ERROR Z_NEED_DICT */
+  /* Offset 4 gives the best switch position.  */
+  switch (name[4]) {
+  case 'E':
+    if (memEQ(name, "Z_NEED_DICT", 11)) {
+    /*                   ^             */
+#ifdef Z_NEED_DICT
+      *iv_return = Z_NEED_DICT;
+      return PERL_constant_ISIV;
+#else
+      return PERL_constant_NOTDEF;
+#endif
+    }
+    break;
+  case 'F':
     if (memEQ(name, "Z_BUF_ERROR", 11)) {
-    /*                 ^               */
+    /*                   ^             */
 #ifdef Z_BUF_ERROR
       *iv_return = Z_BUF_ERROR;
       return PERL_constant_ISIV;
@@ -192,33 +203,11 @@ constant_11 (pTHX_ const char *name, IV *iv_return) {
 #endif
     }
     break;
-  case 'I':
-    if (memEQ(name, "ZLIB_VERNUM", 11)) {
-    /*                 ^               */
-#ifdef ZLIB_VERNUM
-      *iv_return = ZLIB_VERNUM;
-      return PERL_constant_ISIV;
-#else
-      return PERL_constant_NOTDEF;
-#endif
-    }
-    break;
   case 'M':
     if (memEQ(name, "Z_MEM_ERROR", 11)) {
-    /*                 ^               */
+    /*                   ^             */
 #ifdef Z_MEM_ERROR
       *iv_return = Z_MEM_ERROR;
-      return PERL_constant_ISIV;
-#else
-      return PERL_constant_NOTDEF;
-#endif
-    }
-    break;
-  case 'N':
-    if (memEQ(name, "Z_NEED_DICT", 11)) {
-    /*                 ^               */
-#ifdef Z_NEED_DICT
-      *iv_return = Z_NEED_DICT;
       return PERL_constant_ISIV;
 #else
       return PERL_constant_NOTDEF;
@@ -320,11 +309,11 @@ constant (pTHX_ const char *name, STRLEN len, IV *iv_return, const char **pv_ret
      Regenerate these constant functions by feeding this entire source file to
      perl -x
 
-#!/usr/bin/perl -w
+#!/usr/bin/perl5.8.6 -w
 use ExtUtils::Constant qw (constant_types C_constant XS_constant);
 
 my $types = {map {($_, 1)} qw(IV PV)};
-my @names = (qw(DEF_WBITS MAX_MEM_LEVEL MAX_WBITS OS_CODE ZLIB_VERNUM Z_ASCII
+my @names = (qw(DEF_WBITS MAX_MEM_LEVEL MAX_WBITS OS_CODE Z_ASCII
 	       Z_BEST_COMPRESSION Z_BEST_SPEED Z_BINARY Z_BLOCK Z_BUF_ERROR
 	       Z_DATA_ERROR Z_DEFAULT_COMPRESSION Z_DEFAULT_STRATEGY Z_DEFLATED
 	       Z_ERRNO Z_FILTERED Z_FINISH Z_FIXED Z_FULL_FLUSH Z_HUFFMAN_ONLY

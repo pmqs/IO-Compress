@@ -6,7 +6,7 @@ local ($^W) = 1; #use warnings;
 # use bytes;
 
 use Test::More ;
-use MyTestUtils;
+use ZlibTestUtils;
 
 BEGIN {
     # use Test::NoWarnings, if available
@@ -18,18 +18,18 @@ BEGIN {
 
     use_ok('Compress::Zlib', 2) ;
 
-    use_ok('IO::Gzip', qw($GzipError)) ;
-    use_ok('IO::Gunzip', qw($GunzipError)) ;
+    use_ok('IO::Compress::Gzip', qw($GzipError)) ;
+    use_ok('IO::Uncompress::Gunzip', qw($GunzipError)) ;
 
-    use_ok('IO::Deflate', qw($DeflateError)) ;
-    use_ok('IO::Inflate', qw($InflateError)) ;
+    use_ok('IO::Compress::Deflate', qw($DeflateError)) ;
+    use_ok('IO::Uncompress::Inflate', qw($InflateError)) ;
 
-    use_ok('IO::RawDeflate', qw($RawDeflateError)) ;
-    use_ok('IO::RawInflate', qw($RawInflateError)) ;
-    use_ok('IO::AnyInflate', qw($AnyInflateError)) ;
+    use_ok('IO::Compress::RawDeflate', qw($RawDeflateError)) ;
+    use_ok('IO::Uncompress::RawInflate', qw($RawInflateError)) ;
+    use_ok('IO::Uncompress::AnyInflate', qw($AnyInflateError)) ;
 }
 
-foreach my $Class ( map { "IO::$_" } qw( Gzip Deflate RawDeflate) )
+foreach my $Class ( map { "IO::Compress::$_" } qw( Gzip Deflate RawDeflate) )
 {
     
     for my $trans ( 0, 1 )
@@ -45,12 +45,12 @@ EOM
         ok $x->write($string), "  write to object" ;
         ok $x->close, "  close ok" ;
 
-        my $unc = new IO::AnyInflate \$buffer, Transparent => $trans  ;
+        my $unc = new IO::Uncompress::AnyInflate \$buffer, Transparent => $trans  ;
 
         ok $unc, "  Created AnyInflate object" ;
         my $uncomp ;
         ok $unc->read($uncomp) > 0 
-            or print "# $IO::AnyInflate::AnyInflateError\n";
+            or print "# $IO::Uncompress::AnyInflate::AnyInflateError\n";
         ok $unc->eof(), "  at eof" ;
         #ok $unc->type eq $Type;
 
@@ -70,12 +70,12 @@ EOM
 
     my $unc ;
     my $keep = $buffer ;
-    $unc = new IO::AnyInflate \$buffer, -Transparent => 0 ;
+    $unc = new IO::Uncompress::AnyInflate \$buffer, -Transparent => 0 ;
     ok ! $unc,"  no AnyInflate object when -Transparent => 0" ;
     is $buffer, $keep ;
 
     $buffer = $keep ;
-    $unc = new IO::AnyInflate \$buffer, -Transparent => 1 ;
+    $unc = new IO::Uncompress::AnyInflate \$buffer, -Transparent => 1 ;
     ok $unc, "  AnyInflate object when -Transparent => 1"  ;
 
     my $uncomp ;

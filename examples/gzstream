@@ -2,7 +2,7 @@
 
 use strict ;
 local ($^W) = 1; #use warnings ;
-use IO::Gzip qw(gzip $GzipError);
+use IO::Compress::Gzip qw(gzip $GzipError);
 
 gzip '-' => '-', Minimal => 1
   or die "gzstream: $GzipError\n" ;
@@ -11,8 +11,8 @@ gzip '-' => '-', Minimal => 1
 
 __END__
 
-#my $gz = new IO::Gzip *STDOUT 
-my $gz = new IO::Gzip '-'
+#my $gz = new IO::Compress::Gzip *STDOUT 
+my $gz = new IO::Compress::Gzip '-'
 	  or die "gzstream: Cannot open stdout as gzip stream: $GzipError\n" ;
 
 while (<>) {

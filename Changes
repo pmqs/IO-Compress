@@ -1,6 +1,10 @@
 CHANGES
 -------
 
+  2.000_05 4 October 2005
+
+      * Renamed IO::* to IO::Compress::* & IO::Uncompress::*
+
   2.000_04 23 September 2005
 
       * Fixed some more non-portable test that were failing on VMS.

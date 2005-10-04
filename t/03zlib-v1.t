@@ -5,7 +5,7 @@ local ($^W) = 1; #use warnings;
 # use bytes;
 
 use Test::More ;
-use MyTestUtils;
+use ZlibTestUtils;
 use Symbol;
 
 BEGIN 
@@ -29,7 +29,7 @@ BEGIN
     use_ok('Compress::Zlib', 2) ;
     use_ok('Compress::Gzip::Constants') ;
 
-    use_ok('IO::Gzip', qw($GzipError)) ;
+    use_ok('IO::Compress::Gzip', qw($GzipError)) ;
 }
 
 
@@ -874,7 +874,7 @@ some text
 EOM
 
     my $good ;
-    ok my $x = new IO::Gzip \$good, Append => 1, -HeaderCRC => 1 ;
+    ok my $x = new IO::Compress::Gzip \$good, Append => 1, -HeaderCRC => 1 ;
     ok $x->write($string) ;
     ok  $x->close ;
 
@@ -920,7 +920,7 @@ some text
 EOM
 
     my $truncated ;
-    ok  my $x = new IO::Gzip \$truncated, Append => 1, -HeaderCRC => 1, Strict => 0,
+    ok  my $x = new IO::Compress::Gzip \$truncated, Append => 1, -HeaderCRC => 1, Strict => 0,
 				-ExtraField => "hello" x 10  ;
     ok  $x->write($string) ;
     ok  $x->close ;
@@ -941,7 +941,7 @@ some text
 EOM
 
     my $truncated ;
-    ok  my $x = new IO::Gzip \$truncated, Append => 1, -Name => $Name;
+    ok  my $x = new IO::Compress::Gzip \$truncated, Append => 1, -Name => $Name;
     ok  $x->write($string) ;
     ok  $x->close ;
 
@@ -959,7 +959,7 @@ some text
 EOM
 
     my $truncated ;
-    ok  my $x = new IO::Gzip \$truncated, -Comment => $Comment;
+    ok  my $x = new IO::Compress::Gzip \$truncated, -Comment => $Comment;
     ok  $x->write($string) ;
     ok  $x->close ;
 
@@ -975,7 +975,7 @@ some text
 EOM
 
     my $truncated ;
-    ok  my $x = new IO::Gzip \$truncated, -HeaderCRC => 1;
+    ok  my $x = new IO::Compress::Gzip \$truncated, -HeaderCRC => 1;
     ok  $x->write($string) ;
     ok  $x->close ;
 
@@ -991,7 +991,7 @@ some text
 EOM
 
     my $buffer ;
-    ok  my $x = new IO::Gzip \$buffer, 
+    ok  my $x = new IO::Compress::Gzip \$buffer, 
                              -Append     => 1,
                              -Strict     => 0,
                              -HeaderCRC  => 1,
@@ -1017,7 +1017,7 @@ some text
 EOM
 
     my $good ;
-    ok  my $x = new IO::Gzip \$good, Append => 1 ;
+    ok  my $x = new IO::Compress::Gzip \$good, Append => 1 ;
     ok  $x->write($string) ;
     ok  $x->close ;
 

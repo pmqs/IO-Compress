@@ -1,53 +1,54 @@
-package IO::Inflate ;
-# for RFC1950
+package IO::Uncompress::RawInflate ;
+# for RFC1951
 
 use strict ;
 local ($^W) = 1; #use warnings;
-use IO::Gunzip ;
-
+use IO::Uncompress::Gunzip;
 
 require Exporter ;
-use vars qw($VERSION @ISA @EXPORT_OK %EXPORT_TAGS $InflateError);
+use vars qw($VERSION @ISA @EXPORT_OK %EXPORT_TAGS $RawInflateError);
 
-$VERSION = '2.000_04';
-$InflateError = '';
+$VERSION = '2.000_05';
+$RawInflateError = '';
 
-@ISA    = qw( Exporter IO::BaseInflate );
-@EXPORT_OK = qw( $InflateError inflate ) ;
+@ISA    = qw(Exporter IO::BaseInflate);
+@EXPORT_OK = qw( $RawInflateError rawinflate ) ;
 %EXPORT_TAGS = %IO::BaseInflate::EXPORT_TAGS ;
 push @{ $EXPORT_TAGS{all} }, @EXPORT_OK ;
 Exporter::export_ok_tags('all');
 
 
+
+
 sub new
 {
     my $pkg = shift ;
-    return IO::BaseInflate::new($pkg, 'rfc1950', undef, \$InflateError, 0, @_);
+    return IO::BaseInflate::new($pkg, 'rfc1951', undef, \$RawInflateError, 0, @_);
 }
 
-sub inflate
+sub rawinflate
 {
-    return IO::BaseInflate::_inf(__PACKAGE__, 'rfc1950', \$InflateError, @_);
+    return IO::BaseInflate::_inf(__PACKAGE__, 'rfc1951', \$RawInflateError, @_);
 }
 
-1 ;
+1; 
 
 __END__
 
 
 =head1 NAME
 
-IO::Inflate - Perl interface to read RFC 1950 files/buffers
+IO::Uncompress::RawInflate - Perl interface to read RFC 1951 files/buffers
 
 =head1 SYNOPSIS
 
-    use IO::Inflate qw(inflate $InflateError) ;
+    use IO::Uncompress::RawInflate qw(rawinflate $RawInflateError) ;
 
-    my $status = inflate $input => $output [,OPTS]
-        or die "inflate failed: $InflateError\n";
+    my $status = rawinflate $input => $output [,OPTS]
+        or die "rawinflate failed: $RawInflateError\n";
 
-    my $z = new IO::Inflate $input [OPTS] 
-        or die "inflate failed: $InflateError\n";
+    my $z = new IO::Uncompress::RawInflate $input [OPTS] 
+        or die "rawinflate failed: $RawInflateError\n";
 
     $status = $z->read($buffer)
     $status = $z->read($buffer, $length)
@@ -65,7 +66,7 @@ IO::Inflate - Perl interface to read RFC 1950 files/buffers
     $z->eof()
     $z->close()
 
-    $InflateError ;
+    $RawInflateError ;
 
     # IO::File mode
 
@@ -104,32 +105,32 @@ B<WARNING -- This is a Beta release>.
 
 
 This module provides a Perl interface that allows the reading of 
-files/buffers that conform to RFC 1950.
+files/buffers that conform to RFC 1951.
 
-For writing RFC 1950 files/buffers, see the companion module 
-IO::Deflate.
+For writing RFC 1951 files/buffers, see the companion module 
+IO::Compress::RawDeflate.
 
 
 
 =head1 Functional Interface
 
-A top-level function, C<inflate>, is provided to carry out "one-shot"
+A top-level function, C<rawinflate>, is provided to carry out "one-shot"
 uncompression between buffers and/or files. For finer control over the uncompression process, see the L</"OO Interface"> section.
 
-    use IO::Inflate qw(inflate $InflateError) ;
+    use IO::Uncompress::RawInflate qw(rawinflate $RawInflateError) ;
 
-    inflate $input => $output [,OPTS] 
-        or die "inflate failed: $InflateError\n";
+    rawinflate $input => $output [,OPTS] 
+        or die "rawinflate failed: $RawInflateError\n";
 
-    inflate \%hash [,OPTS] 
-        or die "inflate failed: $InflateError\n";
+    rawinflate \%hash [,OPTS] 
+        or die "rawinflate failed: $RawInflateError\n";
 
 The functional interface needs Perl5.005 or better.
 
 
-=head2 inflate $input => $output [, OPTS]
+=head2 rawinflate $input => $output [, OPTS]
 
-If the first parameter is not a hash reference C<inflate> expects
+If the first parameter is not a hash reference C<rawinflate> expects
 at least two parameters, C<$input> and C<$output>.
 
 =head3 The C<$input> parameter
@@ -161,7 +162,7 @@ from C<$$input>.
 =item An array reference 
 
 If C<$input> is an array reference, the input data will be read from each
-element of the array in turn. The action taken by C<inflate> with
+element of the array in turn. The action taken by C<rawinflate> with
 each element of the array will depend on the type of data stored
 in it. You can mix and match any of the types defined in this list,
 excluding other array or hash references. 
@@ -171,7 +172,7 @@ contains valid data types before any data is uncompressed.
 =item An Input FileGlob string
 
 If C<$input> is a string that is delimited by the characters "<" and ">"
-C<inflate> will assume that it is an I<input fileglob string>. The
+C<rawinflate> will assume that it is an I<input fileglob string>. The
 input is the list of files that match the fileglob.
 
 If the fileglob does not match any files ...
@@ -228,7 +229,7 @@ onto the array.
 =item An Output FileGlob
 
 If C<$output> is a string that is delimited by the characters "<" and ">"
-C<inflate> will assume that it is an I<output fileglob string>. The
+C<rawinflate> will assume that it is an I<output fileglob string>. The
 output is the list of files that match the fileglob.
 
 When C<$output> is an fileglob string, C<$input> must also be a fileglob
@@ -238,7 +239,7 @@ string. Anything else is an error.
 
 If the C<$output> parameter is any other type, C<undef> will be returned.
 
-=head2 inflate \%hash [, OPTS]
+=head2 rawinflate \%hash [, OPTS]
 
 If the first parameter is a hash reference, C<\%hash>, this will be used to
 define both the source of compressed data and to control where the
@@ -297,7 +298,7 @@ C<$output> as a single uncompressed stream.
 
 =head2 Optional Parameters
 
-Unless specified below, the optional parameters for C<inflate>,
+Unless specified below, the optional parameters for C<rawinflate>,
 C<OPTS>, are the same as those used with the OO interface defined in the
 L</"Constructor Options"> section below.
 
@@ -305,11 +306,11 @@ L</"Constructor Options"> section below.
 
 =item AutoClose =E<gt> 0|1
 
-This option applies to any input or output data streams to C<inflate>
+This option applies to any input or output data streams to C<rawinflate>
 that are filehandles.
 
 If C<AutoClose> is specified, and the value is true, it will result in all
-input and/or output filehandles being closed once C<inflate> has
+input and/or output filehandles being closed once C<rawinflate> has
 completed.
 
 This parameter defaults to 0.
@@ -329,17 +330,17 @@ TODO
 
 =head2 Examples
 
-To read the contents of the file C<file1.txt.1950> and write the
+To read the contents of the file C<file1.txt.1951> and write the
 compressed data to the file C<file1.txt>.
 
     use strict ;
     use warnings ;
-    use IO::Inflate qw(inflate $InflateError) ;
+    use IO::Uncompress::RawInflate qw(rawinflate $RawInflateError) ;
 
-    my $input = "file1.txt.1950";
+    my $input = "file1.txt.1951";
     my $output = "file1.txt";
-    inflate $input => $output
-        or die "inflate failed: $InflateError\n";
+    rawinflate $input => $output
+        or die "rawinflate failed: $RawInflateError\n";
 
 
 To read from an existing Perl filehandle, C<$input>, and write the
@@ -347,53 +348,53 @@ uncompressed data to a buffer, C<$buffer>.
 
     use strict ;
     use warnings ;
-    use IO::Inflate qw(inflate $InflateError) ;
+    use IO::Uncompress::RawInflate qw(rawinflate $RawInflateError) ;
     use IO::File ;
 
-    my $input = new IO::File "<file1.txt.1950"
-        or die "Cannot open 'file1.txt.1950': $!\n" ;
+    my $input = new IO::File "<file1.txt.1951"
+        or die "Cannot open 'file1.txt.1951': $!\n" ;
     my $buffer ;
-    inflate $input => \$buffer 
-        or die "inflate failed: $InflateError\n";
+    rawinflate $input => \$buffer 
+        or die "rawinflate failed: $RawInflateError\n";
 
-To uncompress all files in the directory "/my/home" that match "*.txt.1950" and store the compressed data in the same directory
+To uncompress all files in the directory "/my/home" that match "*.txt.1951" and store the compressed data in the same directory
 
     use strict ;
     use warnings ;
-    use IO::Inflate qw(inflate $InflateError) ;
+    use IO::Uncompress::RawInflate qw(rawinflate $RawInflateError) ;
 
-    inflate '</my/home/*.txt.1950>' => '</my/home/#1.txt>'
-        or die "inflate failed: $InflateError\n";
+    rawinflate '</my/home/*.txt.1951>' => '</my/home/#1.txt>'
+        or die "rawinflate failed: $RawInflateError\n";
 
 and if you want to compress each file one at a time, this will do the trick
 
     use strict ;
     use warnings ;
-    use IO::Inflate qw(inflate $InflateError) ;
+    use IO::Uncompress::RawInflate qw(rawinflate $RawInflateError) ;
 
-    for my $input ( glob "/my/home/*.txt.1950" )
+    for my $input ( glob "/my/home/*.txt.1951" )
     {
         my $output = $input;
-        $output =~ s/.1950// ;
-        inflate $input => $output 
-            or die "Error compressing '$input': $InflateError\n";
+        $output =~ s/.1951// ;
+        rawinflate $input => $output 
+            or die "Error compressing '$input': $RawInflateError\n";
     }
 
 =head1 OO Interface
 
 =head2 Constructor
 
-The format of the constructor for IO::Inflate is shown below
+The format of the constructor for IO::Uncompress::RawInflate is shown below
 
 
-    my $z = new IO::Inflate $input [OPTS]
-        or die "IO::Inflate failed: $InflateError\n";
+    my $z = new IO::Uncompress::RawInflate $input [OPTS]
+        or die "IO::Uncompress::RawInflate failed: $RawInflateError\n";
 
-Returns an C<IO::Inflate> object on success and undef on failure.
-The variable C<$InflateError> will contain an error message on failure.
+Returns an C<IO::Uncompress::RawInflate> object on success and undef on failure.
+The variable C<$RawInflateError> will contain an error message on failure.
 
 If you are running Perl 5.005 or better the object, C<$z>, returned from 
-IO::Inflate can be used exactly like an L<IO::File|IO::File> filehandle. 
+IO::Uncompress::RawInflate can be used exactly like an L<IO::File|IO::File> filehandle. 
 This means that all normal input file operations can be carried out with C<$z>. 
 For example, to read a line from a compressed file/buffer you can use either 
 of these forms
@@ -444,7 +445,7 @@ OPTS is a combination of the following options:
 
 This option is only valid when the C<$input> parameter is a filehandle. If
 specified, and the value is true, it will result in the file being closed once
-either the C<close> method is called or the IO::Inflate object is
+either the C<close> method is called or the IO::Uncompress::RawInflate object is
 destroyed.
 
 This parameter defaults to 0.
@@ -453,13 +454,7 @@ This parameter defaults to 0.
 
 
 
-Allows multiple concatenated compressed streams to be treated as a single
-compressed stream. Decompression will stop once either the end of the
-file/buffer is reached, an error is encountered (premature eof, corrupt
-compressed data) or the end of a stream is not immediately followed by the
-start of another stream.
-
-This parameter defaults to 0.
+This option is a no-op.
 
 
 
@@ -482,7 +477,7 @@ This option defaults to 1.
 
 =item -BlockSize =E<gt> $num
 
-When reading the compressed input data, IO::Inflate will read it in blocks
+When reading the compressed input data, IO::Uncompress::RawInflate will read it in blocks
 of C<$num> bytes.
 
 This option defaults to 4096.
@@ -518,32 +513,7 @@ Defaults to 0.
 
 
 
-This option controls whether the extra checks defined below are used when
-carrying out the decompression. When Strict is on, the extra tests are carried
-out, when Strict is off they are not.
-
-The default for this option is off.
-
-
-
-
-
-=over 5
-
-=item 1
-
-The ADLER32 checksum field must be present.
-
-=item 2
-
-The value of the ADLER32 field read must match the adler32 value of the
-uncompressed data actually contained in the file.
-
-=back
-
-
-
-
+This option is a no-op.
 
 
 
@@ -643,8 +613,6 @@ TODO
 
 
 
-This method returns a hash reference that contains the contents of each of the
-header fields defined in RFC1950.
 
 
 
@@ -725,7 +693,7 @@ Closes the output file/buffer.
 
 
 For most versions of Perl this method will be automatically invoked if
-the IO::Inflate object is destroyed (either explicitly or by the
+the IO::Uncompress::RawInflate object is destroyed (either explicitly or by the
 variable with the reference to the object going out of scope). The
 exceptions are Perl versions 5.005 through 5.00504 and 5.8.0. In
 these cases, the C<close> method will be called automatically, but
@@ -738,7 +706,7 @@ closing.
 
 Returns true on success, otherwise 0.
 
-If the C<AutoClose> option has been enabled when the IO::Inflate
+If the C<AutoClose> option has been enabled when the IO::Uncompress::RawInflate
 object was created, and the object is associated with a file, the
 underlying file will also be closed.
 
@@ -747,16 +715,16 @@ underlying file will also be closed.
 
 =head1 Importing 
 
-No symbolic constants are required by this IO::Inflate at present. 
+No symbolic constants are required by this IO::Uncompress::RawInflate at present. 
 
 =over 5
 
 =item :all
 
-Imports C<inflate> and C<$InflateError>.
+Imports C<rawinflate> and C<$RawInflateError>.
 Same as doing this
 
-    use IO::Inflate qw(inflate $InflateError) ;
+    use IO::Uncompress::RawInflate qw(rawinflate $RawInflateError) ;
 
 =back
 
@@ -767,7 +735,7 @@ Same as doing this
 
 =head1 SEE ALSO
 
-L<Compress::Zlib>, L<IO::Gzip>, L<IO::Gunzip>, L<IO::Deflate>, L<IO::RawDeflate>, L<IO::RawInflate>, L<IO::AnyInflate>
+L<Compress::Zlib>, L<IO::Compress::Gzip>, L<IO::Uncompress::Gunzip>, L<IO::Compress::Deflate>, L<IO::Uncompress::Inflate>, L<IO::Compress::RawDeflate>, L<IO::Uncompress::AnyInflate>
 
 L<Compress::Zlib::FAQ|Compress::Zlib::FAQ>
 
@@ -783,7 +751,7 @@ The primary site for the gzip program is F<http://www.gzip.org>.
 
 =head1 AUTHOR
 
-The I<IO::Inflate> module was written by Paul Marquess,
+The I<IO::Uncompress::RawInflate> module was written by Paul Marquess,
 F<pmqs@cpan.org>. The latest copy of the module can be
 found on CPAN in F<modules/by-module/Compress/Compress-Zlib-x.x.tar.gz>.
 

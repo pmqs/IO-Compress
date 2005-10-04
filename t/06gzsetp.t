@@ -5,18 +5,18 @@ local ($^W) = 1; #use warnings;
 # use bytes;
  
 use Test::More ;
-use MyTestUtils;
+use ZlibTestUtils;
  
 use Compress::Zlib 2 ;
 
-use IO::Gzip ;
-use IO::Gunzip ;
+use IO::Compress::Gzip ;
+use IO::Uncompress::Gunzip ;
 
-use IO::Deflate ;
-use IO::Inflate ;
+use IO::Compress::Deflate ;
+use IO::Uncompress::Inflate ;
 
-use IO::RawDeflate ;
-use IO::RawInflate ;
+use IO::Compress::RawDeflate ;
+use IO::Uncompress::RawInflate ;
 
 use vars qw($extra);
 
@@ -88,9 +88,9 @@ is Compress::Zlib::zlib_version, ZLIB_VERSION,
 }
 
 
-foreach my $CompressClass ('IO::Gzip',
-                           'IO::Deflate',
-                           'IO::RawDeflate',
+foreach my $CompressClass ('IO::Compress::Gzip',
+                           'IO::Compress::Deflate',
+                           'IO::Compress::RawDeflate',
                           )
 {
     my $UncompressClass = getInverse($CompressClass);
@@ -126,7 +126,7 @@ foreach my $CompressClass ('IO::Gzip',
     my $len = length $input ;
     my $uncompressed;
     is $k->read($uncompressed, $len), $len 
-       or diag "$IO::Gunzip::GunzipError" ;
+       or diag "$IO::Uncompress::Gunzip::GunzipError" ;
 
     ok $uncompressed eq  $input ;
     ok $k->eof ;

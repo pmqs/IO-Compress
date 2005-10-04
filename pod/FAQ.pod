@@ -144,7 +144,7 @@ First off, you must have zlib 1.0.5 or better.
 =item *
 
 You need to have zlib 1.2.1 or better if you want to use the C<-Merge> option
-with C<IO::Gzip>, C<IO::Deflate> and C<IO::RawDeflate>.
+with C<IO::Compress::Gzip>, C<IO::Compress::Deflate> and C<IO::Compress::RawDeflate>.
 
 
 
@@ -155,7 +155,7 @@ with C<IO::Gzip>, C<IO::Deflate> and C<IO::RawDeflate>.
 
 =head1 SEE ALSO
 
-L<Compress::Zlib>, L<IO::Gzip>, L<IO::Gunzip>, L<IO::Deflate>, L<IO::Inflate>, L<IO::RawDeflate>, L<IO::RawInflate>, L<IO::AnyInflate>
+L<Compress::Zlib>, L<IO::Compress::Gzip>, L<IO::Uncompress::Gunzip>, L<IO::Compress::Deflate>, L<IO::Uncompress::Inflate>, L<IO::Compress::RawDeflate>, L<IO::Uncompress::RawInflate>, L<IO::Uncompress::AnyInflate>
 
 L<Compress::Zlib::FAQ|Compress::Zlib::FAQ>
 

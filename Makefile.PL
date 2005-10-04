@@ -64,9 +64,10 @@ EOM
 
 ParseCONFIG() ;
 
-my @files = ('Zlib.pm', 't/MyTestUtils.pm',
+my @files = ('Zlib.pm', 't/ZlibTestUtils.pm',
              glob("t/*.t"), 
-             glob("lib/IO/*.pm"),
+             glob("lib/IO/Compress/*.pm"),
+             glob("lib/IO/Uncompress/*.pm"),
              glob("lib/Compress/Zlib/*.pm"),
              glob("lib/Compress/Gzip/*.pm"),
              glob("lib/File/*.pm"),

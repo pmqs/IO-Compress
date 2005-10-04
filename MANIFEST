@@ -1,22 +1,4 @@
 Changes
-lib/IO/Gzip.pm
-lib/IO/Gunzip.pm
-lib/IO/Inflate.pm
-lib/IO/RawInflate.pm
-lib/IO/AnyInflate.pm
-lib/IO/Deflate.pm
-lib/IO/RawDeflate.pm
-lib/Compress/Gzip/Constants.pm
-lib/Compress/Zlib/FileConstants.pm
-lib/Compress/Zlib/Common.pm
-lib/Compress/Zlib/ParseParameters.pm
-lib/File/GlobMapper.pm
-MANIFEST
-Makefile.PL
-pod/FAQ.pod
-README
-Zlib.pm
-Zlib.xs
 config.in
 examples/filtdef
 examples/filtinf
@@ -26,6 +8,24 @@ examples/gzgrep
 examples/gzstream
 fallback/constants.h
 fallback/constants.xs
+lib/Compress/Gzip/Constants.pm
+lib/Compress/Zlib/Common.pm
+lib/Compress/Zlib/FileConstants.pm
+lib/Compress/Zlib/ParseParameters.pm
+lib/File/GlobMapper.pm
+lib/IO/Compress/Deflate.pm
+lib/IO/Compress/Gzip.pm
+lib/IO/Compress/RawDeflate.pm
+lib/IO/Uncompress/AnyInflate.pm
+lib/IO/Uncompress/Gunzip.pm
+lib/IO/Uncompress/Inflate.pm
+lib/IO/Uncompress/RawInflate.pm
+Makefile.PL
+MANIFEST
+META.yml                                 Module meta-data (added by MakeMaker)
+pod/FAQ.pod
+ppport.h
+README
 t/01version.t
 t/02zlib.t
 t/03zlib-v1.t
@@ -51,11 +51,11 @@ t/22merge.t
 t/23misc.t
 t/99pod.t
 t/globmapper.t
-t/MyTestUtils.pm
 t/Test/Builder.pm
 t/Test/More.pm
-ppport.h
+t/ZlibTestUtils.pm
 typemap
+Zlib.pm
 zlib-src/adler32.c
 zlib-src/compress.c
 zlib-src/crc32.c
@@ -77,4 +77,4 @@ zlib-src/zconf.h
 zlib-src/zlib.h
 zlib-src/zutil.c
 zlib-src/zutil.h
-META.yml                                 Module meta-data (added by MakeMaker)
+Zlib.xs

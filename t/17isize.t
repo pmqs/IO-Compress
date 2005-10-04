@@ -5,7 +5,7 @@ local ($^W) = 1; #use warnings;
 # use bytes;
 
 use Test::More ;
-use MyTestUtils;
+use ZlibTestUtils;
 
 BEGIN 
 { 
@@ -22,8 +22,8 @@ BEGIN
 
 
     use_ok('Compress::Zlib', 2) ;
-    use_ok('IO::Gzip', qw($GzipError)) ;
-    use_ok('IO::Gunzip', qw($GunzipError)) ;
+    use_ok('IO::Compress::Gzip', qw($GzipError)) ;
+    use_ok('IO::Uncompress::Gunzip', qw($GunzipError)) ;
     use_ok('Compress::Gzip::Constants');
 }
 
@@ -69,7 +69,7 @@ for my $wrap (0 .. 2)
 
                     if ($max == 0 && $index == 0) {
                         $expected_crc = crc32('') ;
-                        ok $gzip->close(), '  IO::Gzip::close ok X' ;
+                        ok $gzip->close(), '  IO::Compress::Gzip::close ok X' ;
                         ++ $index ;
                         $_[0] .= $compressed;
                         return length $compressed ;
@@ -93,7 +93,7 @@ for my $wrap (0 .. 2)
                             $gzip->write('x' x $left) ;
                             #print "# LEN Compressed " . length($compressed) . "\n" ;
                             $expected_crc = crc32('x' x $left, $expected_crc) ;
-                            ok $gzip->close(), '  IO::Gzip::close ok ' ;
+                            ok $gzip->close(), '  IO::Compress::Gzip::close ok ' ;
                             last ;
                         }
                     }
@@ -107,18 +107,18 @@ for my $wrap (0 .. 2)
                 };
         }
 
-        my $gzip = new IO::Gzip \$compressed,
+        my $gzip = new IO::Compress::Gzip \$compressed,
                                 -Append     => 0,
                                 -HeaderCRC  => 1;
 
-        ok $gzip, "  Created IO::Gzip object";
+        ok $gzip, "  Created IO::Compress::Gzip object";
 
-        my $gunzip = new IO::Gunzip gzipClosure($gzip, $size),
+        my $gunzip = new IO::Uncompress::Gunzip gzipClosure($gzip, $size),
                                     -BlockSize  => 1024 * 500 ,
                                     -Append => 0,
                                     -Strict => 1;
 
-        ok $gunzip, "  Created IO::Gunzip object";
+        ok $gunzip, "  Created IO::Uncompress::Gunzip object";
 
         my $inflate = *$gunzip->{Inflate} ;
         my $deflate = *$gzip->{Deflate} ;
@@ -131,10 +131,10 @@ for my $wrap (0 .. 2)
             $actual += $status ;
         }
 
-        is $status, 0, '  IO::Gunzip::read returned 0'
+        is $status, 0, '  IO::Uncompress::Gunzip::read returned 0'
             or diag "error status is $status, error is $GunzipError" ;
 
-        ok $gunzip->close(), "  IO::Gunzip Closed ok" ;
+        ok $gunzip->close(), "  IO::Uncompress::Gunzip Closed ok" ;
 
         is $actual, $size, "  Length of Gunzipped data is $size"
             or diag "Expected $size, got $actual";

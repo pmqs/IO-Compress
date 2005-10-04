@@ -5,19 +5,19 @@ local ($^W) = 1; #use warnings;
 # use bytes;
 
 use Test::More ; 
-use MyTestUtils;
+use ZlibTestUtils;
 
 use vars qw($extra);
 use Compress::Zlib 2 ;
 
-use IO::Gzip qw($GzipError);
-use IO::Gunzip qw($GunzipError);
+use IO::Compress::Gzip qw($GzipError);
+use IO::Uncompress::Gunzip qw($GunzipError);
 
-use IO::Deflate qw($DeflateError);
-use IO::Inflate qw($InflateError);
+use IO::Compress::Deflate qw($DeflateError);
+use IO::Uncompress::Inflate qw($InflateError);
 
-use IO::RawDeflate qw($RawDeflateError);
-use IO::RawInflate qw($RawInflateError);
+use IO::Compress::RawDeflate qw($RawDeflateError);
+use IO::Uncompress::RawInflate qw($RawInflateError);
 
 
 BEGIN 
@@ -60,7 +60,7 @@ is Compress::Zlib::zlib_version, ZLIB_VERSION,
 }
 
 # output file/handle not writable
-foreach my $CompressClass ( map { "IO::$_" } qw( Gzip RawDeflate Deflate) )
+foreach my $CompressClass ( map { "IO::Compress::$_" } qw( Gzip RawDeflate Deflate) )
 {
 
     my $Error = getErrorRef($CompressClass);
@@ -118,7 +118,7 @@ foreach my $CompressClass ( map { "IO::$_" } qw( Gzip RawDeflate Deflate) )
 }
 
 # output is not compressed at all
-foreach my $CompressClass ( map { "IO::$_" } qw( Gzip RawDeflate Deflate) )
+foreach my $CompressClass ( map { "IO::Compress::$_" } qw( Gzip RawDeflate Deflate) )
 {
 
     my $Error = getErrorRef($CompressClass);
@@ -161,7 +161,7 @@ foreach my $CompressClass ( map { "IO::$_" } qw( Gzip RawDeflate Deflate) )
 }
 
 # output is empty
-foreach my $CompressClass ( map { "IO::$_" } qw( Gzip RawDeflate Deflate) )
+foreach my $CompressClass ( map { "IO::Compress::$_" } qw( Gzip RawDeflate Deflate) )
 {
 
     my $Error = getErrorRef($CompressClass);
@@ -207,7 +207,7 @@ foreach my $CompressClass ( map { "IO::$_" } qw( Gzip RawDeflate Deflate) )
     }
 }
 
-foreach my $CompressClass ( map { "IO::$_" } qw( Gzip RawDeflate Deflate) )
+foreach my $CompressClass ( map { "IO::Compress::$_" } qw( Gzip RawDeflate Deflate) )
 {
     my $Error = getErrorRef($CompressClass);
 
@@ -230,7 +230,7 @@ foreach my $CompressClass ( map { "IO::$_" } qw( Gzip RawDeflate Deflate) )
     is $out, "FGHI", '  Merged OK';
 }
 
-foreach my $CompressClass ( map { "IO::$_" } qw( Gzip RawDeflate Deflate) )
+foreach my $CompressClass ( map { "IO::Compress::$_" } qw( Gzip RawDeflate Deflate) )
 {
     my $Error = getErrorRef($CompressClass);
 
@@ -305,7 +305,7 @@ foreach my $CompressClass ( map { "IO::$_" } qw( Gzip RawDeflate Deflate) )
 }
 
 
-foreach my $CompressClass ( map { "IO::$_" } qw( Gzip RawDeflate Deflate) )
+foreach my $CompressClass ( map { "IO::Compress::$_" } qw( Gzip RawDeflate Deflate) )
 {
     my $Error = getErrorRef($CompressClass);
 

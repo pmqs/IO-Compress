@@ -5,7 +5,7 @@ local ($^W) = 1; #use warnings;
 # use bytes;
 
 use Test::More ; 
-use MyTestUtils;
+use ZlibTestUtils;
 
 BEGIN {
     # use Test::NoWarnings, if available
@@ -22,14 +22,14 @@ BEGIN {
 
 #    use_ok('Compress::Zlib', 2) ;
 #
-#    use_ok('IO::Gzip', qw($GzipError)) ;
-#    use_ok('IO::Gunzip', qw($GunzipError)) ;
+#    use_ok('IO::Compress::Gzip', qw($GzipError)) ;
+#    use_ok('IO::Uncompress::Gunzip', qw($GunzipError)) ;
 #
-#    use_ok('IO::Deflate', qw($DeflateError)) ;
-#    use_ok('IO::Inflate', qw($InflateError)) ;
+#    use_ok('IO::Compress::Deflate', qw($DeflateError)) ;
+#    use_ok('IO::Uncompress::Inflate', qw($InflateError)) ;
 #
-#    use_ok('IO::RawDeflate', qw($RawDeflateError)) ;
-#    use_ok('IO::RawInflate', qw($RawInflateError)) ;
+#    use_ok('IO::Compress::RawDeflate', qw($RawDeflateError)) ;
+#    use_ok('IO::Uncompress::RawInflate', qw($RawInflateError)) ;
 }
 
 

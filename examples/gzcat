@@ -1,6 +1,6 @@
 #!/usr/local/bin/perl
 
-use IO::Gunzip qw( $GunzipError );
+use IO::Uncompress::Gunzip qw( $GunzipError );
 use strict ;
 local ($^W) = 1; #use warnings ;
 
@@ -15,7 +15,7 @@ my $s;
 
 foreach $file (@ARGV) {
     
-    my $gz = new IO::Gunzip $file
+    my $gz = new IO::Uncompress::Gunzip $file
          or die "Cannot open $file: $GunzipError\n" ;
 
     print $buffer

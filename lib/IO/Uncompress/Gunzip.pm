@@ -1,5 +1,5 @@
 
-package IO::Gunzip ;
+package IO::Uncompress::Gunzip ;
 
 require 5.004 ;
 
@@ -21,7 +21,7 @@ Exporter::export_ok_tags('all');
 
 $GunzipError = '';
 
-$VERSION = '2.000_04';
+$VERSION = '2.000_05';
 
 sub new
 {
@@ -1812,7 +1812,7 @@ sub createDeflate
 }
 
 
-package IO::Gunzip ;
+package IO::Uncompress::Gunzip ;
 
 1 ;
 __END__
@@ -1820,16 +1820,16 @@ __END__
 
 =head1 NAME
 
-IO::Gunzip - Perl interface to read RFC 1952 files/buffers
+IO::Uncompress::Gunzip - Perl interface to read RFC 1952 files/buffers
 
 =head1 SYNOPSIS
 
-    use IO::Gunzip qw(gunzip $GunzipError) ;
+    use IO::Uncompress::Gunzip qw(gunzip $GunzipError) ;
 
     my $status = gunzip $input => $output [,OPTS]
         or die "gunzip failed: $GunzipError\n";
 
-    my $z = new IO::Gunzip $input [OPTS] 
+    my $z = new IO::Uncompress::Gunzip $input [OPTS] 
         or die "gunzip failed: $GunzipError\n";
 
     $status = $z->read($buffer)
@@ -1890,7 +1890,7 @@ This module provides a Perl interface that allows the reading of
 files/buffers that conform to RFC 1952.
 
 For writing RFC 1952 files/buffers, see the companion module 
-IO::Gzip.
+IO::Compress::Gzip.
 
 
 
@@ -1899,7 +1899,7 @@ IO::Gzip.
 A top-level function, C<gunzip>, is provided to carry out "one-shot"
 uncompression between buffers and/or files. For finer control over the uncompression process, see the L</"OO Interface"> section.
 
-    use IO::Gunzip qw(gunzip $GunzipError) ;
+    use IO::Uncompress::Gunzip qw(gunzip $GunzipError) ;
 
     gunzip $input => $output [,OPTS] 
         or die "gunzip failed: $GunzipError\n";
@@ -2117,7 +2117,7 @@ compressed data to the file C<file1.txt>.
 
     use strict ;
     use warnings ;
-    use IO::Gunzip qw(gunzip $GunzipError) ;
+    use IO::Uncompress::Gunzip qw(gunzip $GunzipError) ;
 
     my $input = "file1.txt.gz";
     my $output = "file1.txt";
@@ -2130,7 +2130,7 @@ uncompressed data to a buffer, C<$buffer>.
 
     use strict ;
     use warnings ;
-    use IO::Gunzip qw(gunzip $GunzipError) ;
+    use IO::Uncompress::Gunzip qw(gunzip $GunzipError) ;
     use IO::File ;
 
     my $input = new IO::File "<file1.txt.gz"
@@ -2143,7 +2143,7 @@ To uncompress all files in the directory "/my/home" that match "*.txt.gz" and st
 
     use strict ;
     use warnings ;
-    use IO::Gunzip qw(gunzip $GunzipError) ;
+    use IO::Uncompress::Gunzip qw(gunzip $GunzipError) ;
 
     gunzip '</my/home/*.txt.gz>' => '</my/home/#1.txt>'
         or die "gunzip failed: $GunzipError\n";
@@ -2152,7 +2152,7 @@ and if you want to compress each file one at a time, this will do the trick
 
     use strict ;
     use warnings ;
-    use IO::Gunzip qw(gunzip $GunzipError) ;
+    use IO::Uncompress::Gunzip qw(gunzip $GunzipError) ;
 
     for my $input ( glob "/my/home/*.txt.gz" )
     {
@@ -2166,17 +2166,17 @@ and if you want to compress each file one at a time, this will do the trick
 
 =head2 Constructor
 
-The format of the constructor for IO::Gunzip is shown below
+The format of the constructor for IO::Uncompress::Gunzip is shown below
 
 
-    my $z = new IO::Gunzip $input [OPTS]
-        or die "IO::Gunzip failed: $GunzipError\n";
+    my $z = new IO::Uncompress::Gunzip $input [OPTS]
+        or die "IO::Uncompress::Gunzip failed: $GunzipError\n";
 
-Returns an C<IO::Gunzip> object on success and undef on failure.
+Returns an C<IO::Uncompress::Gunzip> object on success and undef on failure.
 The variable C<$GunzipError> will contain an error message on failure.
 
 If you are running Perl 5.005 or better the object, C<$z>, returned from 
-IO::Gunzip can be used exactly like an L<IO::File|IO::File> filehandle. 
+IO::Uncompress::Gunzip can be used exactly like an L<IO::File|IO::File> filehandle. 
 This means that all normal input file operations can be carried out with C<$z>. 
 For example, to read a line from a compressed file/buffer you can use either 
 of these forms
@@ -2227,7 +2227,7 @@ OPTS is a combination of the following options:
 
 This option is only valid when the C<$input> parameter is a filehandle. If
 specified, and the value is true, it will result in the file being closed once
-either the C<close> method is called or the IO::Gunzip object is
+either the C<close> method is called or the IO::Uncompress::Gunzip object is
 destroyed.
 
 This parameter defaults to 0.
@@ -2265,7 +2265,7 @@ This option defaults to 1.
 
 =item -BlockSize =E<gt> $num
 
-When reading the compressed input data, IO::Gunzip will read it in blocks
+When reading the compressed input data, IO::Uncompress::Gunzip will read it in blocks
 of C<$num> bytes.
 
 This option defaults to 4096.
@@ -2558,7 +2558,7 @@ Closes the output file/buffer.
 
 
 For most versions of Perl this method will be automatically invoked if
-the IO::Gunzip object is destroyed (either explicitly or by the
+the IO::Uncompress::Gunzip object is destroyed (either explicitly or by the
 variable with the reference to the object going out of scope). The
 exceptions are Perl versions 5.005 through 5.00504 and 5.8.0. In
 these cases, the C<close> method will be called automatically, but
@@ -2571,7 +2571,7 @@ closing.
 
 Returns true on success, otherwise 0.
 
-If the C<AutoClose> option has been enabled when the IO::Gunzip
+If the C<AutoClose> option has been enabled when the IO::Uncompress::Gunzip
 object was created, and the object is associated with a file, the
 underlying file will also be closed.
 
@@ -2580,7 +2580,7 @@ underlying file will also be closed.
 
 =head1 Importing 
 
-No symbolic constants are required by this IO::Gunzip at present. 
+No symbolic constants are required by this IO::Uncompress::Gunzip at present. 
 
 =over 5
 
@@ -2589,7 +2589,7 @@ No symbolic constants are required by this IO::Gunzip at present.
 Imports C<gunzip> and C<$GunzipError>.
 Same as doing this
 
-    use IO::Gunzip qw(gunzip $GunzipError) ;
+    use IO::Uncompress::Gunzip qw(gunzip $GunzipError) ;
 
 =back
 
@@ -2600,7 +2600,7 @@ Same as doing this
 
 =head1 SEE ALSO
 
-L<Compress::Zlib>, L<IO::Gzip>, L<IO::Deflate>, L<IO::Inflate>, L<IO::RawDeflate>, L<IO::RawInflate>, L<IO::AnyInflate>
+L<Compress::Zlib>, L<IO::Compress::Gzip>, L<IO::Compress::Deflate>, L<IO::Uncompress::Inflate>, L<IO::Compress::RawDeflate>, L<IO::Uncompress::RawInflate>, L<IO::Uncompress::AnyInflate>
 
 L<Compress::Zlib::FAQ|Compress::Zlib::FAQ>
 
@@ -2616,7 +2616,7 @@ The primary site for the gzip program is F<http://www.gzip.org>.
 
 =head1 AUTHOR
 
-The I<IO::Gunzip> module was written by Paul Marquess,
+The I<IO::Uncompress::Gunzip> module was written by Paul Marquess,
 F<pmqs@cpan.org>. The latest copy of the module can be
 found on CPAN in F<modules/by-module/Compress/Compress-Zlib-x.x.tar.gz>.
 

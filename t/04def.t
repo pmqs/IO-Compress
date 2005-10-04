@@ -5,7 +5,7 @@ local ($^W) = 1; #use warnings;
 # use bytes;
 
 use Test::More ;
-use MyTestUtils;
+use ZlibTestUtils;
 
 BEGIN 
 { 
@@ -18,14 +18,14 @@ BEGIN
 
     use_ok('Compress::Zlib', 2) ;
 
-    use_ok('IO::Gzip', qw($GzipError)) ;
-    use_ok('IO::Gunzip', qw($GunzipError)) ;
+    use_ok('IO::Compress::Gzip', qw($GzipError)) ;
+    use_ok('IO::Uncompress::Gunzip', qw($GunzipError)) ;
 
-    use_ok('IO::Deflate', qw($DeflateError)) ;
-    use_ok('IO::Inflate', qw($InflateError)) ;
+    use_ok('IO::Compress::Deflate', qw($DeflateError)) ;
+    use_ok('IO::Uncompress::Inflate', qw($InflateError)) ;
 
-    use_ok('IO::RawDeflate', qw($RawDeflateError)) ;
-    use_ok('IO::RawInflate', qw($RawInflateError)) ;
+    use_ok('IO::Compress::RawDeflate', qw($RawDeflateError)) ;
+    use_ok('IO::Uncompress::RawInflate', qw($RawInflateError)) ;
 
 }
 
@@ -60,9 +60,9 @@ is Compress::Zlib::zlib_version, ZLIB_VERSION,
 
 
 
-foreach my $CompressClass ('IO::Gzip',     
-                           'IO::Deflate', 
-                           'IO::RawDeflate')
+foreach my $CompressClass ('IO::Compress::Gzip',     
+                           'IO::Compress::Deflate', 
+                           'IO::Compress::RawDeflate')
 {
 
     title "Testing $CompressClass";
@@ -100,9 +100,9 @@ foreach my $CompressClass ('IO::Gzip',
 }
 
 
-foreach my $CompressClass ('IO::Gzip',
-                           'IO::Deflate',
-                           'IO::RawDeflate',
+foreach my $CompressClass ('IO::Compress::Gzip',
+                           'IO::Compress::Deflate',
+                           'IO::Compress::RawDeflate',
                          )
 {
     $UncompressClass = getInverse($CompressClass);
@@ -142,9 +142,9 @@ foreach my $CompressClass ('IO::Gzip',
 
 }
 
-foreach my $CompressClass ('IO::Gzip',
-                           'IO::Deflate',
-                           'IO::RawDeflate',
+foreach my $CompressClass ('IO::Compress::Gzip',
+                           'IO::Compress::Deflate',
+                           'IO::Compress::RawDeflate',
                          )
 {
     $UncompressClass = getInverse($CompressClass);
@@ -168,7 +168,7 @@ foreach my $CompressClass ('IO::Gzip',
         
     foreach my $Type ( $CompressClass, $UncompressClass)
     {
-        # Check error handling with IO::Deflate and IO::Inflate
+        # Check error handling with IO::Compress::Deflate and IO::Uncompress::Inflate
 
         my ($a, $x, @x) = ("","","") ;
 
@@ -636,7 +636,7 @@ EOT
 
         my %opts = () ;
         %opts = (CRC32 => 1, Adler32 => 1)
-            if $CompressClass ne "IO::Gzip";
+            if $CompressClass ne "IO::Compress::Gzip";
         my $iow = new $CompressClass $name, %opts;
         $iow->print($str) ;
         $iow->close ;

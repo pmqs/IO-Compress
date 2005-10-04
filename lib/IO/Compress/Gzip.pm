@@ -1,5 +1,5 @@
 
-package IO::Gzip ;
+package IO::Compress::Gzip ;
 
 require 5.004 ;
 
@@ -12,7 +12,7 @@ require Exporter ;
 
 use vars qw($VERSION @ISA @EXPORT_OK %EXPORT_TAGS $GzipError);
 
-$VERSION = '2.000_04';
+$VERSION = '2.000_05';
 $GzipError = '' ;
 
 @ISA    = qw(Exporter IO::BaseDeflate);
@@ -41,7 +41,7 @@ use Compress::Zlib::Common;
 use Compress::Zlib::FileConstants;
 use Compress::Zlib::ParseParameters;
 use Compress::Gzip::Constants;
-use IO::Gunzip;
+use IO::Uncompress::Gunzip;
 
 use IO::File ;
 #use File::Glob;
@@ -701,9 +701,9 @@ sub new
     }
     else
     {
-        my %mapping = ( 'rfc1952'  => ['IO::Gunzip',     \$IO::Gunzip::GunzipError],
-                        'rfc1950'  => ['IO::Inflate',    \$IO::Inflate::InflateError],
-                        'rfc1951'  => ['IO::RawInflate', \$IO::RawInflate::RawInflateError],
+        my %mapping = ( 'rfc1952'  => ['IO::Uncompress::Gunzip',     \$IO::Uncompress::Gunzip::GunzipError],
+                        'rfc1950'  => ['IO::Uncompress::Inflate',    \$IO::Uncompress::Inflate::InflateError],
+                        'rfc1951'  => ['IO::Uncompress::RawInflate', \$IO::Uncompress::RawInflate::RawInflateError],
                       );
 
         my $inf = IO::BaseInflate::new($mapping{$type}[0],
@@ -1521,17 +1521,17 @@ __END__
 
 =head1 NAME
 
-IO::Gzip     - Perl interface to write RFC 1952 files/buffers
+IO::Compress::Gzip     - Perl interface to write RFC 1952 files/buffers
 
 =head1 SYNOPSIS
 
-    use IO::Gzip qw(gzip $GzipError) ;
+    use IO::Compress::Gzip qw(gzip $GzipError) ;
 
 
     my $status = gzip $input => $output [,OPTS] 
         or die "gzip failed: $GzipError\n";
 
-    my $z = new IO::Gzip $output [,OPTS]
+    my $z = new IO::Compress::Gzip $output [,OPTS]
         or die "gzip failed: $GzipError\n";
 
     $z->print($string);
@@ -1595,7 +1595,7 @@ this module.
 
 
 For reading RFC 1952 files/buffers, see the companion module 
-L<IO::Gunzip|IO::Gunzip>.
+L<IO::Uncompress::Gunzip|IO::Uncompress::Gunzip>.
 
 
 =head1 Functional Interface
@@ -1603,7 +1603,7 @@ L<IO::Gunzip|IO::Gunzip>.
 A top-level function, C<gzip>, is provided to carry out "one-shot"
 compression between buffers and/or files. For finer control over the compression process, see the L</"OO Interface"> section.
 
-    use IO::Gzip qw(gzip $GzipError) ;
+    use IO::Compress::Gzip qw(gzip $GzipError) ;
 
     gzip $input => $output [,OPTS] 
         or die "gzip failed: $GzipError\n";
@@ -1831,7 +1831,7 @@ data to the file C<file1.txt.gz>.
 
     use strict ;
     use warnings ;
-    use IO::Gzip qw(gzip $GzipError) ;
+    use IO::Compress::Gzip qw(gzip $GzipError) ;
 
     my $input = "file1.txt";
     gzip $input => "$input.gz"
@@ -1843,7 +1843,7 @@ compressed data to a buffer, C<$buffer>.
 
     use strict ;
     use warnings ;
-    use IO::Gzip qw(gzip $GzipError) ;
+    use IO::Compress::Gzip qw(gzip $GzipError) ;
     use IO::File ;
 
     my $input = new IO::File "<file1.txt"
@@ -1857,7 +1857,7 @@ and store the compressed data in the same directory
 
     use strict ;
     use warnings ;
-    use IO::Gzip qw(gzip $GzipError) ;
+    use IO::Compress::Gzip qw(gzip $GzipError) ;
 
     gzip '</my/home/*.txt>' => '<*.gz>'
         or die "gzip failed: $GzipError\n";
@@ -1866,7 +1866,7 @@ and if you want to compress each file one at a time, this will do the trick
 
     use strict ;
     use warnings ;
-    use IO::Gzip qw(gzip $GzipError) ;
+    use IO::Compress::Gzip qw(gzip $GzipError) ;
 
     for my $input ( glob "/my/home/*.txt" )
     {
@@ -1880,16 +1880,16 @@ and if you want to compress each file one at a time, this will do the trick
 
 =head2 Constructor
 
-The format of the constructor for C<IO::Gzip> is shown below
+The format of the constructor for C<IO::Compress::Gzip> is shown below
 
-    my $z = new IO::Gzip $output [,OPTS]
-        or die "IO::Gzip failed: $GzipError\n";
+    my $z = new IO::Compress::Gzip $output [,OPTS]
+        or die "IO::Compress::Gzip failed: $GzipError\n";
 
-It returns an C<IO::Gzip> object on success and undef on failure. 
+It returns an C<IO::Compress::Gzip> object on success and undef on failure. 
 The variable C<$GzipError> will contain an error message on failure.
 
 If you are running Perl 5.005 or better the object, C<$z>, returned from 
-IO::Gzip can be used exactly like an L<IO::File|IO::File> filehandle. 
+IO::Compress::Gzip can be used exactly like an L<IO::File|IO::File> filehandle. 
 This means that all normal output file operations can be carried out 
 with C<$z>. 
 For example, to write to a compressed file/buffer you can use either of 
@@ -1923,7 +1923,7 @@ in C<$$output>.
 
 =back
 
-If the C<$output> parameter is any other type, C<IO::Gzip>::new will
+If the C<$output> parameter is any other type, C<IO::Compress::Gzip>::new will
 return undef.
 
 =head2 Constructor Options
@@ -1936,7 +1936,7 @@ C<OPTS> is any combination of the following options:
 
 This option is only valid when the C<$output> parameter is a filehandle. If
 specified, and the value is true, it will result in the C<$output> being closed
-once either the C<close> method is called or the C<IO::Gzip> object is
+once either the C<close> method is called or the C<IO::Compress::Gzip> object is
 destroyed.
 
 This parameter defaults to 0.
@@ -2015,11 +2015,11 @@ compression), or one of the symbolic constants defined below.
 
 The default is Z_DEFAULT_COMPRESSION.
 
-Note, these constants are not imported by C<IO::Gzip> by default.
+Note, these constants are not imported by C<IO::Compress::Gzip> by default.
 
-    use IO::Gzip qw(:strategy);
-    use IO::Gzip qw(:constants);
-    use IO::Gzip qw(:all);
+    use IO::Compress::Gzip qw(:strategy);
+    use IO::Compress::Gzip qw(:constants);
+    use IO::Compress::Gzip qw(:all);
 
 =item -Strategy 
 
@@ -2081,7 +2081,7 @@ truncated at the first NULL.
 
 Sets the MTIME field in the gzip header to $number.
 
-This field defaults to the time the C<IO::Gzip> object was created
+This field defaults to the time the C<IO::Compress::Gzip> object was created
 if this option is not specified.
 
 =item -TextFlag =E<gt> 0|1
@@ -2148,7 +2148,7 @@ Alternatively the list of subfields can by supplied as a scalar, thus
     -ExtraField => $rawdata
 
 If you use the raw format, and the C<Strict> option is enabled,
-C<IO::Gzip> will check that C<$rawdata> consists of zero or more
+C<IO::Compress::Gzip> will check that C<$rawdata> consists of zero or more
 conformant sub-fields. When C<Strict> is disabled, C<$rawdata> can
 consist of any arbitrary byte stream.
 
@@ -2401,7 +2401,7 @@ Flushes any pending compressed data and then closes the output file/buffer.
 
 
 For most versions of Perl this method will be automatically invoked if
-the IO::Gzip object is destroyed (either explicitly or by the
+the IO::Compress::Gzip object is destroyed (either explicitly or by the
 variable with the reference to the object going out of scope). The
 exceptions are Perl versions 5.005 through 5.00504 and 5.8.0. In
 these cases, the C<close> method will be called automatically, but
@@ -2414,7 +2414,7 @@ closing.
 
 Returns true on success, otherwise 0.
 
-If the C<AutoClose> option has been enabled when the IO::Gzip
+If the C<AutoClose> option has been enabled when the IO::Compress::Gzip
 object was created, and the object is associated with a file, the
 underlying file will also be closed.
 
@@ -2440,22 +2440,22 @@ TODO
 =head1 Importing 
 
 A number of symbolic constants are required by some methods in 
-C<IO::Gzip>. None are imported by default.
+C<IO::Compress::Gzip>. None are imported by default.
 
 =over 5
 
 =item :all
 
 Imports C<gzip>, C<$GzipError> and all symbolic
-constants that can be used by C<IO::Gzip>. Same as doing this
+constants that can be used by C<IO::Compress::Gzip>. Same as doing this
 
-    use IO::Gzip qw(gzip $GzipError :constants) ;
+    use IO::Compress::Gzip qw(gzip $GzipError :constants) ;
 
 =item :constants
 
 Import all symbolic constants. Same as doing this
 
-    use IO::Gzip qw(:flush :level :strategy) ;
+    use IO::Compress::Gzip qw(:flush :level :strategy) ;
 
 =item :flush
 
@@ -2504,7 +2504,7 @@ TODO
 
 =head1 SEE ALSO
 
-L<Compress::Zlib>, L<IO::Gunzip>, L<IO::Deflate>, L<IO::Inflate>, L<IO::RawDeflate>, L<IO::RawInflate>, L<IO::AnyInflate>
+L<Compress::Zlib>, L<IO::Uncompress::Gunzip>, L<IO::Compress::Deflate>, L<IO::Uncompress::Inflate>, L<IO::Compress::RawDeflate>, L<IO::Uncompress::RawInflate>, L<IO::Uncompress::AnyInflate>
 
 L<Compress::Zlib::FAQ|Compress::Zlib::FAQ>
 
@@ -2520,7 +2520,7 @@ The primary site for the gzip program is F<http://www.gzip.org>.
 
 =head1 AUTHOR
 
-The I<IO::Gzip> module was written by Paul Marquess,
+The I<IO::Compress::Gzip> module was written by Paul Marquess,
 F<pmqs@cpan.org>. The latest copy of the module can be
 found on CPAN in F<modules/by-module/Compress/Compress-Zlib-x.x.tar.gz>.
 

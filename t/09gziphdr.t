@@ -5,7 +5,7 @@ local ($^W) = 1; #use warnings;
 # use bytes;
 
 use Test::More ;
-use MyTestUtils;
+use ZlibTestUtils;
 
 BEGIN {
     # use Test::NoWarnings, if available
@@ -19,8 +19,8 @@ BEGIN {
     use_ok('Compress::Zlib', 2) ;
     use_ok('Compress::Gzip::Constants') ;
 
-    use_ok('IO::Gzip', qw($GzipError)) ;
-    use_ok('IO::Gunzip', qw($GunzipError)) ;
+    use_ok('IO::Compress::Gzip', qw($GzipError)) ;
+    use_ok('IO::Uncompress::Gunzip', qw($GunzipError)) ;
 
 }
 
@@ -214,14 +214,14 @@ my $lex = new LexFile $name ;
     for my $code ( -1, undef, '', 'fred' )
     {
         my $code_name = defined $code ? "'$code'" : 'undef';
-        eval { new IO::Gzip $name, -OS_Code => $code } ;
-        like $@, mkErr("^IO::Gzip: Parameter 'OS_Code' must be an unsigned int, got $code_name"),
+        eval { new IO::Compress::Gzip $name, -OS_Code => $code } ;
+        like $@, mkErr("^IO::Compress::Gzip: Parameter 'OS_Code' must be an unsigned int, got $code_name"),
             " Trap OS Code $code_name";
     }
 
     for my $code ( qw( 256 ) )
     {
-        ok ! new IO::Gzip($name, OS_Code => $code) ;
+        ok ! new IO::Compress::Gzip($name, OS_Code => $code) ;
         like $GzipError, "/^OS_Code must be between 0 and 255, got '$code'/",
             " Trap OS Code $code";
     }
@@ -264,7 +264,7 @@ my $lex = new LexFile $name ;
 
     foreach my $test (@tests) {
         my ($order, $input, $result) = @$test ;
-        ok my $x = new IO::Gzip $name,
+        ok my $x = new IO::Compress::Gzip $name,
                                 -ExtraField  => $input,
                                 -HeaderCRC   => 1
             or diag "GzipError is $GzipError" ;                            ;
@@ -273,7 +273,7 @@ my $lex = new LexFile $name ;
         ok $x->close ;
         is GZreadFile($name), $string ;
 
-        ok $x = new IO::Gunzip $name,
+        ok $x = new IO::Uncompress::Gunzip $name,
                               #-Strict     => 1,
                                -ParseExtra => 1
             or diag "GunzipError is $GunzipError" ;                            ;
@@ -327,7 +327,7 @@ my $lex = new LexFile $name ;
     foreach my $test (@tests) {
         my ($input, $string) = @$test ;
         my $buffer ;
-        my $x = new IO::Gzip \$buffer, -ExtraField  => $input;
+        my $x = new IO::Compress::Gzip \$buffer, -ExtraField  => $input;
         ok ! $x ;
         like $GzipError, "/^$prefix$string/";  
 
@@ -378,21 +378,21 @@ my $lex = new LexFile $name ;
         #hexDump(\$input);
 
         my $buffer ;
-        my $x = new IO::Gzip \$buffer, -ExtraField  => $input, Strict => 1;
+        my $x = new IO::Compress::Gzip \$buffer, -ExtraField  => $input, Strict => 1;
 
-        ok ! $x, "  IO::Gzip fails";
+        ok ! $x, "  IO::Compress::Gzip fails";
         like $GzipError, "/^$gzip_error/", "  $name";  
 
         foreach my $check (0, 1)    
         {
-            ok $x = new IO::Gzip \$buffer, -ExtraField  => $input, Strict => 0
+            ok $x = new IO::Compress::Gzip \$buffer, -ExtraField  => $input, Strict => 0
                 or diag "GzipError is $GzipError" ;                            ;
             my $string = "abcd" ;
             $x->write($string) ;
             $x->close ;
             is anyUncompress(\$buffer), $string ;
 
-            $x = new IO::Gunzip \$buffer, Strict => 0,
+            $x = new IO::Uncompress::Gunzip \$buffer, Strict => 0,
                                        ParseExtra => $check;
             if ($check) {
                 ok ! $x ;
@@ -410,13 +410,13 @@ my $lex = new LexFile $name ;
 {
     title 'Check Minimal';
 
-    ok my $x = new IO::Gzip $name, -Minimal => 1;
+    ok my $x = new IO::Compress::Gzip $name, -Minimal => 1;
     my $string = "abcd" ;
     ok $x->write($string) ;
     ok $x->close ;
     is GZreadFile($name), $string ;
 
-    ok $x = new IO::Gunzip $name  ;
+    ok $x = new IO::Uncompress::Gunzip $name  ;
     my $hdr = $x->getHeaderInfo();
     ok $hdr;
     ok $hdr->{Time} == 0;
@@ -436,11 +436,11 @@ my $lex = new LexFile $name ;
     # Check Minimal + no comressed data
     # This is the smallest possible gzip file (20 bytes)
 
-    ok my $x = new IO::Gzip $name, -Minimal => 1;
+    ok my $x = new IO::Compress::Gzip $name, -Minimal => 1;
     ok $x->close ;
     ok GZreadFile($name) eq '' ;
 
-    ok $x = new IO::Gunzip $name, -Append => 1 ;
+    ok $x = new IO::Uncompress::Gunzip $name, -Append => 1 ;
     my $data ;
     my $status  = 1;
 
@@ -480,7 +480,7 @@ some text
 EOM
 
     my $good = '';
-    ok my $x = new IO::Gzip \$good, -HeaderCRC => 1 ;
+    ok my $x = new IO::Compress::Gzip \$good, -HeaderCRC => 1 ;
     ok $x->write($string) ;
     ok $x->close ;
 
@@ -489,7 +489,7 @@ EOM
         my $buffer = $good ;
         substr($buffer, 0, 1) = 'x' ;
 
-        ok ! new IO::Gunzip \$buffer, -Transparent => 0  ;
+        ok ! new IO::Uncompress::Gunzip \$buffer, -Transparent => 0  ;
         ok $GunzipError =~ /Header Error: Bad Magic/;
     }
 
@@ -498,7 +498,7 @@ EOM
         my $buffer = $good ;
         substr($buffer, 1, 1) = "\xFF" ;
 
-        ok ! new IO::Gunzip \$buffer, -Transparent => 0  ;
+        ok ! new IO::Uncompress::Gunzip \$buffer, -Transparent => 0  ;
         ok $GunzipError =~ /Header Error: Bad Magic/;
         #print "$GunzipError\n";
     }
@@ -508,7 +508,7 @@ EOM
         my $buffer = $good ;
         substr($buffer, 2, 1) = 'x' ;
 
-        ok ! new IO::Gunzip \$buffer, -Transparent => 0  ;
+        ok ! new IO::Uncompress::Gunzip \$buffer, -Transparent => 0  ;
         like $GunzipError, '/Header Error: Not Deflate \(CM is \d+\)/';
     }
 
@@ -517,7 +517,7 @@ EOM
         my $buffer = $good ;
         substr($buffer, 3, 1) = "\xff";
 
-        ok ! new IO::Gunzip \$buffer, -Transparent => 0  ;
+        ok ! new IO::Uncompress::Gunzip \$buffer, -Transparent => 0  ;
         like $GunzipError, '/Header Error: Use of Reserved Bits in FLG field./';
     }
 
@@ -526,7 +526,7 @@ EOM
         my $buffer = $good ;
         substr($buffer, 10, 1) = chr((ord(substr($buffer, 10, 1)) + 1) & 0xFF);
 
-        ok ! new IO::Gunzip \$buffer, -Transparent => 0, Strict => 1
+        ok ! new IO::Uncompress::Gunzip \$buffer, -Transparent => 0, Strict => 1
          or print "# $GunzipError\n";
         like $GunzipError, '/Header Error: CRC16 mismatch/'
             #or diag "buffer length " . length($buffer);
@@ -538,10 +538,10 @@ EOM
     title "ExtraField max raw size";
     my $x ;
     my $store = "x" x GZIP_FEXTRA_MAX_SIZE ;
-    my $z = new IO::Gzip(\$x, ExtraField => $store, Strict => 0) ;
-    ok $z,  "Created IO::Gzip object" ;
-    my $gunz = new IO::Gunzip \$x, Strict => 0;
-    ok $gunz, "Created IO::Gunzip object" ;
+    my $z = new IO::Compress::Gzip(\$x, ExtraField => $store, Strict => 0) ;
+    ok $z,  "Created IO::Compress::Gzip object" ;
+    my $gunz = new IO::Uncompress::Gunzip \$x, Strict => 0;
+    ok $gunz, "Created IO::Uncompress::Gunzip object" ;
     my $hdr = $gunz->getHeaderInfo();
     ok $hdr;
 
@@ -551,7 +551,7 @@ EOM
 {
     title "Header Corruption - ExtraField too big";
     my $x;
-    ok ! new IO::Gzip(\$x,
+    ok ! new IO::Compress::Gzip(\$x,
 			-ExtraField => "x" x (GZIP_FEXTRA_MAX_SIZE + 1)) ;
     like $GzipError, '/Error with ExtraField Parameter: Too Large/';
 }
@@ -560,20 +560,20 @@ EOM
     title "Header Corruption - Create Name with Illegal Chars";
 
     my $x;
-    ok ! new IO::Gzip \$x,
+    ok ! new IO::Compress::Gzip \$x,
 		      -Name => "fred\x02" ;
     like $GzipError, '/Non ISO 8859-1 Character found in Name/';
 
-    ok  my $gz = new IO::Gzip \$x,
+    ok  my $gz = new IO::Compress::Gzip \$x,
 		                      -Strict => 0,
 		                      -Name => "fred\x02" ;
     ok $gz->close();                          
 
-    ok ! new IO::Gunzip \$x,
+    ok ! new IO::Uncompress::Gunzip \$x,
                         -Strict => 1;
 
     like $GunzipError, '/Header Error: Non ISO 8859-1 Character found in Name/';                    
-    ok my $gunzip = new IO::Gunzip \$x,
+    ok my $gunzip = new IO::Uncompress::Gunzip \$x,
                                    -Strict => 0;
 
     my $hdr = $gunzip->getHeaderInfo() ;                  
@@ -585,19 +585,19 @@ EOM
 {
     title "Header Corruption - Null Chars in Name";
     my $x;
-    ok ! new IO::Gzip \$x,
+    ok ! new IO::Compress::Gzip \$x,
 		      -Name => "\x00" ;
     like $GzipError, '/Null Character found in Name/';
 
-    ok ! new IO::Gzip \$x,
+    ok ! new IO::Compress::Gzip \$x,
 		      -Name => "abc\x00" ;
     like $GzipError, '/Null Character found in Name/';
 
-    ok my $gz = new IO::Gzip \$x,
+    ok my $gz = new IO::Compress::Gzip \$x,
 		                     -Strict  => 0,
 		                     -Name => "abc\x00de" ;
     ok $gz->close() ;                             
-    ok my $gunzip = new IO::Gunzip \$x,
+    ok my $gunzip = new IO::Uncompress::Gunzip \$x,
                                    -Strict => 0;
 
     my $hdr = $gunzip->getHeaderInfo() ;                  
@@ -610,19 +610,19 @@ EOM
     title "Header Corruption - Create Comment with Illegal Chars";
 
     my $x;
-    ok ! new IO::Gzip \$x,
+    ok ! new IO::Compress::Gzip \$x,
 		      -Comment => "fred\x02" ;
     like $GzipError, '/Non ISO 8859-1 Character found in Comment/';
 
-    ok  my $gz = new IO::Gzip \$x,
+    ok  my $gz = new IO::Compress::Gzip \$x,
 		                      -Strict => 0,
 		                      -Comment => "fred\x02" ;
     ok $gz->close();                          
 
-    ok ! new IO::Gunzip \$x, Strict => 1;
+    ok ! new IO::Uncompress::Gunzip \$x, Strict => 1;
 
     like $GunzipError, '/Header Error: Non ISO 8859-1 Character found in Comment/';
-    ok my $gunzip = new IO::Gunzip \$x, Strict => 0;
+    ok my $gunzip = new IO::Uncompress::Gunzip \$x, Strict => 0;
 
     my $hdr = $gunzip->getHeaderInfo() ;                  
 
@@ -633,19 +633,19 @@ EOM
 {
     title "Header Corruption - Null Char in Comment";
     my $x;
-    ok ! new IO::Gzip \$x,
+    ok ! new IO::Compress::Gzip \$x,
 		      -Comment => "\x00" ;
     like $GzipError, '/Null Character found in Comment/';
 
-    ok ! new IO::Gzip \$x,
+    ok ! new IO::Compress::Gzip \$x,
 		      -Comment => "abc\x00" ;
     like $GzipError, '/Null Character found in Comment/';
 
-    ok my $gz = new IO::Gzip \$x,
+    ok my $gz = new IO::Compress::Gzip \$x,
 		                     -Strict  => 0,
 		                     -Comment => "abc\x00de" ;
     ok $gz->close() ;                             
-    ok my $gunzip = new IO::Gunzip \$x,
+    ok my $gunzip = new IO::Uncompress::Gunzip \$x,
                                    -Strict => 0;
 
     my $hdr = $gunzip->getHeaderInfo() ;                  
@@ -663,7 +663,7 @@ some text
 EOM
 
     my $truncated ;
-    ok my $x = new IO::Gzip \$truncated, -HeaderCRC => 1, Strict => 0,
+    ok my $x = new IO::Compress::Gzip \$truncated, -HeaderCRC => 1, Strict => 0,
 				-ExtraField => "hello" x 10  ;
     ok $x->write($string) ;
     ok $x->close ;
@@ -673,8 +673,8 @@ EOM
     #my $lex = new LexFile $name ;
     #writeFile($name, $truncated) ;
 
-    #my $g = new IO::Gunzip $name, -Transparent => 0; 
-    my $g = new IO::Gunzip \$truncated, -Transparent => 0; 
+    #my $g = new IO::Uncompress::Gunzip $name, -Transparent => 0; 
+    my $g = new IO::Uncompress::Gunzip \$truncated, -Transparent => 0; 
     ok ! $g 
 	or print "# $g\n" ;
 
@@ -693,13 +693,13 @@ some text
 EOM
 
     my $truncated ;
-    ok my $x = new IO::Gzip \$truncated, -Name => $Name;
+    ok my $x = new IO::Compress::Gzip \$truncated, -Name => $Name;
     ok $x->write($string) ;
     ok $x->close ;
 
     substr($truncated, $index) = '' ;
 
-    my $g = new IO::Gunzip \$truncated, -Transparent => 0; 
+    my $g = new IO::Uncompress::Gunzip \$truncated, -Transparent => 0; 
     ok ! $g 
 	or print "# $g\n" ;
 
@@ -716,7 +716,7 @@ some text
 EOM
 
     my $truncated ;
-    ok my $x = new IO::Gzip \$truncated, -Comment => $Comment;
+    ok my $x = new IO::Compress::Gzip \$truncated, -Comment => $Comment;
     ok $x->write($string) ;
     ok $x->close ;
 
@@ -725,8 +725,8 @@ EOM
     #my $lex = new LexFile $name ;
     #writeFile($name, $truncated) ;
 
-    #my $g = new IO::Gunzip $name, -Transparent => 0; 
-    my $g = new IO::Gunzip \$truncated, -Transparent => 0; 
+    #my $g = new IO::Uncompress::Gunzip $name, -Transparent => 0; 
+    my $g = new IO::Uncompress::Gunzip \$truncated, -Transparent => 0; 
     ok ! $g 
 	or print "# $g\n" ;
 
@@ -742,7 +742,7 @@ some text
 EOM
 
     my $truncated ;
-    ok my $x = new IO::Gzip \$truncated, -HeaderCRC => 1;
+    ok my $x = new IO::Compress::Gzip \$truncated, -HeaderCRC => 1;
     ok $x->write($string) ;
     ok $x->close ;
 
@@ -751,8 +751,8 @@ EOM
     my $lex = new LexFile $name ;
     writeFile($name, $truncated) ;
 
-    my $g = new IO::Gunzip $name, -Transparent => 0; 
-    #my $g = new IO::Gunzip \$truncated, -Transparent => 0; 
+    my $g = new IO::Uncompress::Gunzip $name, -Transparent => 0; 
+    #my $g = new IO::Uncompress::Gunzip \$truncated, -Transparent => 0; 
     ok ! $g 
 	or print "# $g\n" ;
 
@@ -770,13 +770,13 @@ EOM
 
     my $good ;
     {
-        ok my $x = new IO::Gzip \$good ;
+        ok my $x = new IO::Compress::Gzip \$good ;
         ok $x->write($string) ;
         ok $x->close ;
     }
 
     writeFile($name, $good) ;
-    ok my $gunz = new IO::Gunzip $name, 
+    ok my $gunz = new IO::Uncompress::Gunzip $name, 
                                        -Strict   => 1;
     my $uncomp ;
     1 while  $gunz->read($uncomp) > 0 ;
@@ -797,7 +797,7 @@ EOM
 
         foreach my $strict (0, 1)
         {
-            ok my $gunz = new IO::Gunzip $name, -Strict   => $strict ;
+            ok my $gunz = new IO::Uncompress::Gunzip $name, -Strict   => $strict ;
             my $uncomp ;
             if ($strict)
             {
@@ -827,7 +827,7 @@ EOM
 
         foreach my $strict (0, 1)
         {
-            ok my $gunz = new IO::Gunzip $name, 
+            ok my $gunz = new IO::Uncompress::Gunzip $name, 
                                                -Strict   => $strict ;
             my $uncomp ;
             if ($strict)
@@ -859,7 +859,7 @@ EOM
 
         foreach my $strict (0, 1)
         {
-            ok my $gunz = new IO::Gunzip $name, 
+            ok my $gunz = new IO::Uncompress::Gunzip $name, 
                                                -Strict   => $strict ;
             my $uncomp ;
             if ($strict)
@@ -891,7 +891,7 @@ EOM
 
         foreach my $strict (0, 1)
         {
-            ok my $gunz = new IO::Gunzip $name, 
+            ok my $gunz = new IO::Uncompress::Gunzip $name, 
                                                -Strict   => $strict ;
             my $uncomp ;
             if ($strict)

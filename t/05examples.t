@@ -6,7 +6,7 @@ local ($^W) = 1; #use warnings;
 # use bytes;
 
 use Test::More ;
-use MyTestUtils;
+use ZlibTestUtils;
 use Compress::Zlib;
 
 BEGIN 

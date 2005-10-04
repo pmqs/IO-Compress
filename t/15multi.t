@@ -5,7 +5,7 @@ local ($^W) = 1; #use warnings;
 # use bytes;
 
 use Test::More ;
-use MyTestUtils;
+use ZlibTestUtils;
 
 BEGIN {
     # use Test::NoWarnings, if available
@@ -17,13 +17,13 @@ BEGIN {
 
     use_ok('Compress::Zlib', 2) ;
 
-    use_ok('IO::Gzip', qw($GzipError)) ;
-    use_ok('IO::Gunzip', qw($GunzipError)) ;
-    use_ok('IO::AnyInflate', qw($AnyInflateError)) ;
-    use_ok('IO::Inflate', qw($InflateError)) ;
-    use_ok('IO::Deflate', qw($DeflateError)) ;
-    use_ok('IO::RawInflate', qw($RawInflateError)) ;
-    use_ok('IO::RawDeflate', qw($RawDeflateError)) ;
+    use_ok('IO::Compress::Gzip', qw($GzipError)) ;
+    use_ok('IO::Uncompress::Gunzip', qw($GunzipError)) ;
+    use_ok('IO::Uncompress::AnyInflate', qw($AnyInflateError)) ;
+    use_ok('IO::Uncompress::Inflate', qw($InflateError)) ;
+    use_ok('IO::Compress::Deflate', qw($DeflateError)) ;
+    use_ok('IO::Uncompress::RawInflate', qw($RawInflateError)) ;
+    use_ok('IO::Compress::RawDeflate', qw($RawDeflateError)) ;
 }
 
 
@@ -43,9 +43,9 @@ push @buffers, <<EOM ;
 even more stuff
 EOM
 
-foreach my $CompressClass ('IO::Gzip',
-                           'IO::Deflate',
-                           'IO::RawDeflate',
+foreach my $CompressClass ('IO::Compress::Gzip',
+                           'IO::Compress::Deflate',
+                           'IO::Compress::RawDeflate',
                           )
 {
     my $UncompressClass = getInverse($CompressClass);
@@ -66,7 +66,7 @@ foreach my $CompressClass ('IO::Gzip',
 
             my @buffs = @buffers[0..$i -1] ;
 
-            if ($CompressClass eq 'IO::Gzip') {
+            if ($CompressClass eq 'IO::Compress::Gzip') {
                 %headers = (
                               Strict     => 0,
                               Comment    => "this is a comment",
@@ -104,7 +104,7 @@ foreach my $CompressClass ('IO::Gzip',
 
             #hexDump($compressed) ;
 
-            foreach my $unc ($UncompressClass, 'IO::AnyInflate') {
+            foreach my $unc ($UncompressClass, 'IO::Uncompress::AnyInflate') {
                 title "  Testing $CompressClass with $unc and $i streams, from $fb";
                 $cc = $output ;
                 if ($fb eq 'filehandle')

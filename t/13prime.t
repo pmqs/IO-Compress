@@ -4,7 +4,7 @@ local ($^W) = 1; #use warnings;
 # use bytes;
 
 use Test::More ;
-use MyTestUtils;
+use ZlibTestUtils;
 
 BEGIN {
     # use Test::NoWarnings, if available
@@ -17,14 +17,14 @@ BEGIN {
 
     use_ok('Compress::Zlib', 2) ;
 
-    use_ok('IO::Gzip', qw($GzipError)) ;
-    use_ok('IO::Gunzip', qw($GunzipError)) ;
+    use_ok('IO::Compress::Gzip', qw($GzipError)) ;
+    use_ok('IO::Uncompress::Gunzip', qw($GunzipError)) ;
 
-    use_ok('IO::Deflate', qw($DeflateError)) ;
-    use_ok('IO::Inflate', qw($InflateError)) ;
+    use_ok('IO::Compress::Deflate', qw($DeflateError)) ;
+    use_ok('IO::Uncompress::Inflate', qw($InflateError)) ;
 
-    use_ok('IO::RawDeflate', qw($RawDeflateError)) ;
-    use_ok('IO::RawInflate', qw($RawInflateError)) ;
+    use_ok('IO::Compress::RawDeflate', qw($RawDeflateError)) ;
+    use_ok('IO::Uncompress::RawInflate', qw($RawInflateError)) ;
 }
 
 
@@ -35,9 +35,9 @@ some more stuff on this line
 ad finally...
 EOM
 
-foreach my $CompressClass ('IO::Gzip',
-                           'IO::Deflate',
-                           'IO::RawDeflate',
+foreach my $CompressClass ('IO::Compress::Gzip',
+                           'IO::Compress::Deflate',
+                           'IO::Compress::RawDeflate',
                           )
 {
     my $UncompressClass = getInverse($CompressClass);
@@ -49,8 +49,8 @@ foreach my $CompressClass ('IO::Gzip',
     my $cc ;
     my $gz ;
     my $hsize ;
-    if ($CompressClass eq 'IO::Gzip') {
-        ok( my $x = new IO::Gzip \$compressed, 
+    if ($CompressClass eq 'IO::Compress::Gzip') {
+        ok( my $x = new IO::Compress::Gzip \$compressed, 
                                  -Name       => "My name",
                                  -Comment    => "this is a comment",
                                  -ExtraField => [ 'ab' => "extra"],
@@ -61,7 +61,7 @@ foreach my $CompressClass ('IO::Gzip',
 
 	#hexDump($compressed) ;
 
-        ok($gz = new IO::Gunzip \$cc,
+        ok($gz = new IO::Uncompress::Gunzip \$cc,
                                #-Strict      => 1,
                                 -Transparent => 0)
                 or print "$GunzipError\n";

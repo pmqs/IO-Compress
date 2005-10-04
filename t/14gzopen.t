@@ -5,7 +5,7 @@ local ($^W) = 1; #use warnings;
 # use bytes;
 
 use Test::More ;
-use MyTestUtils;
+use ZlibTestUtils;
 use IO::File ;
 
 BEGIN {
@@ -19,7 +19,7 @@ BEGIN {
     use_ok('Compress::Zlib', 2) ;
     use_ok('Compress::Gzip::Constants') ;
 
-    use_ok('IO::Gzip', qw($GzipError)) ;
+    use_ok('IO::Compress::Gzip', qw($GzipError)) ;
 }
 
 

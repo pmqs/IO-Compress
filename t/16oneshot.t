@@ -5,7 +5,7 @@ local ($^W) = 1; #use warnings;
 # use bytes;
 
 use Test::More ;
-use MyTestUtils;
+use ZlibTestUtils;
 
 BEGIN {
     plan(skip_all => "oneshot needs Perl 5.005 or better - you have Perl $]" )
@@ -21,16 +21,16 @@ BEGIN {
 
     use_ok('Compress::Zlib', 2) ;
 
-    use_ok('IO::Gzip', qw(gzip $GzipError)) ;
-    use_ok('IO::Gunzip', qw(gunzip $GunzipError)) ;
+    use_ok('IO::Compress::Gzip', qw(gzip $GzipError)) ;
+    use_ok('IO::Uncompress::Gunzip', qw(gunzip $GunzipError)) ;
 
-    use_ok('IO::Deflate', qw(deflate $DeflateError)) ;
-    use_ok('IO::Inflate', qw(inflate $InflateError)) ;
+    use_ok('IO::Compress::Deflate', qw(deflate $DeflateError)) ;
+    use_ok('IO::Uncompress::Inflate', qw(inflate $InflateError)) ;
 
-    use_ok('IO::RawDeflate', qw(rawdeflate $RawDeflateError)) ;
-    use_ok('IO::RawInflate', qw(rawinflate $RawInflateError)) ;
+    use_ok('IO::Compress::RawDeflate', qw(rawdeflate $RawDeflateError)) ;
+    use_ok('IO::Uncompress::RawInflate', qw(rawinflate $RawInflateError)) ;
 
-    use_ok('IO::AnyInflate', qw(anyinflate $AnyInflateError)) ;
+    use_ok('IO::Uncompress::AnyInflate', qw(anyinflate $AnyInflateError)) ;
 
 }
 
@@ -41,13 +41,13 @@ is Compress::Zlib::zlib_version, ZLIB_VERSION,
 
 
 
-foreach my $bit ('IO::Gzip',
-                 'IO::Gunzip',
-                 'IO::Deflate',
-                 'IO::Inflate',
-                 'IO::RawDeflate',
-                 'IO::RawInflate',
-                 'IO::AnyInflate',
+foreach my $bit ('IO::Compress::Gzip',
+                 'IO::Uncompress::Gunzip',
+                 'IO::Compress::Deflate',
+                 'IO::Uncompress::Inflate',
+                 'IO::Compress::RawDeflate',
+                 'IO::Uncompress::RawInflate',
+                 'IO::Uncompress::AnyInflate',
                 )
 {
     my $Error = getErrorRef($bit);
@@ -139,10 +139,10 @@ foreach my $bit ('IO::Gzip',
             "  Unmatched ) in input fileglob";
 }
 
-foreach my $bit ('IO::Gunzip',
-                 'IO::Inflate',
-                 'IO::RawInflate',
-                 'IO::AnyInflate',
+foreach my $bit ('IO::Uncompress::Gunzip',
+                 'IO::Uncompress::Inflate',
+                 'IO::Uncompress::RawInflate',
+                 'IO::Uncompress::AnyInflate',
                 )
 {
     my $Error = getErrorRef($bit);
@@ -178,9 +178,9 @@ foreach my $bit ('IO::Gunzip',
     }
 }
 
-foreach my $bit ('IO::Gzip',     
-                 'IO::Deflate', 
-                 'IO::RawDeflate',
+foreach my $bit ('IO::Compress::Gzip',     
+                 'IO::Compress::Deflate', 
+                 'IO::Compress::RawDeflate',
                 )
 {
     my $Error = getErrorRef($bit);
@@ -211,9 +211,9 @@ foreach my $bit ('IO::Gzip',
 }
 
 
-foreach my $bit ('IO::Gzip',     
-                 'IO::Deflate', 
-                 'IO::RawDeflate',
+foreach my $bit ('IO::Compress::Gzip',     
+                 'IO::Compress::Deflate', 
+                 'IO::Compress::RawDeflate',
                 )
 {
     my $Error = getErrorRef($bit);
@@ -448,9 +448,9 @@ foreach my $bit ('IO::Gzip',
     }
 }
 
-foreach my $bit ('IO::Gzip',     
-                 'IO::Deflate', 
-                 'IO::RawDeflate',
+foreach my $bit ('IO::Compress::Gzip',     
+                 'IO::Compress::Deflate', 
+                 'IO::Compress::RawDeflate',
                 )
 {
     my $Error = getErrorRef($bit);
@@ -543,9 +543,9 @@ foreach my $bit ('IO::Gzip',
     }
 }
 
-foreach my $bit ('IO::Gzip',     
-                 'IO::Deflate', 
-                 'IO::RawDeflate',
+foreach my $bit ('IO::Compress::Gzip',     
+                 'IO::Compress::Deflate', 
+                 'IO::Compress::RawDeflate',
                 )
 {
     my $Error = getErrorRef($bit);
@@ -711,9 +711,9 @@ foreach my $bit ('IO::Gzip',
 #    }
 }
 
-foreach my $bit ('IO::Gzip',     
-                 'IO::Deflate', 
-                 'IO::RawDeflate',
+foreach my $bit ('IO::Compress::Gzip',     
+                 'IO::Compress::Deflate', 
+                 'IO::Compress::RawDeflate',
                 )
 {
     my $Error = getErrorRef($bit);
@@ -822,10 +822,10 @@ foreach my $bit ('IO::Gzip',
 
 }
 
-foreach my $bit ('IO::Gunzip',     
-                 'IO::Inflate', 
-                 'IO::RawInflate',
-                 'IO::AnyInflate',
+foreach my $bit ('IO::Uncompress::Gunzip',     
+                 'IO::Uncompress::Inflate', 
+                 'IO::Uncompress::RawInflate',
+                 'IO::Uncompress::AnyInflate',
                 )
 {
     my $Error = getErrorRef($bit);
@@ -1148,10 +1148,10 @@ foreach my $bit ('IO::Gunzip',
     }
 }
 
-foreach my $bit ('IO::Gunzip',     
-                 'IO::Inflate', 
-                 'IO::RawInflate',
-                 'IO::AnyInflate',
+foreach my $bit ('IO::Uncompress::Gunzip',     
+                 'IO::Uncompress::Inflate', 
+                 'IO::Uncompress::RawInflate',
+                 'IO::Uncompress::AnyInflate',
                 )
 {
     # TODO -- Add Append mode tests
@@ -1235,10 +1235,10 @@ foreach my $bit ('IO::Gunzip',
     }
 }
 
-foreach my $bit ('IO::Gunzip',     
-                 'IO::Inflate', 
-                 'IO::RawInflate',
-                 'IO::AnyInflate',
+foreach my $bit ('IO::Uncompress::Gunzip',     
+                 'IO::Uncompress::Inflate', 
+                 'IO::Uncompress::RawInflate',
+                 'IO::Uncompress::AnyInflate',
                 )
 {
     # TODO -- Add Append mode tests
@@ -1332,9 +1332,9 @@ foreach my $bit ('IO::Gunzip',
 
 }
 
-foreach my $TopType ('IO::Gzip::gzip', 
-                     'IO::Deflate', 
-                     'IO::RawDeflate', 
+foreach my $TopType ('IO::Compress::Gzip::gzip', 
+                     'IO::Compress::Deflate', 
+                     'IO::Compress::RawDeflate', 
                      # TODO -- add the inflate classes
                     )
 {
@@ -1421,14 +1421,14 @@ sub gzipGetHeader
     my $out ;
     my $got ;
 
-    ok IO::Gzip::gzip($in, \$out, %opts), "  gzip ok" ;
-    ok IO::Gunzip::gunzip(\$out, \$got), "  gunzip ok" 
+    ok IO::Compress::Gzip::gzip($in, \$out, %opts), "  gzip ok" ;
+    ok IO::Uncompress::Gunzip::gunzip(\$out, \$got), "  gunzip ok" 
         or diag $GunzipError ;
     is $got, $content, "  got expected content" ;
 
-    my $gunz = new IO::Gunzip \$out, Strict => 0
-        or diag "GunzipError is $IO::Gunzip::GunzipError" ;
-    ok $gunz, "  Created IO::Gunzip object";
+    my $gunz = new IO::Uncompress::Gunzip \$out, Strict => 0
+        or diag "GunzipError is $IO::Uncompress::Gunzip::GunzipError" ;
+    ok $gunz, "  Created IO::Uncompress::Gunzip object";
     my $hdr = $gunz->getHeaderInfo();
     ok $hdr, "  got Header info";
     my $uncomp ;
