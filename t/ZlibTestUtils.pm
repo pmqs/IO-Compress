@@ -201,12 +201,16 @@ sub uncompressBuffer
     my $compWith = shift ;
     my $buffer = shift ;
 
-    my %mapping = ( 'IO::Compress::Gzip'                    => 'IO::Uncompress::Gunzip',
+    my %mapping = ( 'IO::Compress::Gzip'                     => 'IO::Uncompress::Gunzip',
                     'IO::Compress::Gzip::gzip'               => 'IO::Uncompress::Gunzip',
                     'IO::Compress::Deflate'                  => 'IO::Uncompress::Inflate',
                     'IO::Compress::Deflate::deflate'         => 'IO::Uncompress::Inflate',
                     'IO::Compress::RawDeflate'               => 'IO::Uncompress::RawInflate',
                     'IO::Compress::RawDeflate::rawdeflate'   => 'IO::Uncompress::RawInflate',
+                    'IO::Compress::Bzip2'                    => 'IO::Uncompress::Bunzip2',
+                    'IO::Compress::Bzip2::bzip2'             => 'IO::Uncompress::Bunzip2',
+                    'IO::Compress::Zip'                      => 'IO::Uncompress::Unzip',
+                    'IO::Compress::Zip::zip'                 => 'IO::Uncompress::Unzip',
                 );
 
     my $out ;
@@ -216,29 +220,46 @@ sub uncompressBuffer
 
 }
 
-my %ErrorMap = (    'IO::Compress::Gzip'        => \$IO::Compress::Gzip::GzipError,
-                    'IO::Compress::Gzip::gzip'  => \$IO::Compress::Gzip::GzipError,
-                    'IO::Uncompress::Gunzip'  => \$IO::Uncompress::Gunzip::GunzipError,
-                    'IO::Uncompress::Gunzip::gunzip'  => \$IO::Uncompress::Gunzip::GunzipError,
-                    'IO::Uncompress::Inflate'  => \$IO::Uncompress::Inflate::InflateError,
+my %ErrorMap = (    'IO::Compress::Gzip'                => \$IO::Compress::Gzip::GzipError,
+                    'IO::Compress::Gzip::gzip'          => \$IO::Compress::Gzip::GzipError,
+                    'IO::Uncompress::Gunzip'            => \$IO::Uncompress::Gunzip::GunzipError,
+                    'IO::Uncompress::Gunzip::gunzip'    => \$IO::Uncompress::Gunzip::GunzipError,
+                    'IO::Uncompress::Inflate'           => \$IO::Uncompress::Inflate::InflateError,
                     'IO::Uncompress::Inflate::inflate'  => \$IO::Uncompress::Inflate::InflateError,
-                    'IO::Compress::Deflate'  => \$IO::Compress::Deflate::DeflateError,
-                    'IO::Compress::Deflate::deflate'  => \$IO::Compress::Deflate::DeflateError,
-                    'IO::Uncompress::RawInflate'  => \$IO::Uncompress::RawInflate::RawInflateError,
+                    'IO::Compress::Deflate'             => \$IO::Compress::Deflate::DeflateError,
+                    'IO::Compress::Deflate::deflate'    => \$IO::Compress::Deflate::DeflateError,
+                    'IO::Uncompress::RawInflate'        => \$IO::Uncompress::RawInflate::RawInflateError,
                     'IO::Uncompress::RawInflate::rawinflate'  => \$IO::Uncompress::RawInflate::RawInflateError,
-                    'IO::Uncompress::AnyInflate'  => \$IO::Uncompress::AnyInflate::AnyInflateError,
+                    'IO::Uncompress::AnyInflate'        => \$IO::Uncompress::AnyInflate::AnyInflateError,
                     'IO::Uncompress::AnyInflate::anyinflate'  => \$IO::Uncompress::AnyInflate::AnyInflateError,
-                    'IO::Compress::RawDeflate'  => \$IO::Compress::RawDeflate::RawDeflateError,
+                    'IO::Compress::RawDeflate'          => \$IO::Compress::RawDeflate::RawDeflateError,
                     'IO::Compress::RawDeflate::rawdeflate'  => \$IO::Compress::RawDeflate::RawDeflateError,
+                    'IO::Compress::Bzip2'               => \$IO::Compress::Bzip2::Bzip2Error,
+                    'IO::Compress::Bzip2::bzip2'        => \$IO::Compress::Bzip2::Bzip2Error,
+                    'IO::Uncompress::Bunzip2'           => \$IO::Uncompress::Bunzip2::Bunzip2Error,
+                    'IO::Uncompress::Bunzip2::bunzip2'  => \$IO::Uncompress::Bunzip2::Bunzip2Error,
+                    'IO::Compress::Zip'                 => \$IO::Compress::Zip::ZipError,
+                    'IO::Compress::Zip::zip'            => \$IO::Compress::Zip::ZipError,
+                    'IO::Uncompress::Unzip'             => \$IO::Uncompress::Unzip::UnzipError,
+                    'IO::Uncompress::Unzip::unzip'      => \$IO::Uncompress::Unzip::UnzipError,
                );
 
-my %TopFuncMap = (  'IO::Compress::Gzip'        => 'IO::Compress::Gzip::gzip',
+my %TopFuncMap = (  'IO::Compress::Gzip'          => 'IO::Compress::Gzip::gzip',
                     'IO::Uncompress::Gunzip'      => 'IO::Uncompress::Gunzip::gunzip',
-                    'IO::Compress::Deflate'     => 'IO::Compress::Deflate::deflate',
+
+                    'IO::Compress::Deflate'       => 'IO::Compress::Deflate::deflate',
                     'IO::Uncompress::Inflate'     => 'IO::Uncompress::Inflate::inflate',
-                    'IO::Compress::RawDeflate'  => 'IO::Compress::RawDeflate::rawdeflate',
+
+                    'IO::Compress::RawDeflate'    => 'IO::Compress::RawDeflate::rawdeflate',
                     'IO::Uncompress::RawInflate'  => 'IO::Uncompress::RawInflate::rawinflate',
+
                     'IO::Uncompress::AnyInflate'  => 'IO::Uncompress::AnyInflate::anyinflate',
+
+                    'IO::Compress::Bzip2'         => 'IO::Compress::Bzip2::bzip2',
+                    'IO::Uncompress::Bunzip2'     => 'IO::Uncompress::Bunzip2::bunzip2',
+
+                    'IO::Compress::Zip'           => 'IO::Compress::Zip::zip',
+                    'IO::Uncompress::Unzip'       => 'IO::Uncompress::Unzip::unzip',
                  );
 
    %TopFuncMap = map { ($_              => $TopFuncMap{$_}, 
@@ -255,6 +276,10 @@ my %inverse  = ( 'IO::Compress::Gzip'                    => 'IO::Uncompress::Gun
                  'IO::Compress::Deflate::deflate'        => 'IO::Uncompress::Inflate::inflate',
                  'IO::Compress::RawDeflate'              => 'IO::Uncompress::RawInflate',
                  'IO::Compress::RawDeflate::rawdeflate'  => 'IO::Uncompress::RawInflate::rawinflate',
+                 'IO::Compress::Bzip2::bzip2'            => 'IO::Uncompress::Bunzip2::bunzip2',
+                 'IO::Compress::Bzip2'                   => 'IO::Uncompress::Bunzip2',
+                 'IO::Compress::Zip::zip'                => 'IO::Uncompress::Unzip::unzip',
+                 'IO::Compress::Zip'                     => 'IO::Uncompress::Unzip',
              );
 
 %inverse  = map { ($_ => $inverse{$_}, $inverse{$_} => $_) } keys %inverse;
@@ -298,6 +323,10 @@ sub compressBuffer
                     'IO::Uncompress::Inflate::inflate'        => 'IO::Compress::Deflate',
                     'IO::Uncompress::RawInflate'              => 'IO::Compress::RawDeflate',
                     'IO::Uncompress::RawInflate::rawinflate'  => 'IO::Compress::RawDeflate',
+                    'IO::Uncompress::Bunzip2'                 => 'IO::Compress::Bzip2',
+                    'IO::Uncompress::Bunzip2::bunzip2'        => 'IO::Compress::Bzip2',
+                    'IO::Uncompress::Unzip'                   => 'IO::Compress::Zip',
+                    'IO::Uncompress::Unzip::unzip'            => 'IO::Compress::Zip',
                     'IO::Uncompress::AnyInflate'              => 'IO::Compress::Gzip',
                     'IO::Uncompress::AnyInflate::anyinflate'  => 'IO::Compress::Gzip',
                 );
@@ -375,14 +404,16 @@ sub mkErr
 
     $file = quotemeta($file);
 
-    return "/$string\\s+at $file line $line/" ;
+    return "/$string\\s+at $file line $line/" if $] >= 5.006 ;
+    return "/$string\\s+at /" ;
 }
 
 sub mkEvalErr
 {
     my $string = shift ;
 
-    return "/$string\\s+at \\(eval /" ;
+    return "/$string\\s+at \\(eval /" if $] > 5.006 ;
+    return "/$string\\s+at /" ;
 }
 
 sub dumpObj

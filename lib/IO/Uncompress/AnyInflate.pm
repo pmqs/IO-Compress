@@ -4,7 +4,23 @@ package IO::Uncompress::AnyInflate ;
 
 use strict;
 local ($^W) = 1; #use warnings;
+
+use Compress::Zlib::Common;
+
+use constant STATUS_OK        => 0;
+use constant STATUS_ENDSTREAM => 1;
+use constant STATUS_ERROR     => 2;
+
+use UncompressPlugin::Inflate ();
+use UncompressPlugin::Bunzip2 ();
+
+
+#use IO::Uncompress::Base ;
 use IO::Uncompress::Gunzip ;
+use IO::Uncompress::Inflate ;
+use IO::Uncompress::RawInflate ;
+use IO::Uncompress::Unzip ;
+use IO::Uncompress::Bunzip2 ;
 
 require Exporter ;
 
@@ -13,26 +29,99 @@ use vars qw($VERSION @ISA @EXPORT_OK %EXPORT_TAGS $AnyInflateError);
 $VERSION = '2.000_05';
 $AnyInflateError = '';
 
-@ISA    = qw(Exporter IO::BaseInflate);
+@ISA = qw( Exporter IO::Uncompress::Base );
 @EXPORT_OK = qw( $AnyInflateError anyinflate ) ;
-%EXPORT_TAGS = %IO::BaseInflate::EXPORT_TAGS ;
+%EXPORT_TAGS = %IO::Uncompress::Base::DEFLATE_CONSTANTS ;
 push @{ $EXPORT_TAGS{all} }, @EXPORT_OK ;
 Exporter::export_ok_tags('all');
-
-
 
 # TODO - allow the user to pick a set of the three formats to allow
 #        or just assume want to auto-detect any of the three formats.
 
 sub new
 {
-    my $pkg = shift ;
-    return IO::BaseInflate::new($pkg, 'any', undef, \$AnyInflateError, 0, @_);
+    my $class = shift ;
+    my $obj = createSelfTiedObject($class);
+    $obj->_create(undef, \$AnyInflateError, 0, @_);
 }
 
 sub anyinflate
 {
-    return IO::BaseInflate::_inf(__PACKAGE__,  'any', \$AnyInflateError, @_) ;
+    return IO::Uncompress::Base::_inf(\$AnyInflateError, @_) ;
+}
+
+sub getExtraParams
+{
+    return ();
+}
+
+sub ckParams
+{
+    my $self = shift ;
+    my $got = shift ;
+
+    # any always needs both crc32 and adler32
+    $got->value('CRC32' => 1);
+    $got->value('ADLER32' => 1);
+
+    return 1;
+}
+
+sub mkUncomp
+{
+    my $self = shift ;
+    my $class = shift ;
+    my $got = shift ;
+
+    # try zlib first
+    *$self->{Uncomp} = UncompressPlugin::Inflate::mkUncompObject($self, $class, $got)
+        or return undef;
+
+     my $magic = $self->ckMagic( qw( RawInflate Inflate Gunzip Unzip ) ); 
+
+     if ($magic) {
+        *$self->{Info} = $self->readHeader($magic)
+            or return undef ;
+
+        return 1;
+     }
+
+     $magic = $self->ckMagic('Bunzip2')
+        or return 0 ;
+
+    *$self->{Info} = $self->readHeader($magic)
+        or return undef ;
+
+    *$self->{Uncomp} = UncompressPlugin::Bunzip2::mkUncompObject($self, $class, $got)
+        or return undef;
+
+     return 1;
+}
+
+
+
+sub ckMagic
+{
+    my $self = shift;
+    my @names = @_ ;
+
+    my $keep = ref $self ;
+    for my $class ( map { "IO::Uncompress::$_" } @names)
+    {
+        bless $self => $class;
+        my $magic = $self->ckMagic();
+
+        if ($magic)
+        {
+            #bless $self => $class;
+            return $magic ;
+        }
+
+        $self->pushBack(*$self->{HeaderPending})  ;
+    }    
+
+    bless $self => $keep;
+    return undef;
 }
 
 1 ;
@@ -42,16 +131,16 @@ __END__
 
 =head1 NAME
 
-IO::Uncompress::AnyInflate - Perl interface to read RFC 1950, 1951 & 1952 files/buffers
+IO::AnyInflate - Perl interface to read RFC 1950, 1951 & 1952 files/buffers
 
 =head1 SYNOPSIS
 
-    use IO::Uncompress::AnyInflate qw(anyinflate $AnyInflateError) ;
+    use IO::AnyInflate qw(anyinflate $AnyInflateError) ;
 
     my $status = anyinflate $input => $output [,OPTS]
         or die "anyinflate failed: $AnyInflateError\n";
 
-    my $z = new IO::Uncompress::AnyInflate $input [OPTS] 
+    my $z = new IO::AnyInflate $input [OPTS] 
         or die "anyinflate failed: $AnyInflateError\n";
 
     $status = $z->read($buffer)
@@ -121,7 +210,7 @@ formats is being used.
 A top-level function, C<anyinflate>, is provided to carry out "one-shot"
 uncompression between buffers and/or files. For finer control over the uncompression process, see the L</"OO Interface"> section.
 
-    use IO::Uncompress::AnyInflate qw(anyinflate $AnyInflateError) ;
+    use IO::AnyInflate qw(anyinflate $AnyInflateError) ;
 
     anyinflate $input => $output [,OPTS] 
         or die "anyinflate failed: $AnyInflateError\n";
@@ -339,7 +428,7 @@ compressed data to the file C<file1.txt>.
 
     use strict ;
     use warnings ;
-    use IO::Uncompress::AnyInflate qw(anyinflate $AnyInflateError) ;
+    use IO::AnyInflate qw(anyinflate $AnyInflateError) ;
 
     my $input = "file1.txt.Compressed";
     my $output = "file1.txt";
@@ -352,7 +441,7 @@ uncompressed data to a buffer, C<$buffer>.
 
     use strict ;
     use warnings ;
-    use IO::Uncompress::AnyInflate qw(anyinflate $AnyInflateError) ;
+    use IO::AnyInflate qw(anyinflate $AnyInflateError) ;
     use IO::File ;
 
     my $input = new IO::File "<file1.txt.Compressed"
@@ -365,7 +454,7 @@ To uncompress all files in the directory "/my/home" that match "*.txt.Compressed
 
     use strict ;
     use warnings ;
-    use IO::Uncompress::AnyInflate qw(anyinflate $AnyInflateError) ;
+    use IO::AnyInflate qw(anyinflate $AnyInflateError) ;
 
     anyinflate '</my/home/*.txt.Compressed>' => '</my/home/#1.txt>'
         or die "anyinflate failed: $AnyInflateError\n";
@@ -374,7 +463,7 @@ and if you want to compress each file one at a time, this will do the trick
 
     use strict ;
     use warnings ;
-    use IO::Uncompress::AnyInflate qw(anyinflate $AnyInflateError) ;
+    use IO::AnyInflate qw(anyinflate $AnyInflateError) ;
 
     for my $input ( glob "/my/home/*.txt.Compressed" )
     {
@@ -388,17 +477,17 @@ and if you want to compress each file one at a time, this will do the trick
 
 =head2 Constructor
 
-The format of the constructor for IO::Uncompress::AnyInflate is shown below
+The format of the constructor for IO::AnyInflate is shown below
 
 
-    my $z = new IO::Uncompress::AnyInflate $input [OPTS]
-        or die "IO::Uncompress::AnyInflate failed: $AnyInflateError\n";
+    my $z = new IO::AnyInflate $input [OPTS]
+        or die "IO::AnyInflate failed: $AnyInflateError\n";
 
-Returns an C<IO::Uncompress::AnyInflate> object on success and undef on failure.
+Returns an C<IO::AnyInflate> object on success and undef on failure.
 The variable C<$AnyInflateError> will contain an error message on failure.
 
 If you are running Perl 5.005 or better the object, C<$z>, returned from 
-IO::Uncompress::AnyInflate can be used exactly like an L<IO::File|IO::File> filehandle. 
+IO::AnyInflate can be used exactly like an L<IO::File|IO::File> filehandle. 
 This means that all normal input file operations can be carried out with C<$z>. 
 For example, to read a line from a compressed file/buffer you can use either 
 of these forms
@@ -449,7 +538,7 @@ OPTS is a combination of the following options:
 
 This option is only valid when the C<$input> parameter is a filehandle. If
 specified, and the value is true, it will result in the file being closed once
-either the C<close> method is called or the IO::Uncompress::AnyInflate object is
+either the C<close> method is called or the IO::AnyInflate object is
 destroyed.
 
 This parameter defaults to 0.
@@ -487,7 +576,7 @@ This option defaults to 1.
 
 =item -BlockSize =E<gt> $num
 
-When reading the compressed input data, IO::Uncompress::AnyInflate will read it in blocks
+When reading the compressed input data, IO::AnyInflate will read it in blocks
 of C<$num> bytes.
 
 This option defaults to 4096.
@@ -781,7 +870,7 @@ Closes the output file/buffer.
 
 
 For most versions of Perl this method will be automatically invoked if
-the IO::Uncompress::AnyInflate object is destroyed (either explicitly or by the
+the IO::AnyInflate object is destroyed (either explicitly or by the
 variable with the reference to the object going out of scope). The
 exceptions are Perl versions 5.005 through 5.00504 and 5.8.0. In
 these cases, the C<close> method will be called automatically, but
@@ -794,7 +883,7 @@ closing.
 
 Returns true on success, otherwise 0.
 
-If the C<AutoClose> option has been enabled when the IO::Uncompress::AnyInflate
+If the C<AutoClose> option has been enabled when the IO::AnyInflate
 object was created, and the object is associated with a file, the
 underlying file will also be closed.
 
@@ -803,7 +892,7 @@ underlying file will also be closed.
 
 =head1 Importing 
 
-No symbolic constants are required by this IO::Uncompress::AnyInflate at present. 
+No symbolic constants are required by this IO::AnyInflate at present. 
 
 =over 5
 
@@ -812,7 +901,7 @@ No symbolic constants are required by this IO::Uncompress::AnyInflate at present
 Imports C<anyinflate> and C<$AnyInflateError>.
 Same as doing this
 
-    use IO::Uncompress::AnyInflate qw(anyinflate $AnyInflateError) ;
+    use IO::AnyInflate qw(anyinflate $AnyInflateError) ;
 
 =back
 
@@ -823,7 +912,7 @@ Same as doing this
 
 =head1 SEE ALSO
 
-L<Compress::Zlib>, L<IO::Compress::Gzip>, L<IO::Uncompress::Gunzip>, L<IO::Compress::Deflate>, L<IO::Uncompress::Inflate>, L<IO::Compress::RawDeflate>, L<IO::Uncompress::RawInflate>
+L<Compress::Zlib>, L<IO::Gzip>, L<IO::Gunzip>, L<IO::Deflate>, L<IO::Inflate>, L<IO::RawDeflate>, L<IO::RawInflate>
 
 L<Compress::Zlib::FAQ|Compress::Zlib::FAQ>
 
@@ -839,7 +928,7 @@ The primary site for the gzip program is F<http://www.gzip.org>.
 
 =head1 AUTHOR
 
-The I<IO::Uncompress::AnyInflate> module was written by Paul Marquess,
+The I<IO::AnyInflate> module was written by Paul Marquess,
 F<pmqs@cpan.org>. The latest copy of the module can be
 found on CPAN in F<modules/by-module/Compress/Compress-Zlib-x.x.tar.gz>.
 

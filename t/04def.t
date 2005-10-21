@@ -1,3 +1,9 @@
+BEGIN {
+    if ($ENV{PERL_CORE}) {
+	chdir 't' if -d 't';
+	@INC = ("../lib", "lib");
+    }
+}
 
 use lib 't';
 use strict;
@@ -14,17 +20,17 @@ BEGIN
     $extra = 1
         if eval { require Test::NoWarnings ;  import Test::NoWarnings; 1 };
 
-    plan tests => 1775 + $extra ;
+    plan tests => 1769 + $extra ;
 
     use_ok('Compress::Zlib', 2) ;
 
-    use_ok('IO::Compress::Gzip', qw($GzipError)) ;
-    use_ok('IO::Uncompress::Gunzip', qw($GunzipError)) ;
+    use_ok('IO::Compress::Gzip',         qw($GzipError)) ;
+    use_ok('IO::Uncompress::Gunzip',     qw($GunzipError)) ;
 
-    use_ok('IO::Compress::Deflate', qw($DeflateError)) ;
-    use_ok('IO::Uncompress::Inflate', qw($InflateError)) ;
+    use_ok('IO::Compress::Deflate',      qw($DeflateError)) ;
+    use_ok('IO::Uncompress::Inflate',    qw($InflateError)) ;
 
-    use_ok('IO::Compress::RawDeflate', qw($RawDeflateError)) ;
+    use_ok('IO::Compress::RawDeflate',   qw($RawDeflateError)) ;
     use_ok('IO::Uncompress::RawInflate', qw($RawInflateError)) ;
 
 }
@@ -114,7 +120,6 @@ foreach my $CompressClass ('IO::Compress::Gzip',
     my $out = "" ;
     eval qq[\$a = new $UncompressClass \$out ;] ;
     like $@, mkEvalErr("^$UncompressClass: input filename is undef or null string");
-        
     $out = undef ;
     eval qq[\$a = new $UncompressClass \$out ;] ;
     like $@, mkEvalErr("^$UncompressClass: input filename is undef or null string");
@@ -216,8 +221,10 @@ EOM
           my $len ;
           1 while ($len = $x->read($uncomp)) > 0 ;
 
+          is $len, 0, "read returned 0";
+
           ok $x->close ;
-          is $hello, $uncomp ;
+          is $uncomp, $hello ;
         }
     }
 
@@ -332,18 +339,21 @@ EOM
           close FH;
         }
 
+
         my $uncomp;
         {
           title "$UncompressClass: Input from typeglob filehandle, append output";  
           my $x ;
           ok open FH, "<$name" ;
-          ok $x = new $UncompressClass *FH, -Append => 1, Transparent => 0  ;
+          ok $x = new $UncompressClass *FH, -Append => 1, Transparent => 0
+            or diag $$ErrorUnc ;
           is $x->fileno(), fileno FH, "  fileno ok" ;
 
           1 while $x->read($uncomp) > 0 ;
 
           ok $x->close, "  close" ;
         }
+        #exit;
 
         is $uncomp, $hello, "  expected output" ;
     }
@@ -553,8 +563,9 @@ EOM
         ok $uncomp eq $hello ;
         my $rest ;
         read($fh1, $rest, 5000);
-        is ${ $x->trailingData() } . $rest, $trailer ;
-        #print ${ $x->trailingData() } . $rest ;
+        is $x->trailingData() . $rest, $trailer ;
+        #print "# [".$x->trailingData() . "][$rest]\n" ;
+        #exit;
 
     }
 
@@ -1269,9 +1280,8 @@ EOT
 
         my $hello = "I am a HAL 9000 computer" x 2001 ;
 
-        my ($k, $err) = new $UncompressClass(\$hello, Transparent => 1);
+        my $k = new $UncompressClass(\$hello, Transparent => 1);
         ok $k ;
-        cmp_ok $err, '==', Z_OK ;
      
         # Skip to the flush point -- no-op for plain file
         my $status = $k->inflateSync();
@@ -1287,7 +1297,7 @@ EOT
     }
 
     {
-        title "inflateSync for real";
+        title "$CompressClass: inflateSync for real";
 
         # create a deflate stream with flush points
 
@@ -1309,9 +1319,8 @@ EOT
         ok $x->close() ;
      
         my $k;
-        ($k, $err) = new $UncompressClass(\$Answer, BlockSize => 1);
+        $k = new $UncompressClass(\$Answer, BlockSize => 1);
         ok $k ;
-        cmp_ok $err, '==', Z_OK ;
      
         my $initial;
         is $k->read($initial, 1), 1 ;
@@ -1319,20 +1328,20 @@ EOT
 
         # Skip to the flush point
         $status = $k->inflateSync();
-        is $status, 1 
+        is $status, 1, "   inflateSync returned 1"
             or diag $k->error() ;
      
         my $rest; 
         is $k->read($rest, length($hello) + length($goodbye)), 
                 length($goodbye)
             or diag $k->error() ;
-        ok $rest eq $goodbye ;
+        ok $rest eq $goodbye, " got expected output" ;
 
         ok $k->close();
     }
 
     {
-        title "inflateSync no FLUSH point";
+        title "$CompressClass: inflateSync no FLUSH point";
 
         # create a deflate stream with flush points
 
@@ -1347,10 +1356,8 @@ EOT
     
         ok $x->close() ;
      
-        my $k;
-        ($k, $err) = new $UncompressClass(\$Answer, BlockSize => 1);
+        my $k = new $UncompressClass(\$Answer, BlockSize => 1);
         ok $k ;
-        cmp_ok $err, '==', Z_OK ;
      
         my $initial;
         is $k->read($initial, 1), 1 ;

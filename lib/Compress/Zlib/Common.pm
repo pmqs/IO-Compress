@@ -17,51 +17,35 @@ $VERSION = '2.000_05';
               isaFileGlobString cleanFileGlobString oneTarget
               setBinModeInput setBinModeOutput
               ckOutputParam ckInOutParams 
+              createSelfTiedObject
               WANT_CODE
               WANT_EXT
               WANT_UNDEF
               WANT_HASH
           );  
 
+use vars qw($wantBinmode);
+$wantBinmode = $] >= 5.006 && eval ' ${^UNICODE} || ${^UTF8LOCALE} ' ;
+
 sub setBinModeInput($)
 {
     my $handle = shift ;
 
-    #binmode $handle if $] == 5.008 ;
-    #binmode $handle unless isSTDIN($handle) ;
+    binmode $handle 
+        if  $wantBinmode;
+        #if  ${^UNICODE} || ${^UTF8LOCALE} ;
+        #unless $^O eq 'MSWin32' && ! ( ${^UNICODE} || ${^UTF8LOCALE} );
 }
 
 sub setBinModeOutput($)
 {
     my $handle = shift ;
 
-    #binmode $handle if $] == 5.008;
-    #binmode $handle unless isSTDOUT($handle) ;
+    binmode $handle 
+        if  $wantBinmode;
+        #if  ${^UNICODE} || ${^UTF8LOCALE} ;
+        #unless $^O eq 'MSWin32' && ! ( ${^UNICODE} || ${^UTF8LOCALE} );
 }
-
-#sub isSTDIO($)
-#{
-#    my $handle = shift ;
-#
-#    return 0 unless isaFilehandle($handle);
-#    return fileno $handle == fileno STDIN || fileno $handle == fileno STDOUT;
-#}
-#
-#sub isSTDIN($)
-#{
-#    my $handle = shift ;
-#
-#    return 0 unless isaFilehandle($handle);
-#    return fileno $handle == fileno STDIN;
-#}
-#
-#sub isSTDOUT($)
-#{
-#    my $handle = shift ;
-#
-#    return 0 unless isaFilehandle($handle);
-#    return fileno $handle == fileno STDOUT;
-#}
 
 sub isaFilehandle($)
 {
@@ -100,7 +84,7 @@ use constant WANT_HASH  => 8 ;
 sub whatIsInput($;$)
 {
     my $got = whatIs(@_);
-    #return $got;
+    
     if (defined $got && $got eq 'filename' && defined $_[0] && $_[0] eq '-')
     {
         use IO::File;
@@ -115,7 +99,7 @@ sub whatIsInput($;$)
 sub whatIsOutput($;$)
 {
     my $got = whatIs(@_);
-    #return $got;
+    
     if (defined $got && $got eq 'filename' && defined $_[0] && $_[0] eq '-')
     {
         $got = 'handle';
@@ -197,29 +181,6 @@ sub ckOutputParam ($$$)
     
     return 1;    
 }
-
-#sub ckInOutParams($$$$)
-#{
-#    my $from = shift ;
-#
-#    ckInputParam($from, $_[0], $_[2])
-#        or return undef ;
-#    ckOutputParam($from, $_[1], $_[2])
-#        or return undef ;
-#
-#    my $inType  = whatIs($_[0]);
-#    my $outType = whatIs($_[1]);
-#
-#    # Check that input != output
-#    if ($inType eq $outType && $_[0] eq $_[1])
-#    {
-#        local $Carp::CarpLevel = 1;
-#        croak("$from: input and output $inType are identical");
-#    }
-#
-#    return 1;
-#}
-
 
 sub Validator::new
 {
@@ -334,7 +295,7 @@ sub Validator::new
     }
 
     croak("$reportClass: output buffer is read-only")
-        if $outType eq 'buffer' && Compress::Zlib::_readonly_ref($_[1]);
+        if $outType eq 'buffer' && readonly(${ $_[1] });
 
     if ($outType eq 'filename' )
     {
@@ -417,5 +378,16 @@ sub Validator::validateHash
 
     return $self ;
 }
+
+sub createSelfTiedObject
+{
+    my $class = shift ;
+    my $obj = bless Symbol::gensym(), ref($class) || $class;
+    tie *$obj, $obj if $] >= 5.005;
+    *$obj->{Closed} = 1 ;
+
+    return $obj;
+}
+
 
 1;

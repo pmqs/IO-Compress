@@ -1,3 +1,9 @@
+BEGIN {
+    if ($ENV{PERL_CORE}) {
+	chdir 't' if -d 't';
+	@INC = ("../lib", "lib");
+    }
+}
 
 use lib 't';
 use strict;
@@ -39,10 +45,9 @@ BEGIN
 
     use_ok('IO::Compress::Deflate', qw($DeflateError)) ;
     use_ok('IO::Uncompress::Inflate', qw($InflateError)) ;
-     
+
     use_ok('IO::Compress::RawDeflate', qw($RawDeflateError)) ;
     use_ok('IO::Uncompress::RawInflate', qw($RawInflateError)) ;
- 
 
 }
 

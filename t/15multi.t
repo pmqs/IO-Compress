@@ -1,3 +1,9 @@
+BEGIN {
+    if ($ENV{PERL_CORE}) {
+	chdir 't' if -d 't';
+	@INC = ("../lib", "lib");
+    }
+}
 
 use lib 't';
 use strict;
@@ -19,11 +25,15 @@ BEGIN {
 
     use_ok('IO::Compress::Gzip', qw($GzipError)) ;
     use_ok('IO::Uncompress::Gunzip', qw($GunzipError)) ;
-    use_ok('IO::Uncompress::AnyInflate', qw($AnyInflateError)) ;
-    use_ok('IO::Uncompress::Inflate', qw($InflateError)) ;
+
     use_ok('IO::Compress::Deflate', qw($DeflateError)) ;
-    use_ok('IO::Uncompress::RawInflate', qw($RawInflateError)) ;
+    use_ok('IO::Uncompress::Inflate', qw($InflateError)) ;
+
     use_ok('IO::Compress::RawDeflate', qw($RawDeflateError)) ;
+    use_ok('IO::Uncompress::RawInflate', qw($RawInflateError)) ;
+
+    use_ok('IO::Uncompress::AnyInflate', qw($AnyInflateError)) ;
+
 }
 
 
@@ -117,7 +127,7 @@ foreach my $CompressClass ('IO::Compress::Gzip',
                                Append      => 1,
                                MultiStream => 1,
                                Transparent => 0);
-                isa_ok $gz, $unc, '    $gz' ;
+                isa_ok $gz, $UncompressClass, '    $gz' ;
 
                 my $un = '';
                 1 while $gz->read($un) > 0 ;

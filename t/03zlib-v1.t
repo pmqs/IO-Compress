@@ -1,3 +1,9 @@
+BEGIN {
+    if ($ENV{PERL_CORE}) {
+	chdir 't' if -d 't';
+	@INC = ("../lib", "lib");
+    }
+}
 
 use lib 't';
 use strict;
@@ -17,10 +23,10 @@ BEGIN
 
     my $count = 0 ;
     if ($] < 5.005) {
-        $count = 340 ;
+        $count = 353 ;
     }
     else {
-        $count = 351 ;
+        $count = 364 ;
     }
 
 
@@ -483,6 +489,32 @@ EOM
     substr($bad, -4, 4) = "\xFF" x 4 ;
     $ungzip = Compress::Zlib::memGunzip(\$bad) ;
     ok ! defined $ungzip ;
+}
+
+{
+    title "Check all bytes can be handled";
+
+    my $lex = new LexFile my $name ;
+    my $data = map { chr } 0x00 .. 0xFF;
+
+    my $fil;
+    ok $fil = gzopen($name, "wb") ;
+    ok $fil->gzwrite($data) == length $data ;
+    ok ! $fil->gzclose();
+
+    my $input;
+    ok $fil = gzopen($name, "rb") ;
+    ok $fil->gzread($input) == length $data ;
+    ok ! $fil->gzclose();
+    is $input, $data;
+
+    title "Check all bytes can be handled - transparent mode";
+    writeFile($name, $data);
+    ok $fil = gzopen($name, "rb") ;
+    ok $fil->gzread($input) == length $data ;
+    ok ! $fil->gzclose();
+    is $input, $data;
+
 }
 
 title 'memGunzip with a gzopen created file';

@@ -1,3 +1,9 @@
+BEGIN {
+    if ($ENV{PERL_CORE}) {
+	chdir 't' if -d 't';
+	@INC = ("../lib", "lib");
+    }
+}
 
 use lib 't';
 use strict;
@@ -17,18 +23,18 @@ BEGIN {
     $extra = 1
         if eval { require Test::NoWarnings ;  import Test::NoWarnings; 1 };
 
-    plan tests => 2526 + $extra ;
+    plan tests => 2462 + $extra ;
 
     use_ok('Compress::Zlib', 2) ;
 
-    use_ok('IO::Compress::Gzip', qw(gzip $GzipError)) ;
-    use_ok('IO::Uncompress::Gunzip', qw(gunzip $GunzipError)) ;
+    use_ok('IO::Compress::Gzip', qw($GzipError)) ;
+    use_ok('IO::Uncompress::Gunzip', qw($GunzipError)) ;
 
-    use_ok('IO::Compress::Deflate', qw(deflate $DeflateError)) ;
-    use_ok('IO::Uncompress::Inflate', qw(inflate $InflateError)) ;
+    use_ok('IO::Compress::Deflate', qw($DeflateError)) ;
+    use_ok('IO::Uncompress::Inflate', qw($InflateError)) ;
 
-    use_ok('IO::Compress::RawDeflate', qw(rawdeflate $RawDeflateError)) ;
-    use_ok('IO::Uncompress::RawInflate', qw(rawinflate $RawInflateError)) ;
+    use_ok('IO::Compress::RawDeflate', qw($RawDeflateError)) ;
+    use_ok('IO::Uncompress::RawInflate', qw($RawInflateError)) ;
 
     use_ok('IO::Uncompress::AnyInflate', qw(anyinflate $AnyInflateError)) ;
 
@@ -198,7 +204,8 @@ foreach my $bit ('IO::Compress::Gzip',
     ok $Func->(\$data, \$out), "  $TopType ok";
 
     # corrupt the compressed data
-    substr($out, -10, 10) = "x" x 10 ;
+    #substr($out, -10, 10) = "x" x 10 ;
+    substr($out, int(length($out)/3), 10) = 'abcdeabcde';
 
     my $result;
     ok ! $FuncInverse->(\$out => \$result, Transparent => 0), "  $TopTypeInverse ok";
@@ -1058,7 +1065,7 @@ foreach my $bit ('IO::Uncompress::Gunzip',
             my $lex = new LexFile($in_file) ;
             writeFile($in_file, $comp);
 
-            ok open(SAVEIN, "<&STDIN"), "  save STDIN";
+               open(SAVEIN, "<&STDIN");
             my $dummy = fileno SAVEIN ;
             ok open(STDIN, "<$in_file"), "  redirect STDIN";
 
@@ -1068,7 +1075,7 @@ foreach my $bit ('IO::Uncompress::Gunzip',
             ok &$Func('-', \$output, Append => $append), '  Uncompressed ok' 
                 or diag $$Error ;
 
-            ok open(STDIN, "<&SAVEIN"), "  put STDIN back";
+               open(STDIN, "<&SAVEIN");
 
             is $keep_comp, $comp, "  Input buffer not changed" ;
             is $output, $expected, "  Uncompressed matches original";
@@ -1111,14 +1118,13 @@ foreach my $bit ('IO::Uncompress::Gunzip',
     {
         title "$TopType - From stdin (via $stdin) to Buffer content, InputLength" ;
 
-        my $in_file = "abcde.in";
-        my $lex = new LexFile($in_file) ;
+        my $lex = new LexFile my $in_file ;
         my $expected = $buffer ;
         my $appended = 'appended';
         my $len_appended = length $appended;
-        writeFile($in_file, $comp . $appended . $comp . $appended) ;
+        writeFile($in_file, $comp . $appended ) ;
 
-        ok open(SAVEIN, "<&STDIN"), "  save STDIN";
+           open(SAVEIN, "<&STDIN");
         my $dummy = fileno SAVEIN ;
         ok open(STDIN, "<$in_file"), "  redirect STDIN";
 
@@ -1133,18 +1139,7 @@ foreach my $bit ('IO::Uncompress::Gunzip',
         is $output, $expected, "  Uncompressed matches original";
         is $buff, $appended, "  Appended data ok";
 
-        $output = '';
-        ok &$Func($stdin, \$output, Transparent => 0, InputLength => length $comp), '  Uncompressed ok' 
-            or diag $$Error ;
-
-        $buff = '';
-        is read(STDIN, $buff, $len_appended), $len_appended, "  Length of Appended data ok"
-            or diag "read failed $!";
-
-        is $output, $expected, "  Uncompressed matches original";
-        is $buff, $appended, "  Appended data ok";
-
-        ok open(STDIN, "<&SAVEIN"), "  put STDIN back";
+          open(STDIN, "<&SAVEIN");
     }
 }
 
@@ -1381,8 +1376,8 @@ foreach my $TopType ('IO::Compress::Gzip::gzip',
 
         my $got = anyUncompress(\$Answer);
         is $got, $get, "  got expected output" ;
-        cmp_ok $$Error, '==', 0, "  no error";
-
+        ok ! $$Error,  "  no error"
+            or diag "Error is $$Error";
 
     }
 

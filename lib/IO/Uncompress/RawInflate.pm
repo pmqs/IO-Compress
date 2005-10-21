@@ -3,33 +3,268 @@ package IO::Uncompress::RawInflate ;
 
 use strict ;
 local ($^W) = 1; #use warnings;
-use IO::Uncompress::Gunzip;
+
+use Compress::Zlib 2 ;
+use Compress::Zlib::Common ;
+use Compress::Zlib::ParseParameters ;
+
+use constant STATUS_OK        => 0;
+use constant STATUS_ENDSTREAM => 1;
+use constant STATUS_ERROR     => 2;
+
+use IO::Uncompress::Base ;
+use UncompressPlugin::Inflate ;
+
+
+
 
 require Exporter ;
-use vars qw($VERSION @ISA @EXPORT_OK %EXPORT_TAGS $RawInflateError);
+use vars qw($VERSION @ISA @EXPORT_OK %EXPORT_TAGS %DEFLATE_CONSTANTS $RawInflateError);
 
 $VERSION = '2.000_05';
 $RawInflateError = '';
 
-@ISA    = qw(Exporter IO::BaseInflate);
+@ISA    = qw( Exporter IO::Uncompress::Base );
 @EXPORT_OK = qw( $RawInflateError rawinflate ) ;
-%EXPORT_TAGS = %IO::BaseInflate::EXPORT_TAGS ;
+%DEFLATE_CONSTANTS = ();
+%EXPORT_TAGS = %IO::Uncompress::Base::EXPORT_TAGS ;
 push @{ $EXPORT_TAGS{all} }, @EXPORT_OK ;
 Exporter::export_ok_tags('all');
 
 
 
-
 sub new
 {
-    my $pkg = shift ;
-    return IO::BaseInflate::new($pkg, 'rfc1951', undef, \$RawInflateError, 0, @_);
+    my $class = shift ;
+    my $obj = createSelfTiedObject($class);
+    $obj->_create(undef, \$RawInflateError, 0, @_);
 }
 
 sub rawinflate
 {
-    return IO::BaseInflate::_inf(__PACKAGE__, 'rfc1951', \$RawInflateError, @_);
+    return IO::Uncompress::Base::_inf(\$RawInflateError, @_);
 }
+
+sub getExtraParams
+{
+    return ();
+}
+
+sub ckParams
+{
+    my $self = shift ;
+    my $got = shift ;
+
+    return 1;
+}
+
+sub mkUncomp
+{
+    my $self = shift ;
+    my $class = shift ;
+    my $got = shift ;
+
+    *$self->{Uncomp} = UncompressPlugin::Inflate::mkUncompObject($self, $class, $got)
+        or return undef;
+
+     my $magic = $self->ckMagic()
+        or return 0;
+
+    *$self->{Info} = $self->readHeader($magic)
+        or return undef ;
+
+    return 1;
+
+}
+
+
+sub ckMagic
+{
+    my $self = shift;
+
+    return $self->_isRaw() ;
+}
+
+sub readHeader
+{
+    my $self = shift;
+    my $magic = shift ;
+
+    return {
+        'Type'          => 'rfc1951',
+        'HeaderLength'  => 0,
+        'TrailerLength' => 0,
+        'Header'        => ''
+        };
+}
+
+sub chkTrailer
+{
+    return 1 ;
+}
+
+sub _isRaw
+{
+    my $self   = shift ;
+
+    my $got = $self->_isRawx(@_);
+
+    if ($got) {
+        *$self->{Pending} = *$self->{HeaderPending} ;
+    }
+    else {
+        $self->pushBack(*$self->{HeaderPending});
+        *$self->{Uncomp}->reset();
+    }
+    *$self->{HeaderPending} = '';
+
+    return $got ;
+}
+
+sub _isRawx
+{
+    my $self   = shift ;
+    my $magic = shift ;
+
+    $magic = '' unless defined $magic ;
+
+    my $buffer = '';
+
+    $self->smartRead(\$buffer, *$self->{BlockSize}) >= 0  
+        or return $self->saveErrorString(undef, "No data to read");
+
+    my $temp_buf = $magic . $buffer ;
+    *$self->{HeaderPending} = $temp_buf ;    
+    $buffer = '';
+    my $status = *$self->{Uncomp}->uncompr(\$temp_buf, \$buffer, $self->smartEof()) ;
+    return $self->saveErrorString(undef, *$self->{Uncomp}{Error}, STATUS_ERROR)
+        if $status == STATUS_ERROR;
+
+    my $buf_len = *$self->{Uncomp}->count();
+
+    if ($status == STATUS_ENDSTREAM) {
+        if (*$self->{MultiStream} 
+                    && (length $temp_buf || ! $self->smartEof())){
+            *$self->{NewStream} = 1 ;
+            *$self->{EndStream} = 0 ;
+            $self->pushBack($temp_buf);
+        }
+        else {
+            *$self->{EndStream} = 1 ;
+            $self->pushBack($temp_buf);
+        }
+    }
+    *$self->{HeaderPending} = $buffer ;    
+    *$self->{InflatedBytesRead} = $buf_len ;    
+    *$self->{TotalInflatedBytesRead} += $buf_len ;    
+    *$self->{Type} = 'rfc1951';
+
+    $self->saveStatus(STATUS_OK);
+
+    return {
+        'Type'          => 'rfc1951',
+        'HeaderLength'  => 0,
+        'TrailerLength' => 0,
+        'Header'        => ''
+        };
+}
+
+
+#sub performScan
+#{
+#    my $self = shift ;
+#
+#    my $status ;
+#    my $end_offset = 0;
+#
+#    $status = $self->scan() 
+#    #or return $self->saveErrorString(undef, "Error Scanning: $$error_ref", $self->errorNo) ;
+#        or return $self->saveErrorString(G_ERR, "Error Scanning: $status")
+#
+#    $status = $self->zap($end_offset) 
+#        or return $self->saveErrorString(G_ERR, "Error Zapping: $status");
+#    #or return $self->saveErrorString(undef, "Error Zapping: $$error_ref", $self->errorNo) ;
+#
+#    #(*$obj->{Deflate}, $status) = $inf->createDeflate();
+#
+##    *$obj->{Header} = *$inf->{Info}{Header};
+##    *$obj->{UnCompSize_32bit} = 
+##        *$obj->{BytesWritten} = *$inf->{UnCompSize_32bit} ;
+##    *$obj->{CompSize_32bit} = *$inf->{CompSize_32bit} ;
+#
+#
+##    if ( $outType eq 'buffer') 
+##      { substr( ${ *$self->{Buffer} }, $end_offset) = '' }
+##    elsif ($outType eq 'handle' || $outType eq 'filename') {
+##        *$self->{FH} = *$inf->{FH} ;
+##        delete *$inf->{FH};
+##        *$obj->{FH}->flush() ;
+##        *$obj->{Handle} = 1 if $outType eq 'handle';
+##
+##        #seek(*$obj->{FH}, $end_offset, SEEK_SET) 
+##        *$obj->{FH}->seek($end_offset, SEEK_SET) 
+##            or return $obj->saveErrorString(undef, $!, $!) ;
+##    }
+#    
+#}
+
+sub scan
+{
+    my $self = shift ;
+
+    return 1 if *$self->{Closed} ;
+    return 1 if !length *$self->{Pending} && *$self->{EndStream} ;
+
+    my $buffer = '' ;
+    my $len = 0;
+
+    $len = $self->_raw_read(\$buffer, 1) 
+        while ! *$self->{EndStream} && $len >= 0 ;
+
+    #return $len if $len < 0 ? $len : 0 ;
+    return $len < 0 ? 0 : 1 ;
+}
+
+sub zap
+{
+    my $self  = shift ;
+
+    my $headerLength = *$self->{Info}{HeaderLength};
+    my $block_offset =  $headerLength + *$self->{Uncomp}->getLastBlockOffset();
+    $_[0] = $headerLength + *$self->{Uncomp}->getEndOffset();
+    #printf "# End $_[0], headerlen $headerLength \n";;
+    #printf "# block_offset $block_offset %x\n", $block_offset;
+    my $byte ;
+    ( $self->smartSeek($block_offset) &&
+      $self->smartRead(\$byte, 1) ) 
+        or return $self->saveErrorString(0, $!, $!); 
+
+    #printf "#byte is %x\n", unpack('C*',$byte);
+    *$self->{Uncomp}->resetLastBlockByte($byte);
+    #printf "#to byte is %x\n", unpack('C*',$byte);
+
+    ( $self->smartSeek($block_offset) && 
+      $self->smartWrite($byte) )
+        or return $self->saveErrorString(0, $!, $!); 
+
+    #$self->smartSeek($end_offset, 1);
+
+    return 1 ;
+}
+
+sub createDeflate
+{
+    my $self  = shift ;
+    my ($def, $status) = *$self->{Uncomp}->createDeflateStream(
+                                    -AppendOutput   => 1,
+                                    -WindowBits => - MAX_WBITS,
+                                    -CRC32      => *$self->{Params}->value('CRC32'),
+                                    -ADLER32    => *$self->{Params}->value('ADLER32'),
+                                );
+    
+    return wantarray ? ($status, $def) : $def ;                                
+}
+
 
 1; 
 
@@ -38,16 +273,16 @@ __END__
 
 =head1 NAME
 
-IO::Uncompress::RawInflate - Perl interface to read RFC 1951 files/buffers
+IO::RawInflate - Perl interface to read RFC 1951 files/buffers
 
 =head1 SYNOPSIS
 
-    use IO::Uncompress::RawInflate qw(rawinflate $RawInflateError) ;
+    use IO::RawInflate qw(rawinflate $RawInflateError) ;
 
     my $status = rawinflate $input => $output [,OPTS]
         or die "rawinflate failed: $RawInflateError\n";
 
-    my $z = new IO::Uncompress::RawInflate $input [OPTS] 
+    my $z = new IO::RawInflate $input [OPTS] 
         or die "rawinflate failed: $RawInflateError\n";
 
     $status = $z->read($buffer)
@@ -108,7 +343,7 @@ This module provides a Perl interface that allows the reading of
 files/buffers that conform to RFC 1951.
 
 For writing RFC 1951 files/buffers, see the companion module 
-IO::Compress::RawDeflate.
+IO::RawDeflate.
 
 
 
@@ -117,7 +352,7 @@ IO::Compress::RawDeflate.
 A top-level function, C<rawinflate>, is provided to carry out "one-shot"
 uncompression between buffers and/or files. For finer control over the uncompression process, see the L</"OO Interface"> section.
 
-    use IO::Uncompress::RawInflate qw(rawinflate $RawInflateError) ;
+    use IO::RawInflate qw(rawinflate $RawInflateError) ;
 
     rawinflate $input => $output [,OPTS] 
         or die "rawinflate failed: $RawInflateError\n";
@@ -335,7 +570,7 @@ compressed data to the file C<file1.txt>.
 
     use strict ;
     use warnings ;
-    use IO::Uncompress::RawInflate qw(rawinflate $RawInflateError) ;
+    use IO::RawInflate qw(rawinflate $RawInflateError) ;
 
     my $input = "file1.txt.1951";
     my $output = "file1.txt";
@@ -348,7 +583,7 @@ uncompressed data to a buffer, C<$buffer>.
 
     use strict ;
     use warnings ;
-    use IO::Uncompress::RawInflate qw(rawinflate $RawInflateError) ;
+    use IO::RawInflate qw(rawinflate $RawInflateError) ;
     use IO::File ;
 
     my $input = new IO::File "<file1.txt.1951"
@@ -361,7 +596,7 @@ To uncompress all files in the directory "/my/home" that match "*.txt.1951" and 
 
     use strict ;
     use warnings ;
-    use IO::Uncompress::RawInflate qw(rawinflate $RawInflateError) ;
+    use IO::RawInflate qw(rawinflate $RawInflateError) ;
 
     rawinflate '</my/home/*.txt.1951>' => '</my/home/#1.txt>'
         or die "rawinflate failed: $RawInflateError\n";
@@ -370,7 +605,7 @@ and if you want to compress each file one at a time, this will do the trick
 
     use strict ;
     use warnings ;
-    use IO::Uncompress::RawInflate qw(rawinflate $RawInflateError) ;
+    use IO::RawInflate qw(rawinflate $RawInflateError) ;
 
     for my $input ( glob "/my/home/*.txt.1951" )
     {
@@ -384,17 +619,17 @@ and if you want to compress each file one at a time, this will do the trick
 
 =head2 Constructor
 
-The format of the constructor for IO::Uncompress::RawInflate is shown below
+The format of the constructor for IO::RawInflate is shown below
 
 
-    my $z = new IO::Uncompress::RawInflate $input [OPTS]
-        or die "IO::Uncompress::RawInflate failed: $RawInflateError\n";
+    my $z = new IO::RawInflate $input [OPTS]
+        or die "IO::RawInflate failed: $RawInflateError\n";
 
-Returns an C<IO::Uncompress::RawInflate> object on success and undef on failure.
+Returns an C<IO::RawInflate> object on success and undef on failure.
 The variable C<$RawInflateError> will contain an error message on failure.
 
 If you are running Perl 5.005 or better the object, C<$z>, returned from 
-IO::Uncompress::RawInflate can be used exactly like an L<IO::File|IO::File> filehandle. 
+IO::RawInflate can be used exactly like an L<IO::File|IO::File> filehandle. 
 This means that all normal input file operations can be carried out with C<$z>. 
 For example, to read a line from a compressed file/buffer you can use either 
 of these forms
@@ -445,7 +680,7 @@ OPTS is a combination of the following options:
 
 This option is only valid when the C<$input> parameter is a filehandle. If
 specified, and the value is true, it will result in the file being closed once
-either the C<close> method is called or the IO::Uncompress::RawInflate object is
+either the C<close> method is called or the IO::RawInflate object is
 destroyed.
 
 This parameter defaults to 0.
@@ -477,7 +712,7 @@ This option defaults to 1.
 
 =item -BlockSize =E<gt> $num
 
-When reading the compressed input data, IO::Uncompress::RawInflate will read it in blocks
+When reading the compressed input data, IO::RawInflate will read it in blocks
 of C<$num> bytes.
 
 This option defaults to 4096.
@@ -693,7 +928,7 @@ Closes the output file/buffer.
 
 
 For most versions of Perl this method will be automatically invoked if
-the IO::Uncompress::RawInflate object is destroyed (either explicitly or by the
+the IO::RawInflate object is destroyed (either explicitly or by the
 variable with the reference to the object going out of scope). The
 exceptions are Perl versions 5.005 through 5.00504 and 5.8.0. In
 these cases, the C<close> method will be called automatically, but
@@ -706,7 +941,7 @@ closing.
 
 Returns true on success, otherwise 0.
 
-If the C<AutoClose> option has been enabled when the IO::Uncompress::RawInflate
+If the C<AutoClose> option has been enabled when the IO::RawInflate
 object was created, and the object is associated with a file, the
 underlying file will also be closed.
 
@@ -715,7 +950,7 @@ underlying file will also be closed.
 
 =head1 Importing 
 
-No symbolic constants are required by this IO::Uncompress::RawInflate at present. 
+No symbolic constants are required by this IO::RawInflate at present. 
 
 =over 5
 
@@ -724,7 +959,7 @@ No symbolic constants are required by this IO::Uncompress::RawInflate at present
 Imports C<rawinflate> and C<$RawInflateError>.
 Same as doing this
 
-    use IO::Uncompress::RawInflate qw(rawinflate $RawInflateError) ;
+    use IO::RawInflate qw(rawinflate $RawInflateError) ;
 
 =back
 
@@ -735,7 +970,7 @@ Same as doing this
 
 =head1 SEE ALSO
 
-L<Compress::Zlib>, L<IO::Compress::Gzip>, L<IO::Uncompress::Gunzip>, L<IO::Compress::Deflate>, L<IO::Uncompress::Inflate>, L<IO::Compress::RawDeflate>, L<IO::Uncompress::AnyInflate>
+L<Compress::Zlib>, L<IO::Gzip>, L<IO::Gunzip>, L<IO::Deflate>, L<IO::Inflate>, L<IO::RawDeflate>, L<IO::AnyInflate>
 
 L<Compress::Zlib::FAQ|Compress::Zlib::FAQ>
 
@@ -751,7 +986,7 @@ The primary site for the gzip program is F<http://www.gzip.org>.
 
 =head1 AUTHOR
 
-The I<IO::Uncompress::RawInflate> module was written by Paul Marquess,
+The I<IO::RawInflate> module was written by Paul Marquess,
 F<pmqs@cpan.org>. The latest copy of the module can be
 found on CPAN in F<modules/by-module/Compress/Compress-Zlib-x.x.tar.gz>.
 

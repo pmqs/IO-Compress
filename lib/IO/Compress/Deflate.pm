@@ -2,9 +2,18 @@ package IO::Compress::Deflate ;
 
 use strict ;
 local ($^W) = 1; #use warnings;
+
 require Exporter ;
 
-use IO::Compress::Gzip ;
+use constant STATUS_OK        => 0;
+use constant STATUS_ENDSTREAM => 1;
+use constant STATUS_ERROR     => 2;
+
+use IO::Compress::RawDeflate;
+
+use Compress::Zlib 2 ;
+use Compress::Zlib::FileConstants;
+use Compress::Zlib::Common;
 
 
 use vars qw($VERSION @ISA @EXPORT_OK %EXPORT_TAGS $DeflateError);
@@ -12,24 +21,158 @@ use vars qw($VERSION @ISA @EXPORT_OK %EXPORT_TAGS $DeflateError);
 $VERSION = '2.000_05';
 $DeflateError = '';
 
-@ISA = qw(Exporter IO::BaseDeflate);
+@ISA    = qw(Exporter IO::Compress::RawDeflate);
 @EXPORT_OK = qw( $DeflateError deflate ) ;
-%EXPORT_TAGS = %IO::BaseDeflate::EXPORT_TAGS ;
+%EXPORT_TAGS = %IO::Compress::RawDeflate::DEFLATE_CONSTANTS ;
 push @{ $EXPORT_TAGS{all} }, @EXPORT_OK ;
 Exporter::export_ok_tags('all');
 
 
-
 sub new
 {
-    my $pkg = shift ;
-    return IO::BaseDeflate::new($pkg, 'rfc1950', undef, \$DeflateError, @_);
+    my $class = shift ;
+
+    my $obj = createSelfTiedObject($class);
+    return $obj->_create(undef, \$DeflateError, @_);
 }
 
 sub deflate
 {
-    return IO::BaseDeflate::_def(__PACKAGE__, 'rfc1950', \$DeflateError, @_);
+    return IO::Compress::Base::_def(\$DeflateError, @_);
 }
+
+
+sub bitmask($$$$)
+{
+    my $into  = shift ;
+    my $value  = shift ;
+    my $offset = shift ;
+    my $mask   = shift ;
+
+    return $into | (($value & $mask) << $offset ) ;
+}
+
+sub mkDeflateHdr($$$;$)
+{
+    my $method = shift ;
+    my $cinfo  = shift;
+    my $level  = shift;
+    my $fdict_adler = shift  ;
+
+    my $cmf = 0;
+    my $flg = 0;
+    my $fdict = 0;
+    $fdict = 1 if defined $fdict_adler;
+
+    $cmf = bitmask($cmf, $method, ZLIB_CMF_CM_OFFSET,    ZLIB_CMF_CM_BITS);
+    $cmf = bitmask($cmf, $cinfo,  ZLIB_CMF_CINFO_OFFSET, ZLIB_CMF_CINFO_BITS);
+
+    $flg = bitmask($flg, $fdict,  ZLIB_FLG_FDICT_OFFSET, ZLIB_FLG_FDICT_BITS);
+    $flg = bitmask($flg, $level,  ZLIB_FLG_LEVEL_OFFSET, ZLIB_FLG_LEVEL_BITS);
+
+    my $fcheck = 31 - ($cmf * 256 + $flg) % 31 ;
+    $flg = bitmask($flg, $fcheck, ZLIB_FLG_FCHECK_OFFSET, ZLIB_FLG_FCHECK_BITS);
+
+    my $hdr =  pack("CC", $cmf, $flg) ;
+    $hdr .= pack("N", $fdict_adler) if $fdict ;
+
+    return $hdr;
+}
+
+sub mkHeader 
+{
+    my $self = shift ;
+    my $param = shift ;
+
+    my $level = $param->value('Level');
+    my $strategy = $param->value('Strategy');
+
+    my $lflag ;
+    $level = 6 
+        if $level == Z_DEFAULT_COMPRESSION ;
+
+    if (ZLIB_VERNUM >= 0x1210)
+    {
+        if ($strategy >= Z_HUFFMAN_ONLY || $level < 2)
+         {  $lflag = ZLIB_FLG_LEVEL_FASTEST }
+        elsif ($level < 6)
+         {  $lflag = ZLIB_FLG_LEVEL_FAST }
+        elsif ($level == 6)
+         {  $lflag = ZLIB_FLG_LEVEL_DEFAULT }
+        else
+         {  $lflag = ZLIB_FLG_LEVEL_SLOWEST }
+    }
+    else
+    {
+        $lflag = ($level - 1) >> 1 ;
+        $lflag = 3 if $lflag > 3 ;
+    }
+
+     #my $wbits = (MAX_WBITS - 8) << 4 ;
+    my $wbits = 7;
+    mkDeflateHdr(ZLIB_CMF_CM_DEFLATED, $wbits, $lflag);
+}
+
+sub ckParams
+{
+    my $self = shift ;
+    my $got = shift;
+    
+    $got->value('ADLER32' => 1);
+    return 1 ;
+}
+
+
+sub mkTrailer
+{
+    my $self = shift ;
+    return pack("N", *$self->{Compress}->adler32()) ;
+}
+
+sub mkFinalTrailer
+{
+    return '';
+}
+
+sub newHeader
+{
+    my $self = shift ;
+    return *$self->{Header};
+}
+
+sub getExtraParams
+{
+    my $self = shift ;
+
+    use Compress::Zlib::ParseParameters;
+    use Compress::Zlib qw(Z_DEFLATED Z_DEFAULT_COMPRESSION Z_DEFAULT_STRATEGY);
+
+    
+    return (
+            # zlib behaviour
+            #'Method'   => [Parse_unsigned,  Z_DEFLATED],
+            'Level'     => [Parse_signed,    Z_DEFAULT_COMPRESSION],
+            'Strategy'  => [Parse_signed,    Z_DEFAULT_STRATEGY],
+
+            
+        );
+    
+}
+
+sub getInverseClass
+{
+    return ('IO::Uncompress::Inflate',
+                \$IO::Uncompress::Inflate::InflateError);
+}
+
+sub getFileInfo
+{
+    my $self = shift ;
+    my $params = shift;
+    my $file = shift ;
+    
+}
+
 
 
 1;
@@ -38,17 +181,17 @@ __END__
 
 =head1 NAME
 
-IO::Compress::Deflate     - Perl interface to write RFC 1950 files/buffers
+IO::Deflate     - Perl interface to write RFC 1950 files/buffers
 
 =head1 SYNOPSIS
 
-    use IO::Compress::Deflate qw(deflate $DeflateError) ;
+    use IO::Deflate qw(deflate $DeflateError) ;
 
 
     my $status = deflate $input => $output [,OPTS] 
         or die "deflate failed: $DeflateError\n";
 
-    my $z = new IO::Compress::Deflate $output [,OPTS]
+    my $z = new IO::Deflate $output [,OPTS]
         or die "deflate failed: $DeflateError\n";
 
     $z->print($string);
@@ -109,7 +252,7 @@ data to files or buffer as defined in RFC 1950.
 
 
 For reading RFC 1950 files/buffers, see the companion module 
-L<IO::Uncompress::Inflate|IO::Uncompress::Inflate>.
+L<IO::Inflate|IO::Inflate>.
 
 
 =head1 Functional Interface
@@ -117,7 +260,7 @@ L<IO::Uncompress::Inflate|IO::Uncompress::Inflate>.
 A top-level function, C<deflate>, is provided to carry out "one-shot"
 compression between buffers and/or files. For finer control over the compression process, see the L</"OO Interface"> section.
 
-    use IO::Compress::Deflate qw(deflate $DeflateError) ;
+    use IO::Deflate qw(deflate $DeflateError) ;
 
     deflate $input => $output [,OPTS] 
         or die "deflate failed: $DeflateError\n";
@@ -333,7 +476,7 @@ data to the file C<file1.txt.1950>.
 
     use strict ;
     use warnings ;
-    use IO::Compress::Deflate qw(deflate $DeflateError) ;
+    use IO::Deflate qw(deflate $DeflateError) ;
 
     my $input = "file1.txt";
     deflate $input => "$input.1950"
@@ -345,7 +488,7 @@ compressed data to a buffer, C<$buffer>.
 
     use strict ;
     use warnings ;
-    use IO::Compress::Deflate qw(deflate $DeflateError) ;
+    use IO::Deflate qw(deflate $DeflateError) ;
     use IO::File ;
 
     my $input = new IO::File "<file1.txt"
@@ -359,7 +502,7 @@ and store the compressed data in the same directory
 
     use strict ;
     use warnings ;
-    use IO::Compress::Deflate qw(deflate $DeflateError) ;
+    use IO::Deflate qw(deflate $DeflateError) ;
 
     deflate '</my/home/*.txt>' => '<*.1950>'
         or die "deflate failed: $DeflateError\n";
@@ -368,7 +511,7 @@ and if you want to compress each file one at a time, this will do the trick
 
     use strict ;
     use warnings ;
-    use IO::Compress::Deflate qw(deflate $DeflateError) ;
+    use IO::Deflate qw(deflate $DeflateError) ;
 
     for my $input ( glob "/my/home/*.txt" )
     {
@@ -382,16 +525,16 @@ and if you want to compress each file one at a time, this will do the trick
 
 =head2 Constructor
 
-The format of the constructor for C<IO::Compress::Deflate> is shown below
+The format of the constructor for C<IO::Deflate> is shown below
 
-    my $z = new IO::Compress::Deflate $output [,OPTS]
-        or die "IO::Compress::Deflate failed: $DeflateError\n";
+    my $z = new IO::Deflate $output [,OPTS]
+        or die "IO::Deflate failed: $DeflateError\n";
 
-It returns an C<IO::Compress::Deflate> object on success and undef on failure. 
+It returns an C<IO::Deflate> object on success and undef on failure. 
 The variable C<$DeflateError> will contain an error message on failure.
 
 If you are running Perl 5.005 or better the object, C<$z>, returned from 
-IO::Compress::Deflate can be used exactly like an L<IO::File|IO::File> filehandle. 
+IO::Deflate can be used exactly like an L<IO::File|IO::File> filehandle. 
 This means that all normal output file operations can be carried out 
 with C<$z>. 
 For example, to write to a compressed file/buffer you can use either of 
@@ -425,7 +568,7 @@ in C<$$output>.
 
 =back
 
-If the C<$output> parameter is any other type, C<IO::Compress::Deflate>::new will
+If the C<$output> parameter is any other type, C<IO::Deflate>::new will
 return undef.
 
 =head2 Constructor Options
@@ -438,7 +581,7 @@ C<OPTS> is any combination of the following options:
 
 This option is only valid when the C<$output> parameter is a filehandle. If
 specified, and the value is true, it will result in the C<$output> being closed
-once either the C<close> method is called or the C<IO::Compress::Deflate> object is
+once either the C<close> method is called or the C<IO::Deflate> object is
 destroyed.
 
 This parameter defaults to 0.
@@ -517,11 +660,11 @@ compression), or one of the symbolic constants defined below.
 
 The default is Z_DEFAULT_COMPRESSION.
 
-Note, these constants are not imported by C<IO::Compress::Deflate> by default.
+Note, these constants are not imported by C<IO::Deflate> by default.
 
-    use IO::Compress::Deflate qw(:strategy);
-    use IO::Compress::Deflate qw(:constants);
-    use IO::Compress::Deflate qw(:all);
+    use IO::Deflate qw(:strategy);
+    use IO::Deflate qw(:constants);
+    use IO::Deflate qw(:all);
 
 =item -Strategy 
 
@@ -707,7 +850,7 @@ Flushes any pending compressed data and then closes the output file/buffer.
 
 
 For most versions of Perl this method will be automatically invoked if
-the IO::Compress::Deflate object is destroyed (either explicitly or by the
+the IO::Deflate object is destroyed (either explicitly or by the
 variable with the reference to the object going out of scope). The
 exceptions are Perl versions 5.005 through 5.00504 and 5.8.0. In
 these cases, the C<close> method will be called automatically, but
@@ -720,7 +863,7 @@ closing.
 
 Returns true on success, otherwise 0.
 
-If the C<AutoClose> option has been enabled when the IO::Compress::Deflate
+If the C<AutoClose> option has been enabled when the IO::Deflate
 object was created, and the object is associated with a file, the
 underlying file will also be closed.
 
@@ -746,22 +889,22 @@ TODO
 =head1 Importing 
 
 A number of symbolic constants are required by some methods in 
-C<IO::Compress::Deflate>. None are imported by default.
+C<IO::Deflate>. None are imported by default.
 
 =over 5
 
 =item :all
 
 Imports C<deflate>, C<$DeflateError> and all symbolic
-constants that can be used by C<IO::Compress::Deflate>. Same as doing this
+constants that can be used by C<IO::Deflate>. Same as doing this
 
-    use IO::Compress::Deflate qw(deflate $DeflateError :constants) ;
+    use IO::Deflate qw(deflate $DeflateError :constants) ;
 
 =item :constants
 
 Import all symbolic constants. Same as doing this
 
-    use IO::Compress::Deflate qw(:flush :level :strategy) ;
+    use IO::Deflate qw(:flush :level :strategy) ;
 
 =item :flush
 
@@ -810,7 +953,7 @@ TODO
 
 =head1 SEE ALSO
 
-L<Compress::Zlib>, L<IO::Compress::Gzip>, L<IO::Uncompress::Gunzip>, L<IO::Uncompress::Inflate>, L<IO::Compress::RawDeflate>, L<IO::Uncompress::RawInflate>, L<IO::Uncompress::AnyInflate>
+L<Compress::Zlib>, L<IO::Gzip>, L<IO::Gunzip>, L<IO::Inflate>, L<IO::RawDeflate>, L<IO::RawInflate>, L<IO::AnyInflate>
 
 L<Compress::Zlib::FAQ|Compress::Zlib::FAQ>
 
@@ -826,7 +969,7 @@ The primary site for the gzip program is F<http://www.gzip.org>.
 
 =head1 AUTHOR
 
-The I<IO::Compress::Deflate> module was written by Paul Marquess,
+The I<IO::Deflate> module was written by Paul Marquess,
 F<pmqs@cpan.org>. The latest copy of the module can be
 found on CPAN in F<modules/by-module/Compress/Compress-Zlib-x.x.tar.gz>.
 

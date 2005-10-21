@@ -1,3 +1,9 @@
+BEGIN {
+    if ($ENV{PERL_CORE}) {
+	chdir 't' if -d 't';
+	@INC = ("../lib", "lib");
+    }
+}
 
 use lib 't';
 use strict;
@@ -291,7 +297,7 @@ my $lex = new LexFile $name ;
         my $extra = $hdr->{ExtraField} ;
 
         if ($order) {
-            eq_array $extra, $result
+            eq_array $extra, $result;
         } else {
             eq_set $extra, $result;
         } 
@@ -393,6 +399,7 @@ my $lex = new LexFile $name ;
             is anyUncompress(\$buffer), $string ;
 
             $x = new IO::Uncompress::Gunzip \$buffer, Strict => 0,
+                                       Transparent => 0,
                                        ParseExtra => $check;
             if ($check) {
                 ok ! $x ;
@@ -570,6 +577,7 @@ EOM
     ok $gz->close();                          
 
     ok ! new IO::Uncompress::Gunzip \$x,
+                        -Transparent => 0,
                         -Strict => 1;
 
     like $GunzipError, '/Header Error: Non ISO 8859-1 Character found in Name/';                    
@@ -619,7 +627,8 @@ EOM
 		                      -Comment => "fred\x02" ;
     ok $gz->close();                          
 
-    ok ! new IO::Uncompress::Gunzip \$x, Strict => 1;
+    ok ! new IO::Uncompress::Gunzip \$x, Strict => 1,
+                        -Transparent => 0;
 
     like $GunzipError, '/Header Error: Non ISO 8859-1 Character found in Comment/';
     ok my $gunzip = new IO::Uncompress::Gunzip \$x, Strict => 0;
@@ -809,7 +818,7 @@ EOM
                 ok   $gunz->read($uncomp) > 0 ;
                 ok ! $GunzipError ;
                 my $expected = substr($buffer, - $got);
-                is  ${ $gunz->trailingData() },  $expected_trailing;
+                is  $gunz->trailingData(),  $expected_trailing;
             }
             ok $gunz->eof() ;
             ok $uncomp eq $string;
@@ -842,7 +851,7 @@ EOM
                 ok ! $GunzipError ;
                 #is   $gunz->trailingData(), substr($buffer, - $got) ;
             }
-            ok ! ${ $gunz->trailingData() } ;
+            ok ! $gunz->trailingData() ;
             ok $gunz->eof() ;
             ok $uncomp eq $string;
             ok $gunz->close ;
@@ -872,7 +881,7 @@ EOM
                 ok   $gunz->read($uncomp) > 0 ;
                 ok ! $GunzipError ;
             }
-            ok ! ${ $gunz->trailingData() } ;
+            ok ! $gunz->trailingData() ;
             ok $gunz->eof() ;
             ok $uncomp eq $string;
             ok $gunz->close ;

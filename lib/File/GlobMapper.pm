@@ -12,14 +12,14 @@ BEGIN
     { 
         require File::BSDGlob; import File::BSDGlob qw(:glob) ;
         $CSH_GLOB = File::BSDGlob::GLOB_CSH() ;
-        *globber = \&File::BSDGlob::glob;
+        *globber = \&File::BSDGlob::csh_glob;
     }  
     else
     { 
         require File::Glob; import File::Glob qw(:glob) ;
         $CSH_GLOB = File::Glob::GLOB_CSH() ;
         #*globber = \&File::Glob::bsd_glob;
-        *globber = \&File::Glob::glob;
+        *globber = \&File::Glob::csh_glob;
     }  
 }
 

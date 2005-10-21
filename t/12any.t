@@ -1,3 +1,9 @@
+BEGIN {
+    if ($ENV{PERL_CORE}) {
+	chdir 't' if -d 't';
+	@INC = ("../lib", "lib");
+    }
+}
 
 use lib 't';
  
@@ -26,7 +32,9 @@ BEGIN {
 
     use_ok('IO::Compress::RawDeflate', qw($RawDeflateError)) ;
     use_ok('IO::Uncompress::RawInflate', qw($RawInflateError)) ;
+
     use_ok('IO::Uncompress::AnyInflate', qw($AnyInflateError)) ;
+
 }
 
 foreach my $Class ( map { "IO::Compress::$_" } qw( Gzip Deflate RawDeflate) )
@@ -47,7 +55,8 @@ EOM
 
         my $unc = new IO::Uncompress::AnyInflate \$buffer, Transparent => $trans  ;
 
-        ok $unc, "  Created AnyInflate object" ;
+        ok $unc, "  Created AnyInflate object" 
+            or print "# $IO::Uncompress::AnyInflate::AnyInflateError\n";
         my $uncomp ;
         ok $unc->read($uncomp) > 0 
             or print "# $IO::Uncompress::AnyInflate::AnyInflateError\n";

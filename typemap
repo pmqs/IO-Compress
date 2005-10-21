@@ -2,6 +2,12 @@ Compress::Zlib::gzFile		T_PTROBJ
 Compress::Zlib::deflateStream	T_PTROBJ
 Compress::Zlib::inflateStream	T_PTROBJ
 Compress::Zlib::inflateScanStream	T_PTROBJ
+
+#Compress::Zlib::gzFile		T_PTROBJ_AV
+#Compress::Zlib::Deflate		T_PTROBJ_AV
+#Compress::Zlib::Inflate 	T_PTROBJ_AV
+#Compress::Zlib::InflateScan	T_PTROBJ_AV
+
 Bytef *				T_PV
 #uInt				T_IV
 #uLongf				T_IV
@@ -27,6 +33,17 @@ T_PV
             $var = ($type)SvPVbyte_nolen($arg);
 	else
             $var = NULL ;
+
+T_PTROBJ_AV
+        if ($arg == &PL_sv_undef || $arg == NULL)
+            $var = NULL ;
+        else if (sv_derived_from($arg, \"${ntype}\")) {
+            IV tmp = SvIV(getInnerObject($arg)) ;
+            $var = INT2PTR($type, tmp);
+        }
+        else
+            croak(\"$var is not of type ${ntype}\")
+
 
 
 #############################################################################

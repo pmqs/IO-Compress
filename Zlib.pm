@@ -16,7 +16,7 @@ local ($^W) = 1; #use warnings ;
 # use bytes ;
 use vars qw($VERSION $XS_VERSION @ISA @EXPORT $AUTOLOAD);
 
-$VERSION = '2.000_05';
+$VERSION = '2.000_06';
 $XS_VERSION = $VERSION; 
 $VERSION = eval $VERSION;
 
@@ -309,7 +309,7 @@ sub Compress::Zlib::gzFile::gzsetparams
     return _set_gzerr(Z_STREAM_ERROR())
         if $self->[1] ne 'deflate';
  
-    my $status = *$gz->{Deflate}->deflateParams(-Level    => $level, 
+    my $status = *$gz->{Compress}->deflateParams(-Level   => $level, 
                                                 -Strategy => $strategy);
     _save_gzerr($gz);
     return $status ;
@@ -457,6 +457,22 @@ sub Compress::Zlib::inflateScanStream::createDeflateStream
 
 }
 
+sub Compress::Zlib::inflateScanStream::inflate
+{
+    my $self = shift ;
+    my $buffer = $_[1];
+    my $eof = $_[2];
+
+    my $status = $self->scan(@_);
+
+    if ($status == Z_OK() && $_[2]) {
+        my $byte = ' ';
+        
+        $status = $self->scan(\$byte, $_[1]) ;
+    }
+    
+    return $status ;
+}
 
 sub Compress::Zlib::deflateStream::deflateParams
 {
@@ -980,8 +996,8 @@ stream that is embedded in a larger file, without having to resort to opening
 and closing the file multiple times. 
 
 In C<Compress::Zlib> version 2.x, the C<gzopen> interface has been completely
-rewritten to use the L<IO::Compress::Gzip|IO::Compress::Gzip> for writing gzip files and
-L<IO::Uncompress::Gunzip|IO::Uncompress::Gunzip> for reading gzip files.
+rewritten to use the L<IO::Gzip|IO::Gzip> for writing gzip files and
+L<IO::Gunzip|IO::Gunzip> for reading gzip files.
 
 =item 3
 
@@ -994,8 +1010,8 @@ Added C<gztell>.
 =back
 
 A more complete and flexible interface for reading/writing gzip files/buffers
-is included with this module.  See L<IO::Compress::Gzip|IO::Compress::Gzip> and
-L<IO::Uncompress::Gunzip|IO::Uncompress::Gunzip> for more details.
+is included with this module.  See L<IO::Gzip|IO::Gzip> and
+L<IO::Gunzip|IO::Gunzip> for more details.
 
 =over 5
 
@@ -1010,7 +1026,7 @@ success and C<undef> on failure.
 When writing a gzip file this interface will always create the smallest
 possible gzip header (exactly 10 bytes). If you want control over the
 information stored in the gzip header (like the original filename or a comment)
-use L<IO::Compress::Gzip|IO::Compress::Gzip> instead.
+use L<IO::Gzip|IO::Gzip> instead.
 
 The second parameter, C<$mode>, is used to specify whether the file is
 opened for reading or writing and to optionally specify a compression
@@ -1257,7 +1273,7 @@ undef.
 
 The C<$buffer> parameter can either be a scalar or a scalar reference.
 
-See L<IO::Compress::Gzip|IO::Compress::Gzip> for an alternative way to carry out in-memory gzip
+See L<IO::Gzip|IO::Gzip> for an alternative way to carry out in-memory gzip
 compression.
 
 =head2 Compress::Zlib::memGunzip
@@ -1272,7 +1288,7 @@ returns undef.
 The C<$buffer> parameter can either be a scalar or a scalar reference. The
 contents of the C<$buffer> parameter are destroyed after calling this function.
 
-See L<IO::Uncompress::Gunzip|IO::Uncompress::Gunzip> for an alternative way to carry out in-memory gzip
+See L<IO::Gunzip|IO::Gunzip> for an alternative way to carry out in-memory gzip
 uncompression.
 
 =head1 COMPRESS/UNCOMPRESS
@@ -1308,7 +1324,7 @@ The source buffer can either be a scalar or a scalar reference.
 Please note: the two functions defined above are I<not> compatible with
 the Unix commands of the same name.
 
-See L<IO::Compress::Deflate|IO::Compress::Deflate> and L<IO::Uncompress::Inflate|IO::Uncompress::Inflate> included with
+See L<IO::Deflate|IO::Deflate> and L<IO::Inflate|IO::Inflate> included with
 this distribution for an alternative interface for reading/writing RFC 1950
 files/buffers.
 
@@ -2210,7 +2226,7 @@ of I<Compress::Zlib>.
 
 =head1 SEE ALSO
 
-L<IO::Compress::Gzip>, L<IO::Uncompress::Gunzip>, L<IO::Compress::Deflate>, L<IO::Uncompress::Inflate>, L<IO::Compress::RawDeflate>, L<IO::Uncompress::RawInflate>, L<IO::Uncompress::AnyInflate>
+L<IO::Gzip>, L<IO::Gunzip>, L<IO::Deflate>, L<IO::Inflate>, L<IO::RawDeflate>, L<IO::RawInflate>, L<IO::AnyInflate>
 
 L<Compress::Zlib::FAQ|Compress::Zlib::FAQ>
 

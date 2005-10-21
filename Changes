@@ -1,6 +1,12 @@
 CHANGES
 -------
 
+  2.000_06 5 October 2005
+
+      * Added eof parameter to Compress::Zlib::inflate method.
+
+      * Fixed issue with 64-bit
+
   2.000_05 4 October 2005
 
       * Renamed IO::* to IO::Compress::* & IO::Uncompress::*
