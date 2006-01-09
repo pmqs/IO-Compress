@@ -36,7 +36,7 @@ sub like_eval
                 unless defined $_;
         }
         chmod 0777, @_;
-        unlink @_ ;
+        for (@_) { 1 while unlink $_ } ;
         bless [ @_ ], $self ;
     }
 
@@ -44,7 +44,7 @@ sub like_eval
     {
         my $self = shift ;
         chmod 0777, @{ $self } ;
-        unlink @{ $self } ;
+        for (@$self) { 1 while unlink $_ } ;
     }
 
 }
@@ -82,7 +82,7 @@ sub readFile
     else
     {
         open (F, "<$f") 
-            or die "Cannot open $f: $!\n" ;
+            or croak "Cannot open $f: $!\n" ;
         @strings = <F> ;	
         close F ;
     }
@@ -99,8 +99,9 @@ sub touch
 sub writeFile
 {
     my($filename, @strings) = @_ ;
+    1 while unlink $filename ;
     open (F, ">$filename") 
-        or die "Cannot open $filename: $!\n" ;
+        or croak "Cannot open $filename: $!\n" ;
     binmode F;
     foreach (@strings) {
         local ($^W) = 0; #no warnings ;
@@ -116,7 +117,7 @@ sub GZreadFile
     my ($uncomp) = "" ;
     my $line = "" ;
     my $fil = gzopen($filename, "rb") 
-        or die "Cannopt open '$filename': $Compress::Zlib::gzerrno" ;
+        or croak "Cannopt open '$filename': $Compress::Zlib::gzerrno" ;
 
     $uncomp .= $line 
         while $fil->gzread($line) > 0;
@@ -177,7 +178,7 @@ EOM
     ok $x->write($string) ;
     ok $x->close ;
 
-    ok GZreadFile($name) eq $string ;
+    is GZreadFile($name), $string ;
 
     ok my $gunz = new IO::Uncompress::Gunzip $name, Strict => 0
         or diag "GunzipError is $IO::Uncompress::Gunzip::GunzipError" ;
@@ -211,6 +212,8 @@ sub uncompressBuffer
                     'IO::Compress::Bzip2::bzip2'             => 'IO::Uncompress::Bunzip2',
                     'IO::Compress::Zip'                      => 'IO::Uncompress::Unzip',
                     'IO::Compress::Zip::zip'                 => 'IO::Uncompress::Unzip',
+                    'IO::Compress::Lzop'                     => 'IO::Uncompress::UnLzop',
+                    'IO::Compress::Lzop::lzop'               => 'IO::Uncompress::UnLzop',
                 );
 
     my $out ;
@@ -232,6 +235,8 @@ my %ErrorMap = (    'IO::Compress::Gzip'                => \$IO::Compress::Gzip:
                     'IO::Uncompress::RawInflate::rawinflate'  => \$IO::Uncompress::RawInflate::RawInflateError,
                     'IO::Uncompress::AnyInflate'        => \$IO::Uncompress::AnyInflate::AnyInflateError,
                     'IO::Uncompress::AnyInflate::anyinflate'  => \$IO::Uncompress::AnyInflate::AnyInflateError,
+                    'IO::Uncompress::AnyUncompress'        => \$IO::Uncompress::AnyUncompress::AnyUncompressError,
+                    'IO::Uncompress::AnyUncompress::anyUncompress'  => \$IO::Uncompress::AnyUncompress::AnyUncompressError,
                     'IO::Compress::RawDeflate'          => \$IO::Compress::RawDeflate::RawDeflateError,
                     'IO::Compress::RawDeflate::rawdeflate'  => \$IO::Compress::RawDeflate::RawDeflateError,
                     'IO::Compress::Bzip2'               => \$IO::Compress::Bzip2::Bzip2Error,
@@ -242,6 +247,10 @@ my %ErrorMap = (    'IO::Compress::Gzip'                => \$IO::Compress::Gzip:
                     'IO::Compress::Zip::zip'            => \$IO::Compress::Zip::ZipError,
                     'IO::Uncompress::Unzip'             => \$IO::Uncompress::Unzip::UnzipError,
                     'IO::Uncompress::Unzip::unzip'      => \$IO::Uncompress::Unzip::UnzipError,
+                    'IO::Compress::Lzop'                => \$IO::Compress::Lzop::LzopError,
+                    'IO::Compress::Lzop::lzop'          => \$IO::Compress::Lzop::LzopError,
+                    'IO::Uncompress::UnLzop'            => \$IO::Uncompress::UnLzop::UnLzopError,
+                    'IO::Uncompress::UnLzop::unlzop'    => \$IO::Uncompress::UnLzop::UnLzopError,
                );
 
 my %TopFuncMap = (  'IO::Compress::Gzip'          => 'IO::Compress::Gzip::gzip',
@@ -254,12 +263,15 @@ my %TopFuncMap = (  'IO::Compress::Gzip'          => 'IO::Compress::Gzip::gzip',
                     'IO::Uncompress::RawInflate'  => 'IO::Uncompress::RawInflate::rawinflate',
 
                     'IO::Uncompress::AnyInflate'  => 'IO::Uncompress::AnyInflate::anyinflate',
+                    'IO::Uncompress::AnyUncompress'  => 'IO::Uncompress::AnyUncompress::anyuncompress',
 
                     'IO::Compress::Bzip2'         => 'IO::Compress::Bzip2::bzip2',
                     'IO::Uncompress::Bunzip2'     => 'IO::Uncompress::Bunzip2::bunzip2',
 
                     'IO::Compress::Zip'           => 'IO::Compress::Zip::zip',
                     'IO::Uncompress::Unzip'       => 'IO::Uncompress::Unzip::unzip',
+                    'IO::Compress::Lzop'          => 'IO::Compress::Lzop::lzop',
+                    'IO::Uncompress::UnLzop'      => 'IO::Uncompress::UnLzop::unlzop',
                  );
 
    %TopFuncMap = map { ($_              => $TopFuncMap{$_}, 
@@ -280,6 +292,8 @@ my %inverse  = ( 'IO::Compress::Gzip'                    => 'IO::Uncompress::Gun
                  'IO::Compress::Bzip2'                   => 'IO::Uncompress::Bunzip2',
                  'IO::Compress::Zip::zip'                => 'IO::Uncompress::Unzip::unzip',
                  'IO::Compress::Zip'                     => 'IO::Uncompress::Unzip',
+                 'IO::Compress::Lzop::lzop'              => 'IO::Uncompress::UnLzop::unlzop',
+                 'IO::Compress::Lzop'                    => 'IO::Uncompress::UnLzop',
              );
 
 %inverse  = map { ($_ => $inverse{$_}, $inverse{$_} => $_) } keys %inverse;
@@ -327,8 +341,12 @@ sub compressBuffer
                     'IO::Uncompress::Bunzip2::bunzip2'        => 'IO::Compress::Bzip2',
                     'IO::Uncompress::Unzip'                   => 'IO::Compress::Zip',
                     'IO::Uncompress::Unzip::unzip'            => 'IO::Compress::Zip',
+                    'IO::Uncompress::UnLzop'                  => 'IO::Compress::Lzop',
+                    'IO::Uncompress::UnLzop::unlzop'          => 'IO::Compress::Lzop',
                     'IO::Uncompress::AnyInflate'              => 'IO::Compress::Gzip',
                     'IO::Uncompress::AnyInflate::anyinflate'  => 'IO::Compress::Gzip',
+                    'IO::Uncompress::AnyUncompress'           => 'IO::Compress::Gzip',
+                    'IO::Uncompress::AnyUncompress::anyuncompress'  => 'IO::Compress::Gzip',
                 );
 
     my $out ;
@@ -339,7 +357,7 @@ sub compressBuffer
 
 }
 
-use IO::Uncompress::AnyInflate qw($AnyInflateError);
+use IO::Uncompress::AnyUncompress qw($AnyUncompressError);
 sub anyUncompress
 {
     my $buffer = shift ;
@@ -384,8 +402,8 @@ sub anyUncompress
     }
 
     my $out = '';
-    my $o = new IO::Uncompress::AnyInflate \$data, -Append => 1, Transparent => 0, @opts
-        or croak "Cannot open buffer/file: $AnyInflateError" ;
+    my $o = new IO::Uncompress::AnyUncompress \$data, -Append => 1, Transparent => 0, @opts
+        or croak "Cannot open buffer/file: $AnyUncompressError" ;
 
     1 while $o->read($out) > 0 ;
 
@@ -394,6 +412,99 @@ sub anyUncompress
 
     return $out ;
 
+}
+
+sub getHeaders
+{
+    my $buffer = shift ;
+    my $already = shift;
+
+    my @opts = ();
+    if (ref $buffer && ref $buffer eq 'ARRAY')
+    {
+        @opts = @$buffer;
+        $buffer = shift @opts;
+    }
+
+    if (ref $buffer)
+    {
+        croak "buffer is undef" unless defined $$buffer;
+        croak "buffer is empty" unless length $$buffer;
+
+    }
+
+
+    my $data ;
+    if (Compress::Zlib::Common::isaFilehandle($buffer))
+    {
+        $data = readFile($buffer);
+    }
+    elsif (Compress::Zlib::Common::isaFilename($buffer))
+    {
+        $data = readFile($buffer);
+    }
+    else
+    {
+        $data = $$buffer ;
+    }
+
+    if (defined $already && length $already)
+    {
+
+        my $got = substr($data, 0, length($already));
+        substr($data, 0, length($already)) = '';
+
+        is $got, $already, '  Already OK' ;
+    }
+
+    my $out = '';
+    my $o = new IO::Uncompress::AnyUncompress \$data, MultiStream => 1, -Append => 1, Transparent => 0, @opts
+        or croak "Cannot open buffer/file: $AnyUncompressError" ;
+
+    1 while $o->read($out) > 0 ;
+
+    croak "Error uncompressing -- " . $o->error()
+        if $o->error() ;
+
+    return ($o->getHeaderInfo()) ;
+
+}
+
+sub mkComplete
+{
+    my $class = shift ;
+    my $data = shift;
+    my $Error = getErrorRef($class);
+
+    my $buffer ;
+    my %params = ();
+
+    if ($class eq 'IO::Compress::Gzip') {
+        %params = (
+            -Name       => "My name",
+            -Comment    => "a comment",
+            -ExtraField => ['ab' => "extra"],
+            -HeaderCRC  => 1);
+    }
+    elsif ($class eq 'IO::Compress::Zip'){
+        %params = (
+            # TODO -- add more here
+            -Name       => "My name",
+            -Comment    => "a comment",
+        );
+    }
+
+    my $z = new $class( \$buffer, %params)
+        or croak "Cannot create $class object: $$Error";
+    $z->write($data);
+    $z->close();
+
+    my $unc = getInverse($class);
+    my $u = new $unc( \$buffer);
+    my $info = $u->getHeaderInfo() ;
+
+
+    return wantarray ? ($info, $buffer) : $buffer ;
 }
 
 sub mkErr

@@ -8,14 +8,10 @@ require 5.004 ;
 use strict ;
 local ($^W) = 1; #use warnings;
 
-use constant STATUS_OK        => 0;
-use constant STATUS_ENDSTREAM => 1;
-use constant STATUS_ERROR     => 2;
-
 use IO::Uncompress::RawInflate ;
 
 use Compress::Zlib qw( crc32 ) ;
-use Compress::Zlib::Common;
+use Compress::Zlib::Common qw(createSelfTiedObject);
 use Compress::Gzip::Constants;
 
 require Exporter ;
@@ -36,21 +32,21 @@ sub new
 {
     my $class = shift ;
     $GunzipError = '';
-    my $obj = createSelfTiedObject($class);
+    my $obj = createSelfTiedObject($class, \$GunzipError);
 
-    $obj->_create(undef, \$GunzipError, 0, @_);
+    $obj->_create(undef, 0, @_);
 }
 
 sub gunzip
 {
-    $GunzipError = '';
-    return IO::Uncompress::Base::_inf(\$GunzipError, @_) ;
+    my $obj = createSelfTiedObject(undef, \$GunzipError);
+    return $obj->_inf(@_) ;
 }
 
 sub getExtraParams
 {
     use Compress::Zlib::ParseParameters ;
-    return ( 'ParseExtra' => [Parse_boolean,  0] ) ;
+    return ( 'ParseExtra' => [1, 1, Parse_boolean,  0] ) ;
 }
 
 sub ckParams
@@ -258,6 +254,7 @@ sub _readGzipHeader($)
 
     return {
         'Type'          => 'rfc1952',
+        'FingerprintLength'  => 2,
         'HeaderLength'  => length $keep,
         'TrailerLength' => GZIP_TRAILER_SIZE,
         'Header'        => $keep,

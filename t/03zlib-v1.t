@@ -363,7 +363,7 @@ EOM
 
     ok $uncomp eq $buffer ;
  
-    unlink $name ;
+    1 while unlink $name ;
 
     # now check that memGunzip can deal with it.
     my $ungzip = Compress::Zlib::memGunzip($dest) ;
@@ -442,7 +442,7 @@ EOM
     ok ! defined $ungzip ;
 
  
-    unlink $name ;
+    1 while unlink $name ;
 
     # check corrupt header -- too short
     $dest = "x" ;
@@ -494,26 +494,27 @@ EOM
 {
     title "Check all bytes can be handled";
 
-    my $lex = new LexFile my $name ;
-    my $data = map { chr } 0x00 .. 0xFF;
+    my $lex = "\r\n" . new LexFile my $name ;
+    my $data = join '', map { chr } 0x00 .. 0xFF;
+    $data .= "\r\nabd\r\n";
 
     my $fil;
     ok $fil = gzopen($name, "wb") ;
-    ok $fil->gzwrite($data) == length $data ;
+    is $fil->gzwrite($data), length $data ;
     ok ! $fil->gzclose();
 
     my $input;
     ok $fil = gzopen($name, "rb") ;
-    ok $fil->gzread($input) == length $data ;
+    is $fil->gzread($input), length $data ;
     ok ! $fil->gzclose();
-    is $input, $data;
+    ok $input eq $data;
 
     title "Check all bytes can be handled - transparent mode";
     writeFile($name, $data);
     ok $fil = gzopen($name, "rb") ;
-    ok $fil->gzread($input) == length $data ;
+    is $fil->gzread($input), length $data ;
     ok ! $fil->gzclose();
-    is $input, $data;
+    ok $input eq $data;
 
 }
 
@@ -537,7 +538,7 @@ EOM
     my $unc = Compress::Zlib::memGunzip($compr) ;
     ok defined $unc ;
     ok $buffer eq $unc ;
-    unlink $name ;
+    1 while unlink $name ;
 }
 
 {

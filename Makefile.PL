@@ -70,6 +70,7 @@ ParseCONFIG() ;
 
 my @files = ('Zlib.pm', 't/ZlibTestUtils.pm',
              glob("t/*.t"), 
+             glob("t/*.pl"), 
              glob("lib/CompressPlugin/*.pm"),
              glob("lib/UncompressPlugin/*.pm"),
              glob("lib/IO/Compress/*.pm"),
@@ -201,7 +202,7 @@ sub MY::libscan
 
     return undef
         if $path =~ /(~|\.bak|_bak)$/ ||
-           $path =~ /\..*\.swp$/ ||
+           $path =~ /\..*\.sw(o|p)$/ ||
            $path =~ /\B\.svn\b/;
 
     return $path;

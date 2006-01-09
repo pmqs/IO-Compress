@@ -5,15 +5,11 @@ local ($^W) = 1; #use warnings;
 
 require Exporter ;
 
-use constant STATUS_OK        => 0;
-use constant STATUS_ENDSTREAM => 1;
-use constant STATUS_ERROR     => 2;
-
 use IO::Compress::RawDeflate;
 
 use Compress::Zlib 2 ;
 use Compress::Zlib::FileConstants;
-use Compress::Zlib::Common;
+use Compress::Zlib::Common qw(createSelfTiedObject);
 
 
 use vars qw($VERSION @ISA @EXPORT_OK %EXPORT_TAGS $DeflateError);
@@ -32,13 +28,14 @@ sub new
 {
     my $class = shift ;
 
-    my $obj = createSelfTiedObject($class);
-    return $obj->_create(undef, \$DeflateError, @_);
+    my $obj = createSelfTiedObject($class, \$DeflateError);
+    return $obj->_create(undef, @_);
 }
 
 sub deflate
 {
-    return IO::Compress::Base::_def(\$DeflateError, @_);
+    my $obj = createSelfTiedObject(undef, \$DeflateError);
+    return $obj->_def(@_);
 }
 
 
@@ -134,29 +131,16 @@ sub mkFinalTrailer
     return '';
 }
 
-sub newHeader
-{
-    my $self = shift ;
-    return *$self->{Header};
-}
+#sub newHeader
+#{
+#    my $self = shift ;
+#    return *$self->{Header};
+#}
 
 sub getExtraParams
 {
     my $self = shift ;
-
-    use Compress::Zlib::ParseParameters;
-    use Compress::Zlib qw(Z_DEFLATED Z_DEFAULT_COMPRESSION Z_DEFAULT_STRATEGY);
-
-    
-    return (
-            # zlib behaviour
-            #'Method'   => [Parse_unsigned,  Z_DEFLATED],
-            'Level'     => [Parse_signed,    Z_DEFAULT_COMPRESSION],
-            'Strategy'  => [Parse_signed,    Z_DEFAULT_STRATEGY],
-
-            
-        );
-    
+    return $self->getZlibParams(),
 }
 
 sub getInverseClass
@@ -590,7 +574,7 @@ This parameter defaults to 0.
 
 Opens C<$output> in append mode. 
 
-The behaviour of this option is dependant on the type of C<$output>.
+The behaviour of this option is dependent on the type of C<$output>.
 
 =over 5
 
@@ -707,7 +691,7 @@ Usage is
     print $z $data
 
 Compresses and outputs the contents of the C<$data> parameter. This
-has the same behavior as the C<print> built-in.
+has the same behaviour as the C<print> built-in.
 
 Returns true if successful.
 

@@ -19,7 +19,7 @@ BEGIN {
     $extra = 1
         if eval { require Test::NoWarnings ;  import Test::NoWarnings; 1 };
 
-    plan tests => 29 + $extra ;
+    plan tests => 30 + $extra ;
 
 
     use_ok('Compress::Zlib::Common');
@@ -45,22 +45,26 @@ sub My::testParseParameters()
     like $@, mkErr(': Expected even number of parameters, got 1'), 
             "Trap odd number of params";
 
-    eval { ParseParameters(1, {'Fred' => [Parse_unsigned, 0]}, Fred => undef) ; };
-    like $@, mkErr("Parameter 'Fred' must be an unsigned int, got undef"), 
+    eval { ParseParameters(1, {'Fred' => [1, 1, Parse_boolean, 0]}, Fred => 'joe') ; };
+    like $@, mkErr("Parameter 'Fred' must be an int, got 'joe'"), 
             "wanted unsigned, got undef";
 
-    eval { ParseParameters(1, {'Fred' => [Parse_signed, 0]}, Fred => undef) ; };
-    like $@, mkErr("Parameter 'Fred' must be a signed int, got undef"), 
+    eval { ParseParameters(1, {'Fred' => [1, 1, Parse_unsigned, 0]}, Fred => undef) ; };
+    like $@, mkErr("Parameter 'Fred' must be an unsigned int, got 'undef'"), 
+            "wanted unsigned, got undef";
+
+    eval { ParseParameters(1, {'Fred' => [1, 1, Parse_signed, 0]}, Fred => undef) ; };
+    like $@, mkErr("Parameter 'Fred' must be a signed int, got 'undef'"), 
             "wanted signed, got undef";
 
-    eval { ParseParameters(1, {'Fred' => [Parse_signed, 0]}, Fred => 'abc') ; };
+    eval { ParseParameters(1, {'Fred' => [1, 1, Parse_signed, 0]}, Fred => 'abc') ; };
     like $@, mkErr("Parameter 'Fred' must be a signed int, got 'abc'"), 
             "wanted signed, got 'abc'";
 
-    my $got = ParseParameters(1, {'Fred' => [Parse_store_ref, 0]}, Fred => 'abc') ;
+    my $got = ParseParameters(1, {'Fred' => [1, 1, Parse_store_ref, 0]}, Fred => 'abc') ;
     is ${ $got->value('Fred') }, "abc", "Parse_store_ref" ;
 
-    $got = ParseParameters(1, {'Fred' => [0x1000000, 0]}, Fred => 'abc') ;
+    $got = ParseParameters(1, {'Fred' => [1, 1, 0x1000000, 0]}, Fred => 'abc') ;
     is $got->value('Fred'), "abc", "other" ;
 
 }
@@ -81,8 +85,7 @@ My::testParseParameters();
 {
     title "whatIsInput" ;
 
-    my $out_file = "abc";
-    my $lex = new LexFile($out_file) ;
+    my $lex = new LexFile my $out_file ;
     open FH, ">$out_file" ;
     is whatIsInput(*FH), 'handle', "Match filehandle" ;
     close FH ;
@@ -101,8 +104,7 @@ My::testParseParameters();
 {
     title "whatIsOutput" ;
 
-    my $out_file = "abc";
-    my $lex = new LexFile($out_file) ;
+    my $lex = new LexFile my $out_file ;
     open FH, ">$out_file" ;
     is whatIsOutput(*FH), 'handle', "Match filehandle" ;
     close FH ;

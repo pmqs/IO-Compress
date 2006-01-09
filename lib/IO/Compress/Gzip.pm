@@ -6,15 +6,11 @@ require 5.004 ;
 use strict ;
 local ($^W) = 1; #use warnings;
 
-use constant STATUS_OK        => 0;
-use constant STATUS_ENDSTREAM => 1;
-use constant STATUS_ERROR     => 2;
-
 
 use IO::Compress::RawDeflate;
 
 use Compress::Zlib 2 ;
-use Compress::Zlib::Common;
+use Compress::Zlib::Common qw(:Status createSelfTiedObject);
 use Compress::Gzip::Constants;
 
 BEGIN
@@ -42,22 +38,24 @@ sub new
 {
     my $class = shift ;
 
-    my $obj = createSelfTiedObject($class);
+    my $obj = createSelfTiedObject($class, \$GzipError);
 
-    $obj->_create(undef, \$GzipError, @_);
+    $obj->_create(undef, @_);
 }
 
 
 sub gzip
 {
-    return IO::Compress::Base::_def(\$GzipError, @_);
+    my $obj = createSelfTiedObject(undef, \$GzipError);
+    return $obj->_def(@_);
 }
 
-sub newHeader
-{
-    my $self = shift ;
-    return GZIP_MINIMUM_HEADER ;
-}
+#sub newHeader
+#{
+#    my $self = shift ;
+#    #return GZIP_MINIMUM_HEADER ;
+#    return $self->mkHeader(*$self->{Got});
+#}
 
 sub getExtraParams
 {
@@ -66,23 +64,20 @@ sub getExtraParams
     use Compress::Zlib::ParseParameters;
     
     return (
-            # Gzip header fields
-            'Minimal'   => [Parse_boolean,   0],
-            'Comment'   => [Parse_any,       undef],
-            'Name'      => [Parse_any,       undef],
-            'Time'      => [Parse_any,       undef],
-            'TextFlag'  => [Parse_boolean,   0],
-            'HeaderCRC' => [Parse_boolean,   0],
-            'OS_Code'   => [Parse_unsigned,  $Compress::Zlib::gzip_os_code],
-            'ExtraField'=> [Parse_string,    undef],
-            'ExtraFlags'=> [Parse_any,       undef],
-
             # zlib behaviour
-            #'Method'   => [Parse_unsigned,  Z_DEFLATED],
-            'Level'     => [Parse_signed,    Z_DEFAULT_COMPRESSION],
-            'Strategy'  => [Parse_signed,    Z_DEFAULT_STRATEGY],
+            $self->getZlibParams(),
 
-            
+            # Gzip header fields
+            'Minimal'   => [0, 1, Parse_boolean,   0],
+            'Comment'   => [0, 1, Parse_any,       undef],
+            'Name'      => [0, 1, Parse_any,       undef],
+            'Time'      => [0, 1, Parse_any,       undef],
+            'TextFlag'  => [0, 1, Parse_boolean,   0],
+            'HeaderCRC' => [0, 1, Parse_boolean,   0],
+            'OS_Code'   => [0, 1, Parse_unsigned,  $Compress::Zlib::gzip_os_code],
+            'ExtraField'=> [0, 1, Parse_string,    undef],
+            'ExtraFlags'=> [0, 1, Parse_any,       undef],
+
         );
 }
 
@@ -186,7 +181,7 @@ sub getFileInfo
     my $params = shift;
     my $filename = shift ;
 
-    my $defaultTime = (stat($filename))[8] ;
+    my $defaultTime = (stat($filename))[9] ;
 
     $params->value('Name' => $filename)
         if ! $params->parsed('Name') ;
@@ -590,7 +585,7 @@ two of the gzip header fields created by this function will be sourced
 from that file -- the NAME gzip header field will be populated with
 the filename itself, and the MTIME header field will be set to the
 modification time of the file.
-The intention here is to mirror part of the behavior of the gzip
+The intention here is to mirror part of the behaviour of the gzip
 executable.
 If you do not want to use these defaults they can be overridden by
 explicitly setting the C<Name> and C<Time> options.
@@ -858,7 +853,7 @@ This parameter defaults to 0.
 
 Opens C<$output> in append mode. 
 
-The behaviour of this option is dependant on the type of C<$output>.
+The behaviour of this option is dependent on the type of C<$output>.
 
 =over 5
 
@@ -951,7 +946,7 @@ The default is Z_DEFAULT_STRATEGY.
 
 
 
-=item -Mimimal =E<gt> 0|1
+=item -Minimal =E<gt> 0|1
 
 If specified, this option will force the creation of the smallest possible
 compliant gzip header (which is exactly 10 bytes long) as defined in
@@ -1014,7 +1009,7 @@ CRC16 field itself.
 B<Note> that gzip files created with the C<HeaderCRC> flag set to 1 cannot be
 read by most, if not all, of the the standard gunzip utilities, most notably
 gzip version 1.2.4. You should therefore avoid using this option if you want to
-maximise the portability of your gzip files.
+maximize the portability of your gzip files.
 
 This parameter defaults to 0.
 
@@ -1089,7 +1084,7 @@ to ensure they are compliant with RFC1952.
 
 This option is enabled by default.
 
-If C<Strict> is enabled the following behavior will be policed:
+If C<Strict> is enabled the following behaviour will be policed:
 
 =over 5
 
@@ -1121,7 +1116,7 @@ value 0x00.
 
 =back
 
-When C<Strict> is disabled the following behavior will be policed:
+When C<Strict> is disabled the following behaviour will be policed:
 
 =over 5
 
@@ -1171,7 +1166,7 @@ Usage is
     print $z $data
 
 Compresses and outputs the contents of the C<$data> parameter. This
-has the same behavior as the C<print> built-in.
+has the same behaviour as the C<print> built-in.
 
 Returns true if successful.
 

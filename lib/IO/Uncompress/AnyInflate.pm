@@ -5,14 +5,10 @@ package IO::Uncompress::AnyInflate ;
 use strict;
 local ($^W) = 1; #use warnings;
 
-use Compress::Zlib::Common;
-
-use constant STATUS_OK        => 0;
-use constant STATUS_ENDSTREAM => 1;
-use constant STATUS_ERROR     => 2;
+use Compress::Zlib::Common qw(createSelfTiedObject);
 
 use UncompressPlugin::Inflate ();
-use UncompressPlugin::Bunzip2 ();
+#use UncompressPlugin::Bunzip2 ();
 
 
 #use IO::Uncompress::Base ;
@@ -20,7 +16,8 @@ use IO::Uncompress::Gunzip ;
 use IO::Uncompress::Inflate ;
 use IO::Uncompress::RawInflate ;
 use IO::Uncompress::Unzip ;
-use IO::Uncompress::Bunzip2 ;
+#use IO::Uncompress::Bunzip2 ;
+#use IO::Uncompress::UnLzop ;
 
 require Exporter ;
 
@@ -41,13 +38,14 @@ Exporter::export_ok_tags('all');
 sub new
 {
     my $class = shift ;
-    my $obj = createSelfTiedObject($class);
-    $obj->_create(undef, \$AnyInflateError, 0, @_);
+    my $obj = createSelfTiedObject($class, \$AnyInflateError);
+    $obj->_create(undef, 0, @_);
 }
 
 sub anyinflate
 {
-    return IO::Uncompress::Base::_inf(\$AnyInflateError, @_) ;
+    my $obj = createSelfTiedObject(undef, \$AnyInflateError);
+    return $obj->_inf(@_) ;
 }
 
 sub getExtraParams
@@ -73,10 +71,13 @@ sub mkUncomp
     my $class = shift ;
     my $got = shift ;
 
-    # try zlib first
-    *$self->{Uncomp} = UncompressPlugin::Inflate::mkUncompObject($self, $class, $got)
-        or return undef;
+    my ($obj, $errstr, $errno) = UncompressPlugin::Inflate::mkUncompObject();
 
+    return $self->saveErrorString(undef, $errstr, $errno)
+        if ! defined $obj;
+
+    *$self->{Uncomp} = $obj;
+    
      my $magic = $self->ckMagic( qw( RawInflate Inflate Gunzip Unzip ) ); 
 
      if ($magic) {
@@ -86,16 +87,7 @@ sub mkUncomp
         return 1;
      }
 
-     $magic = $self->ckMagic('Bunzip2')
-        or return 0 ;
-
-    *$self->{Info} = $self->readHeader($magic)
-        or return undef ;
-
-    *$self->{Uncomp} = UncompressPlugin::Bunzip2::mkUncompObject($self, $class, $got)
-        or return undef;
-
-     return 1;
+     return 0 ;
 }
 
 
@@ -118,6 +110,7 @@ sub ckMagic
         }
 
         $self->pushBack(*$self->{HeaderPending})  ;
+        *$self->{HeaderPending} = ''  ;
     }    
 
     bless $self => $keep;

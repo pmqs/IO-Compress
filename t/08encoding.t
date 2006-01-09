@@ -95,11 +95,11 @@ if(0)
 {
     title "gzopen" ;
 
-    my $name = "test.gz" ;
     my $s = "\x{df}\x{100}";                                   
     my $byte_len = length( Encode::encode_utf8($s) );
     my ($uncomp) ;
 
+    my $lex = new LexFile my $name ;
     ok my $fil = gzopen($name, "wb"), "  gzopen for write ok" ;
 
     is $fil->gzwrite(Encode::encode_utf8($s)), $byte_len, "  wrote $byte_len bytes" ;
@@ -113,10 +113,7 @@ if(0)
 
     ok ! $fil->gzclose, "gzclose ok" ;
 
-    unlink $name ;
-
     is $s, Encode::decode_utf8($uncomp), "  decode_utf8 ok" ;
-
 }
 
 # Add tests that check that the module traps use of wide chars

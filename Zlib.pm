@@ -8,7 +8,7 @@ use Carp ;
 use IO::Handle ;
 use Scalar::Util qw(dualvar);
 
-use Compress::Zlib::Common;
+use Compress::Zlib::Common ;
 use Compress::Zlib::ParseParameters;
 
 use strict ;
@@ -16,7 +16,7 @@ local ($^W) = 1; #use warnings ;
 # use bytes ;
 use vars qw($VERSION $XS_VERSION @ISA @EXPORT $AUTOLOAD);
 
-$VERSION = '2.000_06';
+$VERSION = '2.000_07';
 $XS_VERSION = $VERSION; 
 $VERSION = eval $VERSION;
 
@@ -72,6 +72,7 @@ $VERSION = eval $VERSION;
         Z_UNKNOWN
         Z_VERSION_ERROR
 );
+
 
 sub AUTOLOAD {
     my($constname);
@@ -180,11 +181,16 @@ sub gzopen($$)
     _set_gzerr(0) ;
 
     if ($writing) {
-        $gz = new IO::Compress::Gzip($file, Minimal => 1, AutoClose => 1, %defOpts) 
+        $gz = new IO::Compress::Gzip($file, Minimal => 1, AutoClose => 1, 
+                                     %defOpts) 
             or $Compress::Zlib::gzerrno = $IO::Compress::Gzip::GzipError;
     }
     else {
-        $gz = new IO::Uncompress::Gunzip($file, Append => 0, AutoClose => 1, Strict => 0) 
+        $gz = new IO::Uncompress::Gunzip($file, 
+                                         Transparent => 1,
+                                         Append => 0, 
+                                         AutoClose => 1, 
+                                         Strict => 0) 
             or $Compress::Zlib::gzerrno = $IO::Uncompress::Gunzip::GunzipError;
     }
 
@@ -328,17 +334,17 @@ sub Compress::Zlib::Deflate::new
     my $pkg = shift ;
     my ($got) = ParseParameters(0,
             {
-                'AppendOutput'  => [Parse_boolean,  0],
-                'CRC32'         => [Parse_boolean,  0],
-                'ADLER32'       => [Parse_boolean,  0],
-                'Bufsize'       => [Parse_unsigned, 4096],
+                'AppendOutput'  => [1, 1, Parse_boolean,  0],
+                'CRC32'         => [1, 1, Parse_boolean,  0],
+                'ADLER32'       => [1, 1, Parse_boolean,  0],
+                'Bufsize'       => [1, 1, Parse_unsigned, 4096],
  
-                'Level'         => [Parse_signed,   Z_DEFAULT_COMPRESSION()],
-                'Method'        => [Parse_unsigned, Z_DEFLATED()],
-                'WindowBits'    => [Parse_signed,   MAX_WBITS()],
-                'MemLevel'      => [Parse_unsigned, MAX_MEM_LEVEL()],
-                'Strategy'      => [Parse_unsigned, Z_DEFAULT_STRATEGY()],
-                'Dictionary'    => [Parse_any,      ""],
+                'Level'         => [1, 1, Parse_signed,   Z_DEFAULT_COMPRESSION()],
+                'Method'        => [1, 1, Parse_unsigned, Z_DEFLATED()],
+                'WindowBits'    => [1, 1, Parse_signed,   MAX_WBITS()],
+                'MemLevel'      => [1, 1, Parse_unsigned, MAX_MEM_LEVEL()],
+                'Strategy'      => [1, 1, Parse_unsigned, Z_DEFAULT_STRATEGY()],
+                'Dictionary'    => [1, 1, Parse_any,      ""],
             }, @_) ;
 
 
@@ -367,14 +373,14 @@ sub Compress::Zlib::Inflate::new
     my $pkg = shift ;
     my ($got) = ParseParameters(0,
                     {
-                        'AppendOutput'  => [Parse_boolean,  0],
-                        'CRC32'         => [Parse_boolean,  0],
-                        'ADLER32'       => [Parse_boolean,  0],
-                        'ConsumeInput'  => [Parse_boolean,  1],
-                        'Bufsize'       => [Parse_unsigned, 4096],
+                        'AppendOutput'  => [1, 1, Parse_boolean,  0],
+                        'CRC32'         => [1, 1, Parse_boolean,  0],
+                        'ADLER32'       => [1, 1, Parse_boolean,  0],
+                        'ConsumeInput'  => [1, 1, Parse_boolean,  1],
+                        'Bufsize'       => [1, 1, Parse_unsigned, 4096],
                  
-                        'WindowBits'    => [Parse_signed,   MAX_WBITS()],
-                        'Dictionary'    => [Parse_any,      ""],
+                        'WindowBits'    => [1, 1, Parse_signed,   MAX_WBITS()],
+                        'Dictionary'    => [1, 1, Parse_any,      ""],
             }, @_) ;
 
 
@@ -397,12 +403,12 @@ sub Compress::Zlib::InflateScan::new
     my $pkg = shift ;
     my ($got) = ParseParameters(0,
                     {
-                        'CRC32'         => [Parse_boolean,  0],
-                        'ADLER32'       => [Parse_boolean,  0],
-                        'Bufsize'       => [Parse_unsigned, 4096],
+                        'CRC32'         => [1, 1, Parse_boolean,  0],
+                        'ADLER32'       => [1, 1, Parse_boolean,  0],
+                        'Bufsize'       => [1, 1, Parse_unsigned, 4096],
                  
-                        'WindowBits'    => [Parse_signed,   -MAX_WBITS()],
-                        'Dictionary'    => [Parse_any,      ""],
+                        'WindowBits'    => [1, 1, Parse_signed,   -MAX_WBITS()],
+                        'Dictionary'    => [1, 1, Parse_any,      ""],
             }, @_) ;
 
 
@@ -425,16 +431,16 @@ sub Compress::Zlib::inflateScanStream::createDeflateStream
     my $pkg = shift ;
     my ($got) = ParseParameters(0,
             {
-                'AppendOutput'  => [Parse_boolean,  0],
-                'CRC32'         => [Parse_boolean,  0],
-                'ADLER32'       => [Parse_boolean,  0],
-                'Bufsize'       => [Parse_unsigned, 4096],
+                'AppendOutput'  => [1, 1, Parse_boolean,  0],
+                'CRC32'         => [1, 1, Parse_boolean,  0],
+                'ADLER32'       => [1, 1, Parse_boolean,  0],
+                'Bufsize'       => [1, 1, Parse_unsigned, 4096],
  
-                'Level'         => [Parse_signed,   Z_DEFAULT_COMPRESSION()],
-                'Method'        => [Parse_unsigned, Z_DEFLATED()],
-                'WindowBits'    => [Parse_signed,   - MAX_WBITS()],
-                'MemLevel'      => [Parse_unsigned, MAX_MEM_LEVEL()],
-                'Strategy'      => [Parse_unsigned, Z_DEFAULT_STRATEGY()],
+                'Level'         => [1, 1, Parse_signed,   Z_DEFAULT_COMPRESSION()],
+                'Method'        => [1, 1, Parse_unsigned, Z_DEFLATED()],
+                'WindowBits'    => [1, 1, Parse_signed,   - MAX_WBITS()],
+                'MemLevel'      => [1, 1, Parse_unsigned, MAX_MEM_LEVEL()],
+                'Strategy'      => [1, 1, Parse_unsigned, Z_DEFAULT_STRATEGY()],
             }, @_) ;
 
     croak "Compress::Zlib::InflateScan::createDeflateStream: Bufsize must be >= 1, you specified " . 
@@ -478,9 +484,9 @@ sub Compress::Zlib::deflateStream::deflateParams
 {
     my $self = shift ;
     my ($got) = ParseParameters(0, {
-                'Level'      => [Parse_signed,   undef],
-                'Strategy'   => [Parse_unsigned, undef],
-                'Bufsize'    => [Parse_unsigned, undef],
+                'Level'      => [1, 1, Parse_signed,   undef],
+                'Strategy'   => [1, 1, Parse_unsigned, undef],
+                'Bufsize'    => [1, 1, Parse_unsigned, undef],
                 }, 
                 @_) ;
 
@@ -557,23 +563,23 @@ sub deflateInit(@)
 {
     my ($got) = ParseParameters(0,
                 {
-                'Bufsize'       => [Parse_unsigned, 4096],
-                'Level'         => [Parse_signed,   Z_DEFAULT_COMPRESSION()],
-                'Method'        => [Parse_unsigned, Z_DEFLATED()],
-                'WindowBits'    => [Parse_signed,   MAX_WBITS()],
-                'MemLevel'      => [Parse_unsigned, MAX_MEM_LEVEL()],
-                'Strategy'      => [Parse_unsigned, Z_DEFAULT_STRATEGY()],
-                'Dictionary'    => [Parse_any,      ""],
+                'Bufsize'       => [1, 1, Parse_unsigned, 4096],
+                'Level'         => [1, 1, Parse_signed,   Z_DEFAULT_COMPRESSION()],
+                'Method'        => [1, 1, Parse_unsigned, Z_DEFLATED()],
+                'WindowBits'    => [1, 1, Parse_signed,   MAX_WBITS()],
+                'MemLevel'      => [1, 1, Parse_unsigned, MAX_MEM_LEVEL()],
+                'Strategy'      => [1, 1, Parse_unsigned, Z_DEFAULT_STRATEGY()],
+                'Dictionary'    => [1, 1, Parse_any,      ""],
                 }, @_ ) ;
 
     croak "Compress::Zlib::deflateInit: Bufsize must be >= 1, you specified " . 
             $got->value('Bufsize')
         unless $got->value('Bufsize') >= 1;
 
-    my (%obj) = () ;
+    my $obj ;
  
     my $status = 0 ;
-    ($obj{def}, $status) = 
+    ($obj, $status) = 
       _deflateInit(0,
                 $got->value('Level'), 
                 $got->value('Method'), 
@@ -583,7 +589,7 @@ sub deflateInit(@)
                 $got->value('Bufsize'),
                 $got->value('Dictionary')) ;
 
-    my $x = ($status == Z_OK() ? bless \%obj, "Zlib::OldDeflate"  : undef) ;
+    my $x = ($status == Z_OK() ? bless $obj, "Zlib::OldDeflate"  : undef) ;
     return wantarray ? ($x, $status) : $x ;
 }
  
@@ -591,9 +597,9 @@ sub inflateInit(@)
 {
     my ($got) = ParseParameters(0,
                 {
-                'Bufsize'       => [Parse_unsigned, 4096],
-                'WindowBits'    => [Parse_signed,   MAX_WBITS()],
-                'Dictionary'    => [Parse_any,      ""],
+                'Bufsize'       => [1, 1, Parse_unsigned, 4096],
+                'WindowBits'    => [1, 1, Parse_signed,   MAX_WBITS()],
+                'Dictionary'    => [1, 1, Parse_any,      ""],
                 }, @_) ;
 
 
@@ -602,27 +608,29 @@ sub inflateInit(@)
         unless $got->value('Bufsize') >= 1;
 
     my $status = 0 ;
-    my (%obj) = () ;
-    ($obj{def}, $status) = _inflateInit(FLAG_CONSUME_INPUT,
+    my $obj ;
+    ($obj, $status) = _inflateInit(FLAG_CONSUME_INPUT,
                                 $got->value('WindowBits'), 
                                 $got->value('Bufsize'), 
                                 $got->value('Dictionary')) ;
 
-    my $x = ($status == Z_OK() ? bless \%obj, "Zlib::OldInflate"  : undef) ;
+    my $x = ($status == Z_OK() ? bless $obj, "Zlib::OldInflate"  : undef) ;
 
     wantarray ? ($x, $status) : $x ;
 }
 
 package Zlib::OldDeflate ;
 
+use vars qw(@ISA);
+@ISA = qw(Compress::Zlib::deflateStream);
+
+
 sub deflate
 {
     my $self = shift ;
     my $output ;
-    #my (@rest) = @_ ;
 
-    my $status = $self->{def}->deflate($_[0], $output) ;
-
+    my $status = $self->SUPER::deflate($_[0], $output) ;
     wantarray ? ($output, $status) : $output ;
 }
 
@@ -631,104 +639,23 @@ sub flush
     my $self = shift ;
     my $output ;
     my $flag = shift || Compress::Zlib::Z_FINISH();
-    my $status = $self->{def}->flush($output, $flag) ;
+    my $status = $self->SUPER::flush($output, $flag) ;
     
     wantarray ? ($output, $status) : $output ;
 }
 
-sub deflateParams
-{
-    my $self = shift ;
-    $self->{def}->deflateParams(@_) ;
-}
-
-sub msg
-{
-    my $self = shift ;
-    $self->{def}->msg() ;
-}
-
-sub total_in
-{
-    my $self = shift ;
-    $self->{def}->total_in() ;
-}
-
-sub total_out
-{
-    my $self = shift ;
-    $self->{def}->total_out() ;
-}
-
-sub dict_adler
-{
-    my $self = shift ;
-    $self->{def}->dict_adler() ;
-}
-
-sub get_Level
-{
-    my $self = shift ;
-    $self->{def}->get_Level() ;
-}
-
-sub get_Strategy
-{
-    my $self = shift ;
-    $self->{def}->get_Strategy() ;
-}
-
-#sub DispStream
-#{
-#    my $self = shift ;
-#    $self->{def}->DispStream($_[0]) ;
-#}
-
 package Zlib::OldInflate ;
+
+use vars qw(@ISA);
+@ISA = qw(Compress::Zlib::inflateStream);
 
 sub inflate
 {
     my $self = shift ;
     my $output ;
-    my $status = $self->{def}->inflate($_[0], $output) ;
+    my $status = $self->SUPER::inflate($_[0], $output) ;
     wantarray ? ($output, $status) : $output ;
 }
-
-sub inflateSync
-{
-    my $self = shift ;
-    $self->{def}->inflateSync($_[0]) ;
-}
-
-sub msg
-{
-    my $self = shift ;
-    $self->{def}->msg() ;
-}
-
-sub total_in
-{
-    my $self = shift ;
-    $self->{def}->total_in() ;
-}
-
-sub total_out
-{
-    my $self = shift ;
-    $self->{def}->total_out() ;
-}
-
-sub dict_adler
-{
-    my $self = shift ;
-    $self->{def}->dict_adler() ;
-}
-
-#sub DispStream
-#{
-#    my $self = shift ;
-#    $self->{def}->DispStream($_[0]) ;
-#}
 
 package Compress::Zlib ;
 
@@ -2262,6 +2189,7 @@ See the Changes file.
 Copyright (c) 1995-2005 Paul Marquess. All rights reserved.
 This program is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.
+
 
 
 

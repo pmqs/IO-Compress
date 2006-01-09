@@ -9,32 +9,47 @@ use Scalar::Util qw(blessed readonly);
 use File::GlobMapper;
 
 require Exporter;
-use vars qw($VERSION @ISA @EXPORT);
+use vars qw($VERSION @ISA @EXPORT %EXPORT_TAGS);
 @ISA = qw(Exporter);
 $VERSION = '2.000_05';
 
-@EXPORT = qw( isaFilehandle isaFilename whatIsInput whatIsOutput ckInputParam 
+@EXPORT = qw( isaFilehandle isaFilename whatIsInput whatIsOutput 
               isaFileGlobString cleanFileGlobString oneTarget
               setBinModeInput setBinModeOutput
-              ckOutputParam ckInOutParams 
+              ckInOutParams 
               createSelfTiedObject
+
               WANT_CODE
               WANT_EXT
               WANT_UNDEF
               WANT_HASH
+
+              STATUS_OK
+              STATUS_ENDSTREAM
+              STATUS_ERROR
           );  
 
-use vars qw($wantBinmode);
-$wantBinmode = $] >= 5.006 && eval ' ${^UNICODE} || ${^UTF8LOCALE} ' ;
+%EXPORT_TAGS = ( Status => [qw( STATUS_OK
+                                 STATUS_ENDSTREAM
+                                 STATUS_ERROR
+                           )]);
+
+                       
+use constant STATUS_OK        => 0;
+use constant STATUS_ENDSTREAM => 1;
+use constant STATUS_ERROR     => 2;
+          
+use vars qw($needBinmode);
+$needBinmode = ($^O eq 'MSWin32' || 
+                    ($] >= 5.006 && eval ' ${^UNICODE} || ${^UTF8LOCALE} '))
+                    ? 1 : 0 ;
 
 sub setBinModeInput($)
 {
     my $handle = shift ;
 
     binmode $handle 
-        if  $wantBinmode;
-        #if  ${^UNICODE} || ${^UTF8LOCALE} ;
-        #unless $^O eq 'MSWin32' && ! ( ${^UNICODE} || ${^UTF8LOCALE} );
+        if  $needBinmode;
 }
 
 sub setBinModeOutput($)
@@ -42,9 +57,7 @@ sub setBinModeOutput($)
     my $handle = shift ;
 
     binmode $handle 
-        if  $wantBinmode;
-        #if  ${^UNICODE} || ${^UTF8LOCALE} ;
-        #unless $^O eq 'MSWin32' && ! ( ${^UNICODE} || ${^UTF8LOCALE} );
+        if  $needBinmode;
 }
 
 sub isaFilehandle($)
@@ -79,7 +92,8 @@ sub cleanFileGlobString
 use constant WANT_CODE  => 1 ;
 use constant WANT_EXT   => 2 ;
 use constant WANT_UNDEF => 4 ;
-use constant WANT_HASH  => 8 ;
+#use constant WANT_HASH  => 8 ;
+use constant WANT_HASH  => 0 ;
 
 sub whatIsInput($;$)
 {
@@ -140,59 +154,15 @@ sub oneTarget
     return $_[0] =~ /^(code|handle|buffer|filename)$/;
 }
 
-sub ckInputParam ($$$;$)
-{
-    my $from = shift ;
-    my $inType = whatIsInput($_[0], $_[2]);
-    local $Carp::CarpLevel = 1;
-
-    croak "$from: input parameter not a filename, filehandle, array ref or scalar ref"
-        if ! $inType ;
-
-    if ($inType  eq 'filename' )
-    {
-        croak "$from: input filename is undef or null string"
-            if ! defined $_[0] || $_[0] eq ''  ;
-
-        if ($_[0] ne '-' && ! -e $_[0] )
-        {
-            ${$_[1]} = "input file '$_[0]' does not exist";
-            return undef;
-        }
-    }
-
-    return 1;
-}
-
-sub ckOutputParam ($$$)
-{
-    my $from = shift ;
-    my $outType = whatIsOutput($_[0]);
-    local $Carp::CarpLevel = 1;
-
-    croak "$from: output parameter not a filename, filehandle or scalar ref"
-        if ! $outType ;
-
-    croak "$from: output filename is undef or null string"
-        if $outType eq 'filename' && (! defined $_[0] || $_[0] eq '')  ;
-
-    croak("$from: output buffer is read-only")
-        if $outType eq 'buffer' && readonly(${ $_[0] });
-    
-    return 1;    
-}
-
 sub Validator::new
 {
     my $class = shift ;
 
     my $Class = shift ;
-    my $type = shift ;
     my $error_ref = shift ;
     my $reportClass = shift ;
 
     my %data = (Class       => $Class, 
-                Type        => $type,
                 Error       => $error_ref,
                 reportClass => $reportClass, 
                ) ;
@@ -209,35 +179,33 @@ sub Validator::new
 
     if (! $inType)
     {
-        croak "$reportClass: illegal input parameter" ;
+        $obj->croakError("$reportClass: illegal input parameter") ;
         #return undef ;
     }    
 
-    if ($inType eq 'hash')
-    {
-        $obj->{Hash} = 1 ;
-        $obj->{oneInput} = 1 ;
-        return $obj->validateHash($_[0]);
-    }
+#    if ($inType eq 'hash')
+#    {
+#        $obj->{Hash} = 1 ;
+#        $obj->{oneInput} = 1 ;
+#        return $obj->validateHash($_[0]);
+#    }
 
     if (! $outType)
     {
-        croak "$reportClass: illegal output parameter" ;
+        $obj->croakError("$reportClass: illegal output parameter") ;
         #return undef ;
     }    
 
 
     if ($inType ne 'fileglob' && $outType eq 'fileglob')
     {
-        ${ $data{Error} } = "Need input fileglob for outout fileglob";
-        return undef ;
+        $obj->croakError("Need input fileglob for outout fileglob");
     }    
 
-    if ($inType ne 'fileglob' && $outType eq 'hash' && $inType ne 'filename' )
-    {
-        ${ $data{Error} } = "input must ne filename or fileglob when output is a hash";
-        return undef ;
-    }    
+#    if ($inType ne 'fileglob' && $outType eq 'hash' && $inType ne 'filename' )
+#    {
+#        $obj->croakError("input must ne filename or fileglob when output is a hash");
+#    }    
 
     if ($inType eq 'fileglob' && $outType eq 'fileglob')
     {
@@ -246,15 +214,14 @@ sub Validator::new
         my $mapper = new File::GlobMapper($_[0], $_[1]);
         if ( ! $mapper )
         {
-            ${ $data{Error} } = $File::GlobMapper::Error ;
-            return undef ;
+            return $obj->saveErrorString($File::GlobMapper::Error) ;
         }
         $data{Pairs} = $mapper->getFileMap();
 
         return $obj;
     }
     
-    croak("$reportClass: input and output $inType are identical")
+    $obj->croakError("$reportClass: input and output $inType are identical")
         if $inType eq $outType && $_[0] eq $_[1] && $_[0] ne '-' ;
 
     if ($inType eq 'fileglob') # && $outType ne 'fileglob'
@@ -264,8 +231,8 @@ sub Validator::new
 
         if (@inputs == 0)
         {
-            # legal or die?
-            die "legal or die???" ;
+            # TODO -- legal or die?
+            die "globmap matched zero file -- legal or die???" ;
         }
         elsif (@inputs == 1)
         {
@@ -290,21 +257,38 @@ sub Validator::new
     }
     elsif ($inType eq 'array')
     {
+        $data{inType} = 'filenames' ;
         $obj->validateInputArray($_[0])
             or return undef ;
     }
 
-    croak("$reportClass: output buffer is read-only")
+    return $obj->saveErrorString("$reportClass: output buffer is read-only")
         if $outType eq 'buffer' && readonly(${ $_[1] });
 
     if ($outType eq 'filename' )
     {
-        croak "$reportClass: output filename is undef or null string"
+        $obj->croakError("$reportClass: output filename is undef or null string")
             if ! defined $_[1] || $_[1] eq ''  ;
     }
     
     return $obj ;
 }
+
+sub Validator::saveErrorString
+{
+    my $self   = shift ;
+    ${ $self->{Error} } = shift ;
+    return undef;
+    
+}
+
+sub Validator::croakError
+{
+    my $self   = shift ;
+    $self->saveErrorString($_[0]);
+    croak $_[0];
+}
+
 
 
 sub Validator::validateInputFilenames
@@ -313,21 +297,19 @@ sub Validator::validateInputFilenames
 
     foreach my $filename (@_)
     {
-        croak "$self->{reportClass}: input filename is undef or null string"
+        $self->croakError("$self->{reportClass}: input filename is undef or null string")
             if ! defined $filename || $filename eq ''  ;
 
         next if $filename eq '-';
 
         if (! -e $filename )
         {
-            ${ $self->{Error} } = "input file '$filename' does not exist";
-            return undef;
+            return $self->saveErrorString("input file '$filename' does not exist");
         }
 
         if (! -r $filename )
         {
-            ${ $self->{Error} } = "cannot open file '$filename': $!";
-            return undef;
+            return $self->saveErrorString("cannot open file '$filename': $!");
         }
     }
 
@@ -338,53 +320,70 @@ sub Validator::validateInputArray
 {
     my $self = shift ;
 
+    if ( @{ $_[0] } == 0 )
+    {
+        return $self->saveErrorString("empty array reference") ;
+    }    
+
     foreach my $element ( @{ $_[0] } )
     {
         my $inType  = whatIsInput($element);
     
         if (! $inType)
         {
-            ${ $self->{Error} } = "unknown input parameter" ;
-            return undef ;
+            $self->croakError("unknown input parameter") ;
         }    
+        elsif($inType eq 'filename')
+        {
+            $self->validateInputFilenames($element)
+                or return undef ;
+        }
+        else
+        {
+            $self->croakError("not a filename") ;
+        }
     }
 
     return 1 ;
 }
 
-sub Validator::validateHash
-{
-    my $self = shift ;
-    my $href = shift ;
-
-    while (my($k, $v) = each %$href)
-    {
-        my $ktype = whatIsInput($k);
-        my $vtype = whatIsOutput($v, WANT_EXT|WANT_UNDEF) ;
-
-        if ($ktype ne 'filename')
-        {
-            ${ $self->{Error} } = "hash key not filename" ;
-            return undef ;
-        }    
-
-        my %valid = map { $_ => 1 } qw(filename buffer array undef handle) ;
-        if (! $valid{$vtype})
-        {
-            ${ $self->{Error} } = "hash value not ok" ;
-            return undef ;
-        }    
-    }
-
-    return $self ;
-}
+#sub Validator::validateHash
+#{
+#    my $self = shift ;
+#    my $href = shift ;
+#
+#    while (my($k, $v) = each %$href)
+#    {
+#        my $ktype = whatIsInput($k);
+#        my $vtype = whatIsOutput($v, WANT_EXT|WANT_UNDEF) ;
+#
+#        if ($ktype ne 'filename')
+#        {
+#            return $self->saveErrorString("hash key not filename") ;
+#        }    
+#
+#        my %valid = map { $_ => 1 } qw(filename buffer array undef handle) ;
+#        if (! $valid{$vtype})
+#        {
+#            return $self->saveErrorString("hash value not ok") ;
+#        }    
+#    }
+#
+#    return $self ;
+#}
 
 sub createSelfTiedObject
 {
-    my $class = shift ;
+    my $class = shift || (caller)[0] ;
+    my $error_ref = shift ;
+
     my $obj = bless Symbol::gensym(), ref($class) || $class;
     tie *$obj, $obj if $] >= 5.005;
     *$obj->{Closed} = 1 ;
+    $$error_ref = '';
+    *$obj->{Error} = $error_ref ;
+    my $errno = 0 ;
+    *$obj->{ErrorNo} = \$errno ;
 
     return $obj;
 }

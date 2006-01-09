@@ -4,12 +4,8 @@ package IO::Uncompress::Inflate ;
 use strict ;
 local ($^W) = 1; #use warnings;
 
-use Compress::Zlib::Common;
+use Compress::Zlib::Common qw(createSelfTiedObject);
 use Compress::Zlib::FileConstants;
-
-use constant STATUS_OK        => 0;
-use constant STATUS_ENDSTREAM => 1;
-use constant STATUS_ERROR     => 2;
 
 use IO::Uncompress::RawInflate ;
 
@@ -29,14 +25,15 @@ Exporter::export_ok_tags('all');
 sub new
 {
     my $class = shift ;
-    my $obj = createSelfTiedObject($class);
+    my $obj = createSelfTiedObject($class, \$InflateError);
 
-    $obj->_create(undef, \$InflateError, 0, @_);
+    $obj->_create(undef, 0, @_);
 }
 
 sub inflate
 {
-    return IO::Uncompress::Base::_inf(\$InflateError, @_);
+    my $obj = createSelfTiedObject(undef, \$InflateError);
+    return $obj->_inf(@_);
 }
 
 sub getExtraParams
@@ -152,6 +149,7 @@ sub _readDeflateHeader
 
     return {
         'Type'          => 'rfc1950',
+        'FingerprintLength'  => ZLIB_HEADER_SIZE,
         'HeaderLength'  => ZLIB_HEADER_SIZE,
         'TrailerLength' => ZLIB_TRAILER_SIZE,
         'Header'        => $buffer,

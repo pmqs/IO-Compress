@@ -5,12 +5,8 @@ use strict ;
 local ($^W) = 1; #use warnings;
 
 use Compress::Zlib 2 ;
-use Compress::Zlib::Common ;
+use Compress::Zlib::Common qw(:Status createSelfTiedObject);
 use Compress::Zlib::ParseParameters ;
-
-use constant STATUS_OK        => 0;
-use constant STATUS_ENDSTREAM => 1;
-use constant STATUS_ERROR     => 2;
 
 use IO::Uncompress::Base ;
 use UncompressPlugin::Inflate ;
@@ -36,13 +32,14 @@ Exporter::export_ok_tags('all');
 sub new
 {
     my $class = shift ;
-    my $obj = createSelfTiedObject($class);
-    $obj->_create(undef, \$RawInflateError, 0, @_);
+    my $obj = createSelfTiedObject($class, \$RawInflateError);
+    $obj->_create(undef, 0, @_);
 }
 
 sub rawinflate
 {
-    return IO::Uncompress::Base::_inf(\$RawInflateError, @_);
+    my $obj = createSelfTiedObject(undef, \$RawInflateError);
+    return $obj->_inf(@_);
 }
 
 sub getExtraParams
@@ -64,8 +61,16 @@ sub mkUncomp
     my $class = shift ;
     my $got = shift ;
 
-    *$self->{Uncomp} = UncompressPlugin::Inflate::mkUncompObject($self, $class, $got)
-        or return undef;
+    my ($obj, $errstr, $errno) = UncompressPlugin::Inflate::mkUncompObject(
+                                                                $got->value('CRC32'),
+                                                                $got->value('ADLER32'),
+                                                                $got->value('Scan'),
+                                                            );
+
+    return $self->saveErrorString(undef, $errstr, $errno)
+        if ! defined $obj;
+
+    *$self->{Uncomp} = $obj;
 
      my $magic = $self->ckMagic()
         or return 0;
@@ -92,6 +97,7 @@ sub readHeader
 
     return {
         'Type'          => 'rfc1951',
+        'FingerprintLength'  => 0,
         'HeaderLength'  => 0,
         'TrailerLength' => 0,
         'Header'        => ''
@@ -169,6 +175,57 @@ sub _isRawx
         };
 }
 
+
+sub inflateSync
+{
+    my $self = shift ;
+
+    # inflateSync is a no-op in Plain mode
+    return 1
+        if *$self->{Plain} ;
+
+    return 0 if *$self->{Closed} ;
+    #return G_EOF if !length *$self->{Pending} && *$self->{EndStream} ;
+    return 0 if ! length *$self->{Pending} && *$self->{EndStream} ;
+
+    # Disable CRC check
+    *$self->{Strict} = 0 ;
+
+    my $status ;
+    while (1)
+    {
+        my $temp_buf ;
+
+        if (length *$self->{Pending} )
+        {
+            $temp_buf = *$self->{Pending} ;
+            *$self->{Pending} = '';
+        }
+        else
+        {
+            $status = $self->smartRead(\$temp_buf, *$self->{BlockSize}) ;
+            return $self->saveErrorString(0, "Error Reading Data")
+                if $status < 0  ;
+
+            if ($status == 0 ) {
+                *$self->{EndStream} = 1 ;
+                return $self->saveErrorString(0, "unexpected end of file", STATUS_ERROR);
+            }
+        }
+        
+        $status = *$self->{Uncomp}->sync($temp_buf) ;
+
+        if ($status == STATUS_OK)
+        {
+            *$self->{Pending} .= $temp_buf ;
+            return 1 ;
+        }
+
+        last unless $status == STATUS_ERROR ;
+    }
+
+    return 0;
+}
 
 #sub performScan
 #{

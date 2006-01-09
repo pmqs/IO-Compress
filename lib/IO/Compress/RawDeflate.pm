@@ -5,16 +5,12 @@ package IO::Compress::RawDeflate ;
 use strict ;
 local ($^W) = 1; #use warnings;
 
-use constant STATUS_OK        => 0;
-use constant STATUS_ENDSTREAM => 1;
-use constant STATUS_ERROR     => 2;
-
 
 use IO::Compress::Base;
 use CompressPlugin::Deflate ;
 
 require Exporter ;
-use Compress::Zlib::Common;
+use Compress::Zlib::Common qw(:Status createSelfTiedObject);
 
 
 use vars qw($VERSION @ISA @EXPORT_OK %DEFLATE_CONSTANTS %EXPORT_TAGS $RawDeflateError);
@@ -71,14 +67,15 @@ sub new
 {
     my $class = shift ;
 
-    my $obj = createSelfTiedObject($class);
+    my $obj = createSelfTiedObject($class, \$RawDeflateError);
 
-    return $obj->_create(undef, \$RawDeflateError, @_);
+    return $obj->_create(undef, @_);
 }
 
 sub rawdeflate
 {
-    return IO::Compress::Base::_def(\$RawDeflateError, @_);
+    my $obj = createSelfTiedObject(undef, \$RawDeflateError);
+    return $obj->_def(@_);
 }
 
 sub ckParams
@@ -95,7 +92,18 @@ sub mkComp
     my $class = shift ;
     my $got = shift ;
 
-    return CompressPlugin::Deflate::mkCompObject($self, $class, $got)
+    #return CompressPlugin::Deflate::mkCompObject($self, $class, $got)
+    my ($obj, $errstr, $errno) = CompressPlugin::Deflate::mkCompObject(
+                                                 $got->value('CRC32'),
+                                                 $got->value('Adler32'),
+                                                 $got->value('Level'),
+                                                 $got->value('Strategy')
+                                                 );
+
+   return $self->saveErrorString(undef, $errstr, $errno)
+       if ! defined $obj;
+
+   return $obj;    
 }
 
 
@@ -117,13 +125,19 @@ sub mkFinalTrailer
 }
 
 
-sub newHeader
-{
-    my $self = shift ;
-    return '';
-}
+#sub newHeader
+#{
+#    my $self = shift ;
+#    return '';
+#}
 
 sub getExtraParams
+{
+    my $self = shift ;
+    return $self->getZlibParams();
+}
+
+sub getZlibParams
 {
     my $self = shift ;
 
@@ -132,12 +146,15 @@ sub getExtraParams
 
     
     return (
+        
             # zlib behaviour
-            #'Method'   => [Parse_unsigned,  Z_DEFLATED],
-            'Level'     => [Parse_signed,    Z_DEFAULT_COMPRESSION],
-            'Strategy'  => [Parse_signed,    Z_DEFAULT_STRATEGY],
+            #'Method'   => [0, 1, Parse_unsigned,  Z_DEFLATED],
+            'Level'     => [0, 1, Parse_signed,    Z_DEFAULT_COMPRESSION],
+            'Strategy'  => [0, 1, Parse_signed,    Z_DEFAULT_STRATEGY],
 
-            
+            'CRC32'     => [0, 1, Parse_boolean,   0],
+            'ADLER32'   => [0, 1, Parse_boolean,   0],
+            'Merge'     => [1, 1, Parse_boolean,   0],
         );
     
     
@@ -642,7 +659,7 @@ This parameter defaults to 0.
 
 Opens C<$output> in append mode. 
 
-The behaviour of this option is dependant on the type of C<$output>.
+The behaviour of this option is dependent on the type of C<$output>.
 
 =over 5
 
@@ -759,7 +776,7 @@ Usage is
     print $z $data
 
 Compresses and outputs the contents of the C<$data> parameter. This
-has the same behavior as the C<print> built-in.
+has the same behaviour as the C<print> built-in.
 
 Returns true if successful.
 
