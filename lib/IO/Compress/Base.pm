@@ -4,10 +4,9 @@ package IO::Compress::Base ;
 require 5.004 ;
 
 use strict ;
-local ($^W) = 1; #use warnings;
+use warnings;
 
-use Compress::Zlib::Common;
-use Compress::Zlib::ParseParameters;
+use IO::Compress::Base::Common;
 
 use IO::File ;
 use Scalar::Util qw(blessed readonly);
@@ -16,12 +15,12 @@ use Scalar::Util qw(blessed readonly);
 #require Exporter ;
 use Carp ;
 use Symbol;
-# use bytes;
+use bytes;
 
-use vars qw(@ISA $VERSION $got_encode);
-@ISA    = qw(Exporter IO::File);
+our (@ISA, $VERSION, $got_encode);
+#@ISA    = qw(Exporter IO::File);
 
-$VERSION = '2.000_05';
+$VERSION = '2.000_09';
 
 #Can't locate object method "SWASHNEW" via package "utf8" (perhaps you forgot to load "utf8"?) at .../ext/Compress-Zlib/Gzip/blib/lib/Compress/Zlib/Common.pm line 16.
 
@@ -127,7 +126,7 @@ sub checkParams
     my $self = shift ;
     my $class = shift ;
 
-    my $got = shift || Compress::Zlib::ParseParameters::new();
+    my $got = shift || IO::Compress::Base::Parameters::new();
 
     $got->parse(
         {
@@ -602,12 +601,12 @@ sub syswrite
 #    }
 
     #my $length = length $$buffer;
+    
     my $status = *$self->{Compress}->compr($buffer, *$self->{Buffer}) ;
 
     return $self->saveErrorString(undef, *$self->{Compress}{Error}, 
                                          *$self->{Compress}{ErrorNo})
         if $status == STATUS_ERROR;
-
 
 
     if ( defined *$self->{FH} and length ${ *$self->{Buffer} }) {
@@ -654,15 +653,17 @@ sub printf
 sub flush
 {
     my $self = shift ;
-    my $opt = shift ;
 
-    my $status = *$self->{Compress}->flush(*$self->{Buffer}, $opt) ;
-    return $self->saveErrorString(0, *$self->{Compress}{Error}, *$self->{Compress}{ErrorNo})
+    my $status = *$self->{Compress}->flush(*$self->{Buffer}, @_) ;
+    return $self->saveErrorString(0, *$self->{Compress}{Error}, 
+                                    *$self->{Compress}{ErrorNo})
         if $status == STATUS_ERROR;
 
     if ( defined *$self->{FH} ) {
         *$self->{FH}->clearerr();
         defined *$self->{FH}->write(${ *$self->{Buffer} }, length ${ *$self->{Buffer} })
+            or return $self->saveErrorString(0, $!, $!); 
+        defined *$self->{FH}->flush()
             or return $self->saveErrorString(0, $!, $!); 
         ${ *$self->{Buffer} } = '' ;
     }
@@ -816,7 +817,6 @@ sub tell
 {
     my $self = shift ;
 
-    #return *$self->{Compress}->total_in();
     return *$self->{BytesWritten} ;
 }
 
@@ -884,6 +884,26 @@ sub fileno
             : undef ;
 }
 
+sub opened
+{
+    my $self     = shift ;
+    return ! *$self->{Closed} ;
+}
+
+sub autoflush
+{
+    my $self     = shift ;
+    return defined *$self->{FH} 
+            ? *$self->{FH}->autoflush(@_) 
+            : undef ;
+}
+
+sub input_line_number
+{
+    return undef ;
+}
+
+
 sub _notAvailable
 {
     my $name = shift ;
@@ -914,4 +934,58 @@ sub _notAvailable
 1; 
 
 __END__
+
+=head1 NAME
+
+
+IO::Compress::Base - Base Class for IO::Compress modules 
+
+
+=head1 SYNOPSIS
+
+    use IO::Compress::Base ;
+
+=head1 DESCRIPTION
+
+
+This module is not intended for direct use in application code. Its sole
+purpose if to to be sub-classed by IO::Compress modules.
+
+
+
+
+=head1 SEE ALSO
+
+L<Compress::Zlib>, L<IO::Compress::Gzip>, L<IO::Uncompress::Gunzip>, L<IO::Compress::Deflate>, L<IO::Uncompress::Inflate>, L<IO::Compress::RawDeflate>, L<IO::Uncompress::RawInflate>, L<IO::Compress::Bzip2>, L<IO::Uncompress::Bunzip2>, L<IO::Compress::Lzop>, L<IO::Uncompress::UnLzop>, L<IO::Uncompress::AnyInflate>, L<IO::Uncompress::AnyUncompress>
+
+L<Compress::Zlib::FAQ|Compress::Zlib::FAQ>
+
+L<File::GlobMapper|File::GlobMapper>, L<Archive::Zip|Archive::Zip>,
+L<Archive::Tar|Archive::Tar>,
+L<IO::Zlib|IO::Zlib>
+
+
+
+
+
+
+
+
+=head1 AUTHOR
+
+This module was written by Paul Marquess, F<pmqs@cpan.org>. 
+
+
+
+=head1 MODIFICATION HISTORY
+
+See the Changes file.
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (c) 2005-2006 Paul Marquess. All rights reserved.
+
+This program is free software; you can redistribute it and/or
+modify it under the same terms as Perl itself.
+
 

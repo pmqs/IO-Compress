@@ -1,17 +1,17 @@
 BEGIN {
     if ($ENV{PERL_CORE}) {
 	chdir 't' if -d 't';
-	@INC = ("../lib", "lib");
+	@INC = ("../lib", "lib/compress");
     }
 }
 
-use lib 't';
+use lib qw(t t/compress);
 use strict;
-local ($^W) = 1; #use warnings;
-# use bytes;
+use warnings;
+use bytes;
  
 use Test::More ;
-use ZlibTestUtils;
+use CompTestUtils;
  
 use Compress::Zlib 2 ;
 
@@ -24,7 +24,7 @@ use IO::Uncompress::Inflate ;
 use IO::Compress::RawDeflate ;
 use IO::Uncompress::RawInflate ;
 
-use vars qw($extra);
+our ($extra);
 
  
 BEGIN 

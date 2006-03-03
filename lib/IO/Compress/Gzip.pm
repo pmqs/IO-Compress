@@ -4,14 +4,15 @@ package IO::Compress::Gzip ;
 require 5.004 ;
 
 use strict ;
-local ($^W) = 1; #use warnings;
+use warnings;
+use bytes;
 
 
 use IO::Compress::RawDeflate;
 
-use Compress::Zlib 2 ;
-use Compress::Zlib::Common qw(:Status createSelfTiedObject);
-use Compress::Gzip::Constants;
+use Compress::Raw::Zlib ;
+use IO::Compress::Base::Common qw(:Status :Parse createSelfTiedObject);
+use IO::Compress::Gzip::Constants;
 
 BEGIN
 {
@@ -23,9 +24,9 @@ BEGIN
 
 require Exporter ;
 
-use vars qw($VERSION @ISA @EXPORT_OK %EXPORT_TAGS $GzipError);
+our ($VERSION, @ISA, @EXPORT_OK, %EXPORT_TAGS, $GzipError);
 
-$VERSION = '2.000_05';
+$VERSION = '2.000_09';
 $GzipError = '' ;
 
 @ISA    = qw(Exporter IO::Compress::RawDeflate);
@@ -61,8 +62,6 @@ sub getExtraParams
 {
     my $self = shift ;
 
-    use Compress::Zlib::ParseParameters;
-    
     return (
             # zlib behaviour
             $self->getZlibParams(),
@@ -74,7 +73,7 @@ sub getExtraParams
             'Time'      => [0, 1, Parse_any,       undef],
             'TextFlag'  => [0, 1, Parse_boolean,   0],
             'HeaderCRC' => [0, 1, Parse_boolean,   0],
-            'OS_Code'   => [0, 1, Parse_unsigned,  $Compress::Zlib::gzip_os_code],
+            'OS_Code'   => [0, 1, Parse_unsigned,  $Compress::Raw::Zlib::gzip_os_code],
             'ExtraField'=> [0, 1, Parse_string,    undef],
             'ExtraFlags'=> [0, 1, Parse_any,       undef],
 
@@ -429,17 +428,19 @@ __END__
 
 =head1 NAME
 
-IO::Gzip     - Perl interface to write RFC 1952 files/buffers
+
+IO::Compress::Gzip - Perl interface to write RFC 1952 files/buffers
+ 
 
 =head1 SYNOPSIS
 
-    use IO::Gzip qw(gzip $GzipError) ;
+    use IO::Compress::Gzip qw(gzip $GzipError) ;
 
 
     my $status = gzip $input => $output [,OPTS] 
         or die "gzip failed: $GzipError\n";
 
-    my $z = new IO::Gzip $output [,OPTS]
+    my $z = new IO::Compress::Gzip $output [,OPTS]
         or die "gzip failed: $GzipError\n";
 
     $z->print($string);
@@ -452,8 +453,13 @@ IO::Gzip     - Perl interface to write RFC 1952 files/buffers
     $z->seek($position, $whence);
     $z->binmode();
     $z->fileno();
-    $z->newStream();
+    $z->opened();
+    $z->autoflush();
+    $z->input_line_number();
+    $z->newStream( [OPTS] );
+    
     $z->deflateParams();
+    
     $z->close() ;
 
     $GzipError ;
@@ -462,8 +468,6 @@ IO::Gzip     - Perl interface to write RFC 1952 files/buffers
 
     print $z $string;
     printf $z $format, $string;
-    syswrite $z, $string [, $length, $offset];
-    flush $z, ;
     tell $z
     eof $z
     seek $z, $position, $whence
@@ -492,8 +496,10 @@ B<WARNING -- This is a Beta release>.
 
 
 
+
 This module provides a Perl interface that allows writing compressed
 data to files or buffer as defined in RFC 1952.
+
 
 
 All the gzip headers defined in RFC 1952 can be created using
@@ -502,30 +508,34 @@ this module.
 
 
 
+
+
+
 For reading RFC 1952 files/buffers, see the companion module 
-L<IO::Gunzip|IO::Gunzip>.
+L<IO::Uncompress::Gunzip|IO::Uncompress::Gunzip>.
 
 
 =head1 Functional Interface
 
-A top-level function, C<gzip>, is provided to carry out "one-shot"
-compression between buffers and/or files. For finer control over the compression process, see the L</"OO Interface"> section.
+A top-level function, C<gzip>, is provided to carry out
+"one-shot" compression between buffers and/or files. For finer
+control over the compression process, see the L</"OO Interface">
+section.
 
-    use IO::Gzip qw(gzip $GzipError) ;
+    use IO::Compress::Gzip qw(gzip $GzipError) ;
 
     gzip $input => $output [,OPTS] 
         or die "gzip failed: $GzipError\n";
 
-    gzip \%hash [,OPTS] 
-        or die "gzip failed: $GzipError\n";
+
 
 The functional interface needs Perl5.005 or better.
 
 
 =head2 gzip $input => $output [, OPTS]
 
-If the first parameter is not a hash reference C<gzip> expects
-at least two parameters, C<$input> and C<$output>.
+
+C<gzip> expects at least two parameters, C<$input> and C<$output>.
 
 =head3 The C<$input> parameter
 
@@ -555,13 +565,15 @@ from C<$$input>.
 
 =item An array reference 
 
-If C<$input> is an array reference, the input data will be read from each
-element of the array in turn. The action taken by C<gzip> with
-each element of the array will depend on the type of data stored
-in it. You can mix and match any of the types defined in this list,
-excluding other array or hash references. 
+If C<$input> is an array reference, each element in the array must be a
+filename.
+
+The input data will be read from each file in turn. 
+
 The complete array will be walked to ensure that it only
-contains valid data types before any data is compressed.
+contains valid filenames before any data is compressed.
+
+
 
 =item An Input FileGlob string
 
@@ -579,16 +591,12 @@ See L<File::GlobMapper|File::GlobMapper> for more details.
 If the C<$input> parameter is any other type, C<undef> will be returned.
 
 
-
 In addition, if C<$input> is a simple filename, the default values for
-two of the gzip header fields created by this function will be sourced
-from that file -- the NAME gzip header field will be populated with
-the filename itself, and the MTIME header field will be set to the
-modification time of the file.
-The intention here is to mirror part of the behaviour of the gzip
-executable.
+the C<Name> and C<Time> options will be sourced from that file.
+
 If you do not want to use these defaults they can be overridden by
-explicitly setting the C<Name> and C<Time> options.
+explicitly setting the C<Name> and C<Time> options or by setting the
+C<Minimal> parameter.
 
 
 
@@ -601,36 +609,28 @@ compressed data. This parameter can take one of these forms.
 
 =item A filename
 
-If the C<$output> parameter is a simple scalar, it is assumed to be a filename.
-This file will be opened for writing and the compressed data will be
-written to it.
+If the C<$output> parameter is a simple scalar, it is assumed to be a
+filename.  This file will be opened for writing and the compressed
+data will be written to it.
 
 =item A filehandle
 
-If the C<$output> parameter is a filehandle, the compressed data will
-be written to it.  
+If the C<$output> parameter is a filehandle, the compressed data
+will be written to it.
 The string '-' can be used as an alias for standard output.
 
 
 =item A scalar reference 
 
-If C<$output> is a scalar reference, the compressed data will be stored
-in C<$$output>.
+If C<$output> is a scalar reference, the compressed data will be
+stored in C<$$output>.
 
-
-=item A Hash Reference
-
-If C<$output> is a hash reference, the compressed data will be written
-to C<$output{$input}> as a scalar reference.
-
-When C<$output> is a hash reference, C<$input> must be either a filename or
-list of filenames. Anything else is an error.
 
 
 =item An Array Reference
 
-If C<$output> is an array reference, the compressed data will be pushed
-onto the array.
+If C<$output> is an array reference, the compressed data will be
+pushed onto the array.
 
 =item An Output FileGlob
 
@@ -645,60 +645,13 @@ string. Anything else is an error.
 
 If the C<$output> parameter is any other type, C<undef> will be returned.
 
-=head2 gzip \%hash [, OPTS]
 
-If the first parameter is a hash reference, C<\%hash>, this will be used to
-define both the source of uncompressed data and to control where the
-compressed data is output. Each key/value pair in the hash defines a
-mapping between an input filename, stored in the key, and an output
-file/buffer, stored in the value. Although the input can only be a filename,
-there is more flexibility to control the destination of the compressed
-data. This is determined by the type of the value. Valid types are
-
-=over 5
-
-=item undef
-
-If the value is C<undef> the compressed data will be written to the
-value as a scalar reference.
-
-=item A filename
-
-If the value is a simple scalar, it is assumed to be a filename. This file will
-be opened for writing and the compressed data will be written to it.
-
-=item A filehandle
-
-If the value is a filehandle, the compressed data will be
-written to it. 
-The string '-' can be used as an alias for standard output.
-
-
-=item A scalar reference 
-
-If the value is a scalar reference, the compressed data will be stored
-in the buffer that is referenced by the scalar.
-
-
-=item A Hash Reference
-
-If the value is a hash reference, the compressed data will be written
-to C<$hash{$input}> as a scalar reference.
-
-=item An Array Reference
-
-If C<$output> is an array reference, the compressed data will be pushed
-onto the array.
-
-=back
-
-Any other type is a error.
 
 =head2 Notes
 
 When C<$input> maps to multiple files/buffers and C<$output> is a single
-file/buffer the compressed input files/buffers will all be stored in
-C<$output> as a single compressed stream.
+file/buffer the compressed input files/buffers will all be stored
+in C<$output> as a single compressed stream.
 
 
 
@@ -712,14 +665,24 @@ L</"Constructor Options"> section below.
 
 =item AutoClose =E<gt> 0|1
 
-This option applies to any input or output data streams to C<gzip>
-that are filehandles.
+This option applies to any input or output data streams to 
+C<gzip> that are filehandles.
 
 If C<AutoClose> is specified, and the value is true, it will result in all
 input and/or output filehandles being closed once C<gzip> has
 completed.
 
 This parameter defaults to 0.
+
+
+
+=item BinModeIn =E<gt> 0|1
+
+When reading from a file or filehandle, set C<binmode> before reading.
+
+Defaults to 0.
+
+
 
 
 
@@ -739,7 +702,7 @@ data to the file C<file1.txt.gz>.
 
     use strict ;
     use warnings ;
-    use IO::Gzip qw(gzip $GzipError) ;
+    use IO::Compress::Gzip qw(gzip $GzipError) ;
 
     my $input = "file1.txt";
     gzip $input => "$input.gz"
@@ -751,7 +714,7 @@ compressed data to a buffer, C<$buffer>.
 
     use strict ;
     use warnings ;
-    use IO::Gzip qw(gzip $GzipError) ;
+    use IO::Compress::Gzip qw(gzip $GzipError) ;
     use IO::File ;
 
     my $input = new IO::File "<file1.txt"
@@ -765,7 +728,7 @@ and store the compressed data in the same directory
 
     use strict ;
     use warnings ;
-    use IO::Gzip qw(gzip $GzipError) ;
+    use IO::Compress::Gzip qw(gzip $GzipError) ;
 
     gzip '</my/home/*.txt>' => '<*.gz>'
         or die "gzip failed: $GzipError\n";
@@ -774,7 +737,7 @@ and if you want to compress each file one at a time, this will do the trick
 
     use strict ;
     use warnings ;
-    use IO::Gzip qw(gzip $GzipError) ;
+    use IO::Compress::Gzip qw(gzip $GzipError) ;
 
     for my $input ( glob "/my/home/*.txt" )
     {
@@ -788,16 +751,16 @@ and if you want to compress each file one at a time, this will do the trick
 
 =head2 Constructor
 
-The format of the constructor for C<IO::Gzip> is shown below
+The format of the constructor for C<IO::Compress::Gzip> is shown below
 
-    my $z = new IO::Gzip $output [,OPTS]
-        or die "IO::Gzip failed: $GzipError\n";
+    my $z = new IO::Compress::Gzip $output [,OPTS]
+        or die "IO::Compress::Gzip failed: $GzipError\n";
 
-It returns an C<IO::Gzip> object on success and undef on failure. 
+It returns an C<IO::Compress::Gzip> object on success and undef on failure. 
 The variable C<$GzipError> will contain an error message on failure.
 
 If you are running Perl 5.005 or better the object, C<$z>, returned from 
-IO::Gzip can be used exactly like an L<IO::File|IO::File> filehandle. 
+IO::Compress::Gzip can be used exactly like an L<IO::File|IO::File> filehandle. 
 This means that all normal output file operations can be carried out 
 with C<$z>. 
 For example, to write to a compressed file/buffer you can use either of 
@@ -831,7 +794,7 @@ in C<$$output>.
 
 =back
 
-If the C<$output> parameter is any other type, C<IO::Gzip>::new will
+If the C<$output> parameter is any other type, C<IO::Compress::Gzip>::new will
 return undef.
 
 =head2 Constructor Options
@@ -840,16 +803,16 @@ C<OPTS> is any combination of the following options:
 
 =over 5
 
-=item -AutoClose =E<gt> 0|1
+=item AutoClose =E<gt> 0|1
 
 This option is only valid when the C<$output> parameter is a filehandle. If
-specified, and the value is true, it will result in the C<$output> being closed
-once either the C<close> method is called or the C<IO::Gzip> object is
-destroyed.
+specified, and the value is true, it will result in the C<$output> being
+closed once either the C<close> method is called or the C<IO::Compress::Gzip>
+object is destroyed.
 
 This parameter defaults to 0.
 
-=item -Append =E<gt> 0|1
+=item Append =E<gt> 0|1
 
 Opens C<$output> in append mode. 
 
@@ -859,27 +822,31 @@ The behaviour of this option is dependent on the type of C<$output>.
 
 =item * A Buffer
 
-If C<$output> is a buffer and C<Append> is enabled, all compressed data will be
-append to the end if C<$output>. Otherwise C<$output> will be cleared before
-any data is written to it.
+If C<$output> is a buffer and C<Append> is enabled, all compressed data
+will be append to the end if C<$output>. Otherwise C<$output> will be
+cleared before any data is written to it.
 
 =item * A Filename
 
-If C<$output> is a filename and C<Append> is enabled, the file will be opened
-in append mode. Otherwise the contents of the file, if any, will be truncated
-before any compressed data is written to it.
+If C<$output> is a filename and C<Append> is enabled, the file will be
+opened in append mode. Otherwise the contents of the file, if any, will be
+truncated before any compressed data is written to it.
 
 =item * A Filehandle
 
-If C<$output> is a filehandle, the file pointer will be positioned to the end
-of the file via a call to C<seek> before any compressed data is written to it.
-Otherwise the file pointer will not be moved.
+If C<$output> is a filehandle, the file pointer will be positioned to the
+end of the file via a call to C<seek> before any compressed data is written
+to it.  Otherwise the file pointer will not be moved.
 
 =back
 
 This parameter defaults to 0.
 
-=item -Merge =E<gt> 0|1
+
+
+
+
+=item Merge =E<gt> 0|1
 
 This option is used to compress input data and append it to an existing
 compressed data stream in C<$output>. The end result is a single compressed
@@ -887,8 +854,8 @@ data stream stored in C<$output>.
 
 
 
-It is a fatal error to attempt to use this option when C<$output> is not an RFC
-1952 data stream.
+It is a fatal error to attempt to use this option when C<$output> is not an
+RFC 1952 data stream.
 
 
 
@@ -898,8 +865,9 @@ There are a number of other limitations with the C<Merge> option:
 
 =item 1
 
-This module needs to have been built with zlib 1.2.1 or better to work. A fatal
-error will be thrown if C<Merge> is used with an older version of zlib.  
+This module needs to have been built with zlib 1.2.1 or better to work. A
+fatal error will be thrown if C<Merge> is used with an older version of
+zlib.  
 
 =item 2
 
@@ -909,6 +877,8 @@ If C<$output> is a file or a filehandle, it must be seekable.
 
 
 This parameter defaults to 0.
+
+
 
 =item -Level 
 
@@ -923,11 +893,11 @@ compression), or one of the symbolic constants defined below.
 
 The default is Z_DEFAULT_COMPRESSION.
 
-Note, these constants are not imported by C<IO::Gzip> by default.
+Note, these constants are not imported by C<IO::Compress::Gzip> by default.
 
-    use IO::Gzip qw(:strategy);
-    use IO::Gzip qw(:constants);
-    use IO::Gzip qw(:all);
+    use IO::Compress::Gzip qw(:strategy);
+    use IO::Compress::Gzip qw(:constants);
+    use IO::Compress::Gzip qw(:all);
 
 =item -Strategy 
 
@@ -941,6 +911,7 @@ constants defined below.
    Z_DEFAULT_STRATEGY
 
 The default is Z_DEFAULT_STRATEGY.
+
 
 
 
@@ -989,34 +960,34 @@ truncated at the first NULL.
 
 Sets the MTIME field in the gzip header to $number.
 
-This field defaults to the time the C<IO::Gzip> object was created
+This field defaults to the time the C<IO::Compress::Gzip> object was created
 if this option is not specified.
 
 =item -TextFlag =E<gt> 0|1
 
-This parameter controls the setting of the FLG.FTEXT bit in the gzip header. It
-is used to signal that the data stored in the gzip file/buffer is probably
-text.
+This parameter controls the setting of the FLG.FTEXT bit in the gzip
+header. It is used to signal that the data stored in the gzip file/buffer
+is probably text.
 
 The default is 0. 
 
 =item -HeaderCRC =E<gt> 0|1
 
-When true this parameter will set the FLG.FHCRC bit to 1 in the gzip header and
-set the CRC16 header field to the CRC of the complete gzip header except the
-CRC16 field itself.
+When true this parameter will set the FLG.FHCRC bit to 1 in the gzip header
+and set the CRC16 header field to the CRC of the complete gzip header
+except the CRC16 field itself.
 
-B<Note> that gzip files created with the C<HeaderCRC> flag set to 1 cannot be
-read by most, if not all, of the the standard gunzip utilities, most notably
-gzip version 1.2.4. You should therefore avoid using this option if you want to
-maximize the portability of your gzip files.
+B<Note> that gzip files created with the C<HeaderCRC> flag set to 1 cannot
+be read by most, if not all, of the the standard gunzip utilities, most
+notably gzip version 1.2.4. You should therefore avoid using this option if
+you want to maximize the portability of your gzip files.
 
 This parameter defaults to 0.
 
 =item -OS_Code =E<gt> $value
 
-Stores C<$value> in the gzip OS header field. A number between 0 and
-255 is valid.
+Stores C<$value> in the gzip OS header field. A number between 0 and 255 is
+valid.
 
 If not specified, this parameter defaults to the OS code of the Operating
 System this module was built on. The value 3 is used as a catch-all for all
@@ -1024,10 +995,10 @@ Unix variants and unknown Operating Systems.
 
 =item -ExtraField =E<gt> $data
 
-This parameter allows additional metadata to be stored in the ExtraField in the
-gzip header. An RFC1952 compliant ExtraField consists of zero or more
-subfields. Each subfield consists of a two byte header followed by the subfield
-data.
+This parameter allows additional metadata to be stored in the ExtraField in
+the gzip header. An RFC 1952 compliant ExtraField consists of zero or more
+subfields. Each subfield consists of a two byte header followed by the
+subfield data.
 
 The list of subfields can be supplied in any of the following formats
 
@@ -1056,7 +1027,7 @@ Alternatively the list of subfields can by supplied as a scalar, thus
     -ExtraField => $rawdata
 
 If you use the raw format, and the C<Strict> option is enabled,
-C<IO::Gzip> will check that C<$rawdata> consists of zero or more
+C<IO::Compress::Gzip> will check that C<$rawdata> consists of zero or more
 conformant sub-fields. When C<Strict> is disabled, C<$rawdata> can
 consist of any arbitrary byte stream.
 
@@ -1066,8 +1037,8 @@ The maximum size of the Extra Field 65535 bytes.
 
 Sets the XFL byte in the gzip header to C<$value>.
 
-If this option is not present, the value stored in XFL field will be determined
-by the setting of the C<Level> option.
+If this option is not present, the value stored in XFL field will be
+determined by the setting of the C<Level> option.
 
 If C<Level =E<gt> Z_BEST_SPEED> has been specified then XFL is set to 2.
 If C<Level =E<gt> Z_BEST_COMPRESSION> has been specified then XFL is set to 4.
@@ -1106,7 +1077,7 @@ contain multiple embedded nulls.
 =item * 
 
 If an C<ExtraField> option is specified and it is a simple scalar,
-it must conform to the sub-field structure as defined in RFC1952.
+it must conform to the sub-field structure as defined in RFC 1952.
 
 =item * 
 
@@ -1189,10 +1160,6 @@ Usage is
     $z->syswrite $data, $length
     $z->syswrite $data, $length, $offset
 
-    syswrite $z, $data
-    syswrite $z, $data, $length
-    syswrite $z, $data, $length, $offset
-
 Compresses and outputs the contents of the C<$data> parameter.
 
 Returns the number of uncompressed bytes written, or C<undef> if
@@ -1215,12 +1182,13 @@ unsuccessful.
 
 Usage is
 
+
     $z->flush;
     $z->flush($flush_type);
-    flush $z ;
-    flush $z $flush_type;
+
 
 Flushes any pending compressed data to the output file/buffer.
+
 
 This method takes an optional parameter, C<$flush_type>, that controls
 how the flushing will be carried out. By default the C<$flush_type>
@@ -1230,6 +1198,7 @@ strongly recommended that you only set the C<flush_type> parameter if
 you fully understand the implications of what it does - overuse of C<flush>
 can seriously degrade the level of compression achieved. See the C<zlib>
 documentation for details.
+
 
 Returns true on success.
 
@@ -1286,13 +1255,45 @@ Usage is
 
 This is a noop provided for completeness.
 
+=head2 opened
+
+    $z->opened()
+
+Returns true if the object currently refers to a opened file/buffer. 
+
+=head2 autoflush
+
+    my $prev = $z->autoflush()
+    my $prev = $z->autoflush(EXPR)
+
+If the C<$z> object is associated with a file or a filehandle, this method
+returns the current autoflush setting for the underlying filehandle. If
+C<EXPR> is present, and is non-zero, it will enable flushing after every
+write/print operation.
+
+If C<$z> is associated with a buffer, this method has no effect and always
+returns C<undef>.
+
+B<Note> that the special variable C<$|> B<cannot> be used to set or
+retrieve the autoflush setting.
+
+=head2 input_line_number
+
+    $z->input_line_number()
+    $z->input_line_number(EXPR)
+
+
+This method always returns C<undef> when compressing. 
+
+
+
 =head2 fileno
 
     $z->fileno()
     fileno($z)
 
-If the C<$z> object is associated with a file, this method will return
-the underlying filehandle.
+If the C<$z> object is associated with a file or a filehandle, this method
+will return the underlying file descriptor.
 
 If the C<$z> object is is associated with a buffer, this method will
 return undef.
@@ -1309,7 +1310,7 @@ Flushes any pending compressed data and then closes the output file/buffer.
 
 
 For most versions of Perl this method will be automatically invoked if
-the IO::Gzip object is destroyed (either explicitly or by the
+the IO::Compress::Gzip object is destroyed (either explicitly or by the
 variable with the reference to the object going out of scope). The
 exceptions are Perl versions 5.005 through 5.00504 and 5.8.0. In
 these cases, the C<close> method will be called automatically, but
@@ -1322,20 +1323,34 @@ closing.
 
 Returns true on success, otherwise 0.
 
-If the C<AutoClose> option has been enabled when the IO::Gzip
+If the C<AutoClose> option has been enabled when the IO::Compress::Gzip
 object was created, and the object is associated with a file, the
 underlying file will also be closed.
 
 
 
 
-=head2 newStream
+=head2 newStream([OPTS])
 
 Usage is
 
-    $z->newStream
+    $z->newStream( [OPTS] )
 
-TODO
+Closes the current compressed data stream and starts a new one.
+
+OPTS consists of the following sub-set of the the options that are
+available when creating the C<$z> object,
+
+=over 5
+
+
+
+=item * Level
+
+
+
+=back
+
 
 =head2 deflateParams
 
@@ -1345,25 +1360,30 @@ Usage is
 
 TODO
 
+
 =head1 Importing 
 
+
 A number of symbolic constants are required by some methods in 
-C<IO::Gzip>. None are imported by default.
+C<IO::Compress::Gzip>. None are imported by default.
+
+
 
 =over 5
 
 =item :all
 
-Imports C<gzip>, C<$GzipError> and all symbolic
-constants that can be used by C<IO::Gzip>. Same as doing this
 
-    use IO::Gzip qw(gzip $GzipError :constants) ;
+Imports C<gzip>, C<$GzipError> and all symbolic
+constants that can be used by C<IO::Compress::Gzip>. Same as doing this
+
+    use IO::Compress::Gzip qw(gzip $GzipError :constants) ;
 
 =item :constants
 
 Import all symbolic constants. Same as doing this
 
-    use IO::Gzip qw(:flush :level :strategy) ;
+    use IO::Compress::Gzip qw(:flush :level :strategy) ;
 
 =item :flush
 
@@ -1375,7 +1395,6 @@ These symbolic constants are used by the C<flush> method.
     Z_FULL_FLUSH
     Z_FINISH
     Z_BLOCK
-
 
 =item :level
 
@@ -1396,6 +1415,7 @@ These symbolic constants are used by the C<Strategy> option in the constructor.
     Z_RLE
     Z_FIXED
     Z_DEFAULT_STRATEGY
+    
 
 =back
 
@@ -1412,25 +1432,19 @@ TODO
 
 =head1 SEE ALSO
 
-L<Compress::Zlib>, L<IO::Gunzip>, L<IO::Deflate>, L<IO::Inflate>, L<IO::RawDeflate>, L<IO::RawInflate>, L<IO::AnyInflate>
+L<Compress::Zlib>, L<IO::Uncompress::Gunzip>, L<IO::Compress::Deflate>, L<IO::Uncompress::Inflate>, L<IO::Compress::RawDeflate>, L<IO::Uncompress::RawInflate>, L<IO::Compress::Bzip2>, L<IO::Uncompress::Bunzip2>, L<IO::Compress::Lzop>, L<IO::Uncompress::UnLzop>, L<IO::Uncompress::AnyInflate>, L<IO::Uncompress::AnyUncompress>
 
 L<Compress::Zlib::FAQ|Compress::Zlib::FAQ>
 
-L<File::GlobMapper|File::GlobMapper>, L<Archive::Tar|Archive::Zip>,
+L<File::GlobMapper|File::GlobMapper>, L<Archive::Zip|Archive::Zip>,
+L<Archive::Tar|Archive::Tar>,
 L<IO::Zlib|IO::Zlib>
+
 
 For RFC 1950, 1951 and 1952 see 
 F<http://www.faqs.org/rfcs/rfc1950.html>,
 F<http://www.faqs.org/rfcs/rfc1951.html> and
 F<http://www.faqs.org/rfcs/rfc1952.html>
-
-The primary site for the gzip program is F<http://www.gzip.org>.
-
-=head1 AUTHOR
-
-The I<IO::Gzip> module was written by Paul Marquess,
-F<pmqs@cpan.org>. The latest copy of the module can be
-found on CPAN in F<modules/by-module/Compress/Compress-Zlib-x.x.tar.gz>.
 
 The I<zlib> compression library was written by Jean-loup Gailly
 F<gzip@prep.ai.mit.edu> and Mark Adler F<madler@alumni.caltech.edu>.
@@ -1438,17 +1452,29 @@ F<gzip@prep.ai.mit.edu> and Mark Adler F<madler@alumni.caltech.edu>.
 The primary site for the I<zlib> compression library is
 F<http://www.zlib.org>.
 
+The primary site for gzip is F<http://www.gzip.org>.
+
+
+
+
+
+
+
+=head1 AUTHOR
+
+This module was written by Paul Marquess, F<pmqs@cpan.org>. 
+
+
+
 =head1 MODIFICATION HISTORY
 
 See the Changes file.
 
 =head1 COPYRIGHT AND LICENSE
- 
 
-Copyright (c) 2005 Paul Marquess. All rights reserved.
+Copyright (c) 2005-2006 Paul Marquess. All rights reserved.
+
 This program is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.
-
-
 
 

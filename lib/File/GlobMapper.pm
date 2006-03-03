@@ -1,10 +1,10 @@
 package File::GlobMapper;
 
 use strict;
-local ($^W) = 1; #use warnings;
+use warnings;
 use Carp;
 
-use vars qw($CSH_GLOB);
+our ($CSH_GLOB);
 
 BEGIN
 {
@@ -23,14 +23,14 @@ BEGIN
     }  
 }
 
-use vars qw($Error);
+our ($Error);
 
-use vars qw($VERSION @EXPORT_OK);
+our ($VERSION, @EXPORT_OK);
 $VERSION = '0.000_02';
 @EXPORT_OK = qw( globmap );
 
 
-use vars qw($noPreBS $metachars $matchMetaRE %mapping %wildCount);
+our ($noPreBS, $metachars, $matchMetaRE, %mapping, %wildCount);
 $noPreBS = '(?<!\\\)' ; # no preceeding backslash
 $metachars = '.*?[](){}';
 $matchMetaRE = '[' . quotemeta($metachars) . ']';
@@ -338,7 +338,7 @@ sub _getFiles
 
         if ( $inFile =~ m/$self->{InputPattern}/ )
         {
-            local ($^W) = 0; #no warnings 'uninitialized';
+            no warnings 'uninitialized';
             eval "\$outFile = $self->{OutputPattern};" ;
 
             if (defined $outInMapping{$outFile})
