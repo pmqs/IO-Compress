@@ -21,7 +21,7 @@ require Exporter ;
 
 our ($VERSION, @ISA, @EXPORT_OK, %EXPORT_TAGS, $AnyInflateError);
 
-$VERSION = '2.000_09';
+$VERSION = '2.000_10';
 $AnyInflateError = '';
 
 @ISA = qw( Exporter IO::Uncompress::Base );
@@ -123,7 +123,7 @@ __END__
 =head1 NAME
 
 
-IO::Uncompress::AnyInflate - Perl interface to read RFC 1950, 1951 & 1952 files/buffers
+IO::Uncompress::AnyInflate - Uncompress zlib-based (zip, gzip) file/buffer
 
 
 =head1 SYNOPSIS
@@ -192,12 +192,29 @@ B<WARNING -- This is a Beta release>.
 
 
 
-
 This module provides a Perl interface that allows the reading of
-files/buffers that conform to RFC's 1950, 1951 and 1952. 
+files/buffers that have been compressed in a number of formats that use the
+zlib compression library.
 
-The module will auto-detect which, if any, of the three supported
+The formats supported are
+
+=over 5
+
+=item RFC 1950
+
+=item RFC 1951
+
+=item gzip (RFC 1952)
+
+=item zip
+
+=back
+
+The module will auto-detect which, if any, of the supported
 compression formats is being used.
+
+
+
 
 
 
@@ -936,9 +953,6 @@ The primary site for the I<zlib> compression library is
 F<http://www.zlib.org>.
 
 The primary site for gzip is F<http://www.gzip.org>.
-
-
-
 
 
 

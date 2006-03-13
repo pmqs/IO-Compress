@@ -14,7 +14,7 @@ use IO::Compress::Adapter::Bzip2 ;
 
 our ($VERSION, @ISA, @EXPORT_OK, %EXPORT_TAGS, $Bzip2Error);
 
-$VERSION = '2.000_09';
+$VERSION = '2.000_10';
 $Bzip2Error = '';
 
 @ISA    = qw(Exporter IO::Compress::Base);
@@ -144,7 +144,9 @@ __END__
 =head1 NAME
 
 
-IO::Compress::Bzip2 - Perl interface to write bzip2 files/buffers
+
+IO::Compress::Bzip2 - Write bzip2 files/buffers
+ 
  
 
 =head1 SYNOPSIS
@@ -846,12 +848,9 @@ L<IO::Zlib|IO::Zlib>
 
 
 
-
-
 The primary site for the bzip2 program is F<http://www.bzip.org>.
 
 See the module L<Compress::Bzip2|Compress::Bzip2>
-
 
 
 

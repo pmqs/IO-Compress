@@ -1,10 +1,9 @@
 README
-examples/anycat
-examples/gzappend
-examples/gzcat
-examples/gzgrep
-examples/gzstream
-lib/IO/Uncompress/Identity.pm
+examples/anycat     perl
+examples/gzappend       perl
+examples/gzcat      perl
+examples/gzgrep     perl
+examples/gzstream       perl
 lib/IO/Uncompress/Gunzip.pm
 lib/IO/Uncompress/AnyInflate.pm
 lib/IO/Uncompress/RawInflate.pm
@@ -17,8 +16,6 @@ lib/IO/Compress/Zip.pm
 lib/IO/Compress/Zip/Constants.pm
 lib/IO/Compress/Gzip/Constants.pm
 lib/IO/Compress/Zlib/Constants.pm
-lib/PerlIO/via/anyInflate.pm
-lib/CGI/ChunkedGzip.pm
 lib/IO/Uncompress/Adapter/Identity.pm
 lib/IO/Uncompress/Adapter/Inflate.pm
 lib/IO/Compress/Adapter/Deflate.pm
@@ -37,6 +34,7 @@ t/004gziphdr.t
 t/005defhdr.t
 t/010examples.t
 t/020isize.t
+t/050interop-gzip.t
 t/100generic-deflate.t
 t/100generic-gzip.t
 t/100generic-rawdeflate.t

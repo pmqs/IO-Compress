@@ -26,7 +26,7 @@ require Exporter ;
 
 our ($VERSION, @ISA, @EXPORT_OK, %EXPORT_TAGS, $GzipError);
 
-$VERSION = '2.000_09';
+$VERSION = '2.000_10';
 $GzipError = '' ;
 
 @ISA    = qw(Exporter IO::Compress::RawDeflate);
@@ -429,7 +429,9 @@ __END__
 =head1 NAME
 
 
-IO::Compress::Gzip - Perl interface to write RFC 1952 files/buffers
+
+IO::Compress::Gzip - Write RFC 1952 files/buffers
+ 
  
 
 =head1 SYNOPSIS
@@ -1453,9 +1455,6 @@ The primary site for the I<zlib> compression library is
 F<http://www.zlib.org>.
 
 The primary site for gzip is F<http://www.gzip.org>.
-
-
-
 
 
 

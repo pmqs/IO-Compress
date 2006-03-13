@@ -10,7 +10,7 @@ our (@ISA, $VERSION, @EXPORT_OK, %EXPORT_TAGS);
 @ISA    = qw(Exporter );
 
 
-$VERSION = '2.000_09';
+$VERSION = '2.000_10';
 
 use constant G_EOF => 0 ;
 use constant G_ERR => -1 ;
@@ -1311,9 +1311,6 @@ L<Compress::Zlib::FAQ|Compress::Zlib::FAQ>
 L<File::GlobMapper|File::GlobMapper>, L<Archive::Zip|Archive::Zip>,
 L<Archive::Tar|Archive::Tar>,
 L<IO::Zlib|IO::Zlib>
-
-
-
 
 
 

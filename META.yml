@@ -1,12 +1,13 @@
 # http://module-build.sourceforge.net/META-spec.html
 #XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
 name:         IO-Compress-Zlib
-version:      2.000_09
+version:      2.000_10
 version_from: lib/IO/Compress/Gzip.pm
 installdirs:  site
 requires:
     Compress::Raw::Zlib:           0
     IO::Compress::Base:            0
+    IO::Uncompress::Base:          0
 
 distribution_type: module
 generated_by: ExtUtils::MakeMaker version 6.30

@@ -16,7 +16,7 @@ require Exporter ;
 
 our ($VERSION, @ISA, @EXPORT_OK, %EXPORT_TAGS, $UnzipError);
 
-$VERSION = '2.000_09';
+$VERSION = '2.000_10';
 $UnzipError = '';
 
 @ISA    = qw(Exporter IO::Uncompress::RawInflate);
@@ -527,7 +527,9 @@ __END__
 =head1 NAME
 
 
-IO::Uncompress::Unzip - Perl interface to read zip files/buffers
+
+IO::Uncompress::Unzip - Read zip files/buffers
+
 
 
 =head1 SYNOPSIS
@@ -601,6 +603,9 @@ This module provides a Perl interface that allows the reading of
 zlib files/buffers.
 
 For writing zip files/buffers, see the companion module IO::Compress::Zip.
+
+
+
 
 
 
@@ -1269,9 +1274,6 @@ The primary site for the I<zlib> compression library is
 F<http://www.zlib.org>.
 
 The primary site for gzip is F<http://www.gzip.org>.
-
-
-
 
 
 

@@ -15,7 +15,7 @@ use IO::Compress::Base::Common qw(createSelfTiedObject);
 
 our ($VERSION, @ISA, @EXPORT_OK, %EXPORT_TAGS, $DeflateError);
 
-$VERSION = '2.000_09';
+$VERSION = '2.000_10';
 $DeflateError = '';
 
 @ISA    = qw(Exporter IO::Compress::RawDeflate);
@@ -167,7 +167,9 @@ __END__
 =head1 NAME
 
 
-IO::Compress::Deflate - Perl interface to write RFC 1950 files/buffers
+
+IO::Compress::Deflate - Write RFC 1950 files/buffers
+ 
  
 
 =head1 SYNOPSIS
@@ -984,9 +986,6 @@ The primary site for the I<zlib> compression library is
 F<http://www.zlib.org>.
 
 The primary site for gzip is F<http://www.gzip.org>.
-
-
-
 
 
 

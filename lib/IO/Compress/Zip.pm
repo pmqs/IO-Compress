@@ -13,7 +13,7 @@ require Exporter ;
 
 our ($VERSION, @ISA, @EXPORT_OK, %EXPORT_TAGS, $ZipError);
 
-$VERSION = '2.000_09';
+$VERSION = '2.000_10';
 $ZipError = '';
 
 @ISA = qw(Exporter IO::Compress::RawDeflate);
@@ -299,7 +299,9 @@ __END__
 =head1 NAME
 
 
-IO::Compress::Zip - Perl interface to write zip files/buffers
+
+IO::Compress::Zip - Write zip files/buffers
+ 
  
 
 =head1 SYNOPSIS
@@ -376,8 +378,9 @@ compressed data to files or buffer.
 
 
 
-Note that this module is not intended to be a replacement for the module
+Note that IO::Compress::Zip is not intended to be a replacement for the module
 C<Archive::Zip>.
+
 The primary aim of this module is not as an archiver, but to provide
 streaming write access to zip file files and buffers.
 
@@ -1096,9 +1099,6 @@ The primary site for the I<zlib> compression library is
 F<http://www.zlib.org>.
 
 The primary site for gzip is F<http://www.gzip.org>.
-
-
-
 
 
 

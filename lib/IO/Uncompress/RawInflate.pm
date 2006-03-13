@@ -17,7 +17,7 @@ use IO::Uncompress::Adapter::Inflate ;
 require Exporter ;
 our ($VERSION, @ISA, @EXPORT_OK, %EXPORT_TAGS, %DEFLATE_CONSTANTS, $RawInflateError);
 
-$VERSION = '2.000_09';
+$VERSION = '2.000_10';
 $RawInflateError = '';
 
 @ISA    = qw( Exporter IO::Uncompress::Base );
@@ -331,7 +331,9 @@ __END__
 =head1 NAME
 
 
-IO::Uncompress::RawInflate - Perl interface to read RFC 1951 files/buffers
+
+IO::Uncompress::RawInflate - Read RFC 1951 files/buffers
+
 
 
 =head1 SYNOPSIS
@@ -405,6 +407,9 @@ This module provides a Perl interface that allows the reading of
 files/buffers that conform to RFC 1951.
 
 For writing RFC 1951 files/buffers, see the companion module IO::Compress::RawDeflate.
+
+
+
 
 
 
@@ -1055,9 +1060,6 @@ The primary site for the I<zlib> compression library is
 F<http://www.zlib.org>.
 
 The primary site for gzip is F<http://www.gzip.org>.
-
-
-
 
 
 

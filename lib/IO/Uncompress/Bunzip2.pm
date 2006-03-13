@@ -12,7 +12,7 @@ use IO::Uncompress::Adapter::Bunzip2 ;
 require Exporter ;
 our ($VERSION, @ISA, @EXPORT_OK, %EXPORT_TAGS, $Bunzip2Error);
 
-$VERSION = '2.000_09';
+$VERSION = '2.000_10';
 $Bunzip2Error = '';
 
 @ISA    = qw( Exporter IO::Uncompress::Base );
@@ -146,7 +146,9 @@ __END__
 =head1 NAME
 
 
-IO::Uncompress::Bunzip2 - Perl interface to read bzip2 files/buffers
+
+IO::Uncompress::Bunzip2 - Read bzip2 files/buffers
+
 
 
 =head1 SYNOPSIS
@@ -218,6 +220,9 @@ This module provides a Perl interface that allows the reading of
 bzip2 files/buffers.
 
 For writing bzip2 files/buffers, see the companion module IO::Compress::Bzip2.
+
+
+
 
 
 
@@ -864,12 +869,9 @@ L<IO::Zlib|IO::Zlib>
 
 
 
-
-
 The primary site for the bzip2 program is F<http://www.bzip.org>.
 
 See the module L<Compress::Bzip2|Compress::Bzip2>
-
 
 
 

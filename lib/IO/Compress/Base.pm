@@ -20,7 +20,7 @@ use bytes;
 our (@ISA, $VERSION, $got_encode);
 #@ISA    = qw(Exporter IO::File);
 
-$VERSION = '2.000_09';
+$VERSION = '2.000_10';
 
 #Can't locate object method "SWASHNEW" via package "utf8" (perhaps you forgot to load "utf8"?) at .../ext/Compress-Zlib/Gzip/blib/lib/Compress/Zlib/Common.pm line 16.
 
@@ -963,9 +963,6 @@ L<Compress::Zlib::FAQ|Compress::Zlib::FAQ>
 L<File::GlobMapper|File::GlobMapper>, L<Archive::Zip|Archive::Zip>,
 L<Archive::Tar|Archive::Tar>,
 L<IO::Zlib|IO::Zlib>
-
-
-
 
 
 

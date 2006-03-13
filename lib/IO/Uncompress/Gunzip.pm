@@ -27,7 +27,7 @@ Exporter::export_ok_tags('all');
 
 $GunzipError = '';
 
-$VERSION = '2.000_09';
+$VERSION = '2.000_10';
 
 sub new
 {
@@ -296,7 +296,9 @@ __END__
 =head1 NAME
 
 
-IO::Uncompress::Gunzip - Perl interface to read RFC 1952 files/buffers
+
+IO::Uncompress::Gunzip - Read RFC 1952 files/buffers
+
 
 
 =head1 SYNOPSIS
@@ -370,6 +372,9 @@ This module provides a Perl interface that allows the reading of
 files/buffers that conform to RFC 1952.
 
 For writing RFC 1952 files/buffers, see the companion module IO::Compress::Gzip.
+
+
+
 
 
 
@@ -1108,9 +1113,6 @@ The primary site for the I<zlib> compression library is
 F<http://www.zlib.org>.
 
 The primary site for gzip is F<http://www.gzip.org>.
-
-
-
 
 
 
