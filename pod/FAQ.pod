@@ -31,7 +31,7 @@ this to read compressed files
     {
         ...
 
-and this to write compress files if you have the C<compress> program
+and this to write compress files, if you have the C<compress> program
 available
 
     open F, "| compress -c $filename ";
@@ -87,7 +87,7 @@ write a C<.tar.Z> file
 =head2 Accessing Zip Files
 
 
-This module provides limited support for reading/writing zip files with the
+This module provides limited support for reading/writing zip files using the
 C<IO::Compress::Zip> and C<IO::Uncompress::Unzip> modules.
 
 
@@ -95,6 +95,57 @@ A full interface for manipulating zip files is available with the
 C<Archive::Zip> module. You can find it on CPAN at 
 
     http://www.cpan.org/modules/by-module/Archive/Archive-Zip-*.tar.gz    
+
+
+=head2 What is Streaming mode in IO::Compress::Zip/Unzip?
+
+Streaming mode is useful when you cannot seek backwards/forwards when
+reading or writing the zip file. For example if you are reading/writing
+from/to a socket.
+
+When writing a zip file in streaming mode it means that the length
+
+
+
+=head2 Why can't I read Stored Streamed content with IO::Uncompress::Unzip
+
+Because 
+
+Technical note - when bit 3 of the general purpose flag in the local file
+header is set, the CRC32, compressed size and uncompressed size fields will
+all be set to zero. A trailer record that comes immediately after the
+compressed data contains the CRC32, compressed size and uncompressed size
+fields. 
+
+Basically when you are reading a streamed zip file in streaming mode, you
+won't knwo the length of the compressed data
+
+The text below is from the InfoZip specification for the zip file structure
+where it discusses but 3 of the general purpose flag in the local header.
+
+    Info-ZIP note: This bit was introduced by PKZIP 2.04 for
+    DOS. In general, this feature can only be reliably used
+    together with compression methods that allow intrinsic
+    detection of the "end-of-compressed-data" condition. From
+    the set of compression methods described in this Zip archive
+    specification, only "deflate" and "bzip2" fulfill this
+    requirement.
+    Especially, the method STORED does not work!
+    The Info-ZIP tools recognize this bit regardless of the
+    compression method; but, they rely on correctly set
+    "compressed size" information in the central directory entry.
+
+
+
+
+=head2 What is the difference between IO::Compress::Zip/Unzip and Archive::Zip
+
+A::Z - full interface. an archiver.
+
+IO::Z, as its name suggests, is reading/writing of zip files/buffers as if
+they were ordinary files. In addition, one of the things that IO::Z does
+that A::Z doesn't do at the moment is access zip file in streaming mode.
+
 
 
 

@@ -17,16 +17,20 @@ BEGIN {
     plan(skip_all => "oneshot needs Perl 5.005 or better - you have Perl $]" )
         if $] < 5.005 ;
 
+    plan(skip_all => "IO::Compress::Bzip2 not available" )
+        unless eval { require IO::Compress::Bzip2; 
+                      require IO::Uncompress::Bunzip2; 
+                      1
+                    } ;
 
     # use Test::NoWarnings, if available
     my $extra = 0 ;
     $extra = 1
         if eval { require Test::NoWarnings ;  import Test::NoWarnings; 1 };
 
-    plan tests => 119 + $extra ;
+    plan tests => 77 + $extra ;
 
-    #use_ok('IO::Compress::Zip', qw(zip $ZipError :zip_method)) ;
-    use_ok('IO::Compress::Zip', qw(:all)) ;
+    use_ok('IO::Compress::Zip', qw(zip $ZipError :zip_method)) ;
     use_ok('IO::Uncompress::Unzip', qw(unzip $UnzipError)) ;
 
 
@@ -61,81 +65,10 @@ sub zipGetHeader
     
 }
 
-{
-    title "Check zip header default NAME & MTIME settings" ;
-
-    my $lex = new LexFile my $file1;
-
-    my $content = "hello ";
-    my $hdr ;
-    my $mtime ;
-
-    writeFile($file1, $content);
-    $mtime = (stat($file1))[9];
-    # make sure that the zip file isn't created in the same
-    # second as the input file
-    sleep 3 ; 
-    $hdr = zipGetHeader($file1, $content);
-
-    is $hdr->{Name}, $file1, "  Name is '$file1'";
-    is $hdr->{Time}>>1, $mtime>>1, "  Time is ok";
-
-    title "Override Name" ;
-
-    writeFile($file1, $content);
-    $mtime = (stat($file1))[9];
-    sleep 3 ; 
-    $hdr = zipGetHeader($file1, $content, Name => "abcde");
-
-    is $hdr->{Name}, "abcde", "  Name is 'abcde'" ;
-    is $hdr->{Time} >> 1, $mtime >> 1, "  Time is ok";
-
-    title "Override Time" ;
-
-    writeFile($file1, $content);
-    my $useTime = time + 2000 ;
-    $hdr = zipGetHeader($file1, $content, Time => $useTime);
-
-    is $hdr->{Name}, $file1, "  Name is '$file1'" ;
-    is $hdr->{Time} >> 1 , $useTime >> 1 ,  "  Time is $useTime";
-
-    title "Override Name and Time" ;
-
-    $useTime = time + 5000 ;
-    writeFile($file1, $content);
-    $hdr = zipGetHeader($file1, $content, Time => $useTime, Name => "abcde");
-
-    is $hdr->{Name}, "abcde", "  Name is 'abcde'" ;
-    is $hdr->{Time} >> 1 , $useTime >> 1 , "  Time is $useTime";
-
-    title "Filehandle doesn't have default Name or Time" ;
-    my $fh = new IO::File "< $file1"
-        or diag "Cannot open '$file1': $!\n" ;
-    sleep 3 ; 
-    my $before = time ;
-    $hdr = zipGetHeader($fh, $content);
-    my $after = time ;
-
-    ok ! defined $hdr->{Name}, "  Name is undef";
-    cmp_ok $hdr->{Time} >> 1, '>=', $before >> 1, "  Time is ok";
-    cmp_ok $hdr->{Time} >> 1, '<=', $after >> 1, "  Time is ok";
-
-    $fh->close;
-
-    title "Buffer doesn't have default Name or Time" ;
-    my $buffer = $content;
-    $before = time ;
-    $hdr = zipGetHeader(\$buffer, $content);
-    $after = time ;
-
-    ok ! defined $hdr->{Name}, "  Name is undef";
-    cmp_ok $hdr->{Time} >> 1, '>=', $before >> 1, "  Time is ok";
-    cmp_ok $hdr->{Time} >> 1, '<=', $after >> 1, "  Time is ok";
-}
 
 for my $stream (0, 1)
 {
-    for my $method (ZIP_CM_STORE, ZIP_CM_DEFLATE)
+    for my $method (ZIP_CM_STORE, ZIP_CM_DEFLATE, ZIP_CM_BZIP2)
     {
         title "Stream $stream, Method $method";
 
@@ -174,7 +107,7 @@ for my $stream (0, 1)
 
 for my $stream (0, 1)
 {
-    for my $method (ZIP_CM_STORE, ZIP_CM_DEFLATE)
+    for my $method (ZIP_CM_STORE, ZIP_CM_DEFLATE, ZIP_CM_BZIP2)
     {
         title "Stream $stream, Method $method";
 

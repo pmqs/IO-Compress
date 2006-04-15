@@ -14,7 +14,7 @@ use IO::Compress::Adapter::Bzip2 ;
 
 our ($VERSION, @ISA, @EXPORT_OK, %EXPORT_TAGS, $Bzip2Error);
 
-$VERSION = '2.000_10';
+$VERSION = '2.000_11';
 $Bzip2Error = '';
 
 @ISA    = qw(Exporter IO::Compress::Base);
@@ -549,7 +549,7 @@ This parameter defaults to 0.
 
 =item BlockSize100K =E<gt> number
 
-Specify the number of 100K blocks to be used during compression. 
+Specify the number of 100K blocks bzip2 uses during compression. 
 
 Valid values are from 1 to 9, where 9 is best compression.
 

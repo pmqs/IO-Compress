@@ -12,14 +12,14 @@ use IO::Uncompress::Adapter::Bunzip2 ;
 require Exporter ;
 our ($VERSION, @ISA, @EXPORT_OK, %EXPORT_TAGS, $Bunzip2Error);
 
-$VERSION = '2.000_10';
+$VERSION = '2.000_11';
 $Bunzip2Error = '';
 
 @ISA    = qw( Exporter IO::Uncompress::Base );
 @EXPORT_OK = qw( $Bunzip2Error bunzip2 ) ;
-%EXPORT_TAGS = %IO::Uncompress::Base::EXPORT_TAGS ;
+#%EXPORT_TAGS = %IO::Uncompress::Base::EXPORT_TAGS ;
 push @{ $EXPORT_TAGS{all} }, @EXPORT_OK ;
-Exporter::export_ok_tags('all');
+#Exporter::export_ok_tags('all');
 
 
 sub new

@@ -11,36 +11,34 @@ use warnings;
 use bytes;
 
 use Test::More ;
+use CompTestUtils;
 
 my $BZIP2 ;
 
-BEGIN {
+sub ExternalBzip2Works
+{
+    my $lex = new LexFile my $outfile;
+    my $content = qq {
+Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Ut tempus odio id
+ dolor. Camelus perlus.  Larrius in lumen numen.  Dolor en quiquum filia
+ est.  Quintus cenum parat.
+};
 
-    # Check external bzip2 is available
-    my $name = 'bzip2';
-    for my $dir (reverse split ":", $ENV{PATH})
+    writeWithBzip2($outfile, $content)
+        or return 0;
+    
+    my $got ;
+    readWithBzip2($outfile, $got)
+        or return 0;
+
+    if ($content ne $got)
     {
-        $BZIP2 = "$dir/$name"
-            if -x "$dir/$name" ;
+        diag "Uncompressed content is wrong";
+        return 0 ;
     }
 
-    plan(skip_all => "Cannot find $name")
-        if ! $BZIP2 ;
-
-    
-    # use Test::NoWarnings, if available
-    my $extra = 0 ;
-    $extra = 1
-        if eval { require Test::NoWarnings ;  import Test::NoWarnings; 1 };
-
-    plan tests => 7 + $extra ;
-
-    use_ok('IO::Compress::Bzip2',     ':all') ;
-    use_ok('IO::Uncompress::Bunzip2', ':all') ;
-
+    return 1 ;
 }
-
-use CompTestUtils;
 
 sub readWithBzip2
 {
@@ -50,14 +48,14 @@ sub readWithBzip2
 
     my $comp = "$BZIP2 -dc" ;
 
-    #diag "$comp $file >$outfile" ;
+    if (system("$comp $file >$outfile") == 0 )
+    {
+        $_[0] = readFile($outfile);
+        return 1 ;
+    }
 
-    system("$comp $file >$outfile") == 0
-        or die "'$comp' failed: $?";
-
-    $_[0] = readFile($outfile);
-
-    return 1 ;
+    diag "'$comp' failed: $?";
+    return 0 ;
 }
 
 sub getBzip2Info
@@ -75,14 +73,43 @@ sub writeWithBzip2
     writeFile($infile, $content);
 
     unlink $file ;
-    my $gzip = "$BZIP2 -c $options $infile >$file" ;
+    my $comp = "$BZIP2 -c $options $infile >$file" ;
 
-    system($gzip) == 0 
-        or die "'$gzip' failed: $?";
+    return 1 
+        if system($comp) == 0  ;
 
-    return 1 ;
+    diag "'$comp' failed: $?";
+    return 0 ;
 }
 
+BEGIN 
+{
+
+    # Check external bzip2 is available
+    my $name = 'bzip2';
+    for my $dir (reverse split ":", $ENV{PATH})
+    {
+        $BZIP2 = "$dir/$name"
+            if -x "$dir/$name" ;
+    }
+
+    plan(skip_all => "Cannot find $name")
+        if ! $BZIP2 ;
+
+    plan(skip_all => "$name doesn't work as expected")
+        if ! ExternalBzip2Works();
+    
+    # use Test::NoWarnings, if available
+    my $extra = 0 ;
+    $extra = 1
+        if eval { require Test::NoWarnings ;  import Test::NoWarnings; 1 };
+
+    plan tests => 7 + $extra ;
+
+    use_ok('IO::Compress::Bzip2',     ':all') ;
+    use_ok('IO::Uncompress::Bunzip2', ':all') ;
+
+}
 
 {
     title "Test interop with $BZIP2" ;
@@ -93,7 +120,7 @@ sub writeWithBzip2
     my $content = "hello world\n" ;
     my $got;
 
-    is writeWithBzip2($file, $content), 1, "writeWithBzip2 ok";
+    ok writeWithBzip2($file, $content), "writeWithBzip2 ok";
 
     bunzip2 $file => \$got ;
     is $got, $content;
@@ -101,7 +128,7 @@ sub writeWithBzip2
 
     bzip2 \$content => $file1;
     $got = '';
-    is readWithBzip2($file1, $got), 1, "readWithBzip2 returns 0";
+    ok readWithBzip2($file1, $got), "readWithBzip2 returns 0";
     is $got, $content, "got content";
 }
 
