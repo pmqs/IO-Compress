@@ -16,6 +16,7 @@ lib/IO/Compress/Zip.pm
 lib/IO/Compress/Zip/Constants.pm
 lib/IO/Compress/Gzip/Constants.pm
 lib/IO/Compress/Zlib/Constants.pm
+lib/IO/Compress/Zlib/Extra.pm
 lib/IO/Uncompress/Adapter/Identity.pm
 lib/IO/Uncompress/Adapter/Inflate.pm
 lib/IO/Compress/Adapter/Deflate.pm

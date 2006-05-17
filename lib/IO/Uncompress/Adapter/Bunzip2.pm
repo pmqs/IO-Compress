@@ -10,7 +10,7 @@ use IO::Compress::Base::Common qw(:Status);
 use Compress::Raw::Bzip2 ;
 
 our ($VERSION, @ISA);
-$VERSION = '2.000_11';
+$VERSION = '2.000_12';
 
 #@ISA = qw( Compress::Raw::Bunzip2 );
 

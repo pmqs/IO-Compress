@@ -10,7 +10,7 @@ use IO::Compress::Base::Common qw(:Status);
 use Compress::Raw::Bzip2 ;
 
 our ($VERSION);
-$VERSION = '2.000_11';
+$VERSION = '2.000_12';
 
 sub mkCompObject
 {
@@ -18,7 +18,7 @@ sub mkCompObject
     my $WorkFactor = shift ;
     my $Verbosity  = shift ;
 
-    my ($def, $status) = new Compress::Raw::Bzip2(1, 1, $BlockSize100K,
+    my ($def, $status) = new Compress::Raw::Bzip2(1, $BlockSize100K,
                                                  $WorkFactor, $Verbosity);
     #my ($def, $status) = bzdeflateInit();
                         #-BlockSize100K => $params->value('BlockSize100K'),
