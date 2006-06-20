@@ -1,7 +1,7 @@
 # http://module-build.sourceforge.net/META-spec.html
 #XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
 name:         IO-Compress-Zlib
-version:      2.000_12
+version:      2.000_13
 version_from: lib/IO/Compress/Gzip.pm
 installdirs:  site
 requires:

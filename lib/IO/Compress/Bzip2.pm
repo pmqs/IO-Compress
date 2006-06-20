@@ -14,7 +14,7 @@ use IO::Compress::Adapter::Bzip2 ;
 
 our ($VERSION, @ISA, @EXPORT_OK, %EXPORT_TAGS, $Bzip2Error);
 
-$VERSION = '2.000_12';
+$VERSION = '2.000_13';
 $Bzip2Error = '';
 
 @ISA    = qw(Exporter IO::Compress::Base);
@@ -372,7 +372,7 @@ L</"Constructor Options"> section below.
 
 =over 5
 
-=item AutoClose =E<gt> 0|1
+=item C<< AutoClose => 0|1 >>
 
 This option applies to any input or output data streams to 
 C<bzip2> that are filehandles.
@@ -384,8 +384,7 @@ completed.
 This parameter defaults to 0.
 
 
-
-=item BinModeIn =E<gt> 0|1
+=item C<< BinModeIn => 0|1 >>
 
 When reading from a file or filehandle, set C<binmode> before reading.
 
@@ -395,7 +394,7 @@ Defaults to 0.
 
 
 
-=item -Append =E<gt> 0|1
+=item C<< Append => 0|1 >>
 
 TODO
 
@@ -512,7 +511,7 @@ C<OPTS> is any combination of the following options:
 
 =over 5
 
-=item AutoClose =E<gt> 0|1
+=item C<< AutoClose => 0|1 >>
 
 This option is only valid when the C<$output> parameter is a filehandle. If
 specified, and the value is true, it will result in the C<$output> being
@@ -521,7 +520,7 @@ object is destroyed.
 
 This parameter defaults to 0.
 
-=item Append =E<gt> 0|1
+=item C<< Append => 0|1 >>
 
 Opens C<$output> in append mode. 
 
@@ -552,7 +551,7 @@ to it.  Otherwise the file pointer will not be moved.
 This parameter defaults to 0.
 
 
-=item BlockSize100K =E<gt> number
+=item C<< BlockSize100K => number >>
 
 Specify the number of 100K blocks bzip2 uses during compression. 
 
@@ -560,7 +559,7 @@ Valid values are from 1 to 9, where 9 is best compression.
 
 The default is 1.
 
-=item WorkFactor =E<gt> number
+=item C<< WorkFactor => number >>
 
 Specifies how much effort bzip2 should take before resorting to a slower
 fallback compression algorithm.
@@ -577,7 +576,7 @@ The default is 0.
 
 
 
-=item -Strict =E<gt> 0|1
+=item C<< Strict => 0|1 >>
 
 
 
@@ -794,18 +793,10 @@ Usage is
 
 Closes the current compressed data stream and starts a new one.
 
-OPTS consists of the following sub-set of the the options that are
-available when creating the C<$z> object,
+OPTS consists of any of the the options that are available when creating
+the C<$z> object.
 
-=over 5
-
-
-=item * TODO
-
-
-
-
-=back
+See the L</"Constructor Options"> section for more details.
 
 
 
@@ -835,6 +826,11 @@ For
 =head1 EXAMPLES
 
 TODO
+
+
+
+
+
 
 
 

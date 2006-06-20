@@ -153,7 +153,8 @@ EOM
         title "$CompressClass - BlockSize100K => $value";
         my $lex = new LexFile my $name ;
         my $bz ;
-        $bz = new IO::Compress::Bzip2($name, BlockSize100K => $value);
+        $bz = new IO::Compress::Bzip2($name, BlockSize100K => $value)
+            or diag $IO::Compress::Bzip2::Bzip2Error ;
         ok $bz, "  bz object ok";
         $bz->write($hello);
         $bz->close($hello);
