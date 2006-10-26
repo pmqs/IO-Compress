@@ -30,7 +30,8 @@ BEGIN {
 
     plan tests => 120 + $extra ;
 
-    use_ok('IO::Compress::Zip', qw(zip $ZipError :zip_method)) ;
+    #use_ok('IO::Compress::Zip', qw(zip $ZipError :zip_method)) ;
+    use_ok('IO::Compress::Zip', qw(:all)) ;
     use_ok('IO::Uncompress::Unzip', qw(unzip $UnzipError)) ;
 
 

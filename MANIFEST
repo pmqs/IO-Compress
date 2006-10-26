@@ -101,4 +101,3 @@ MANIFEST
 private/MakeUtil.pm
 Changes
 pod/FAQ.pod
-META.yml                                 Module meta-data (added by MakeMaker)
