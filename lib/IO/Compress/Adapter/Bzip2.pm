@@ -10,7 +10,7 @@ use IO::Compress::Base::Common qw(:Status);
 use Compress::Raw::Bzip2 ;
 
 our ($VERSION);
-$VERSION = '2.000_14';
+$VERSION = '2.001';
 
 sub mkCompObject
 {

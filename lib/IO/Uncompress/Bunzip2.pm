@@ -12,7 +12,7 @@ use IO::Uncompress::Adapter::Bunzip2 ;
 require Exporter ;
 our ($VERSION, @ISA, @EXPORT_OK, %EXPORT_TAGS, $Bunzip2Error);
 
-$VERSION = '2.000_14';
+$VERSION = '2.001';
 $Bunzip2Error = '';
 
 @ISA    = qw( Exporter IO::Uncompress::Base );
@@ -196,24 +196,6 @@ IO::Uncompress::Bunzip2 - Read bzip2 files/buffers
 
 
 =head1 DESCRIPTION
-
-
-
-B<WARNING -- This is a Beta release>. 
-
-=over 5
-
-=item * DO NOT use in production code.
-
-=item * The documentation is incomplete in places.
-
-=item * Parts of the interface defined here are tentative.
-
-=item * Please report any problems you find.
-
-=back
-
-
 
 
 
