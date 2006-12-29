@@ -14,7 +14,7 @@ use IO::Compress::Adapter::Bzip2 ;
 
 our ($VERSION, @ISA, @EXPORT_OK, %EXPORT_TAGS, $Bzip2Error);
 
-$VERSION = '2.001';
+$VERSION = '2.002';
 $Bzip2Error = '';
 
 @ISA    = qw(Exporter IO::Compress::Base);

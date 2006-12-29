@@ -137,7 +137,7 @@ have no plan.  (Try to avoid using this as it weakens your test.)
   use Test::More qw(no_plan);
 
 B<NOTE>: using no_plan requires a Test::Harness upgrade else it will
-think everything has failed.  See L<BUGS and CAVEATS>)
+think everything has failed.  See L<BUGS>)
 
 In some cases, you'll want to completely skip an entire testing script.
 
@@ -922,7 +922,7 @@ Once a todo test starts succeeding, simply move it outside the block.
 When the block is empty, delete it.
 
 B<NOTE>: TODO tests require a Test::Harness upgrade else it will
-treat it as a normal failure.  See L<BUGS and CAVEATS>)
+treat it as a normal failure.  See L<BUGS>)
 
 
 =item B<todo_skip>
@@ -998,6 +998,8 @@ will display the place where they start differing.
 
 Test::Differences and Test::Deep provide more in-depth functionality
 along these lines.
+
+=back
 
 =cut
 
@@ -1115,6 +1117,7 @@ C<is_deeply()> can do that better and with diagnostics.
 
 They may be deprecated in future versions.
 
+=over 4
 
 =item B<eq_array>
 
