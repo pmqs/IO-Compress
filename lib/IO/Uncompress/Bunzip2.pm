@@ -4,15 +4,15 @@ use strict ;
 use warnings;
 use bytes;
 
-use IO::Compress::Base::Common qw(:Status createSelfTiedObject);
+use IO::Compress::Base::Common 2.003 qw(:Status createSelfTiedObject);
 
-use IO::Uncompress::Base ;
-use IO::Uncompress::Adapter::Bunzip2 ;
+use IO::Uncompress::Base 2.003 ;
+use IO::Uncompress::Adapter::Bunzip2 2.003 ;
 
 require Exporter ;
 our ($VERSION, @ISA, @EXPORT_OK, %EXPORT_TAGS, $Bunzip2Error);
 
-$VERSION = '2.002';
+$VERSION = '2.003';
 $Bunzip2Error = '';
 
 @ISA    = qw( Exporter IO::Uncompress::Base );
@@ -40,7 +40,7 @@ sub getExtraParams
 {
     my $self = shift ;
 
-    use IO::Compress::Base::Common qw(:Parse);
+    use IO::Compress::Base::Common 2.003 qw(:Parse);
     
     return (
             'Verbosity'     => [1, 1, Parse_boolean,   0],
@@ -951,7 +951,7 @@ See the Changes file.
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (c) 2005-2006 Paul Marquess. All rights reserved.
+Copyright (c) 2005-2007 Paul Marquess. All rights reserved.
 
 This program is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.

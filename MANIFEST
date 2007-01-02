@@ -22,6 +22,7 @@ lib/IO/Uncompress/Adapter/Inflate.pm
 lib/IO/Compress/Adapter/Deflate.pm
 lib/IO/Compress/Adapter/Identity.pm
 Makefile.PL
+t/000prereq.t
 t/001zlib-generic-deflate.t
 t/001zlib-generic-gzip.t
 t/001zlib-generic-rawdeflate.t
