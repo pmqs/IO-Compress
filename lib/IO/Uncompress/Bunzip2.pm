@@ -4,15 +4,15 @@ use strict ;
 use warnings;
 use bytes;
 
-use IO::Compress::Base::Common 2.003 qw(:Status createSelfTiedObject);
+use IO::Compress::Base::Common 2.004 qw(:Status createSelfTiedObject);
 
-use IO::Uncompress::Base 2.003 ;
-use IO::Uncompress::Adapter::Bunzip2 2.003 ;
+use IO::Uncompress::Base 2.004 ;
+use IO::Uncompress::Adapter::Bunzip2 2.004 ;
 
 require Exporter ;
 our ($VERSION, @ISA, @EXPORT_OK, %EXPORT_TAGS, $Bunzip2Error);
 
-$VERSION = '2.003';
+$VERSION = '2.004';
 $Bunzip2Error = '';
 
 @ISA    = qw( Exporter IO::Uncompress::Base );
@@ -40,7 +40,7 @@ sub getExtraParams
 {
     my $self = shift ;
 
-    use IO::Compress::Base::Common 2.003 qw(:Parse);
+    use IO::Compress::Base::Common 2.004 qw(:Parse);
     
     return (
             'Verbosity'     => [1, 1, Parse_boolean,   0],

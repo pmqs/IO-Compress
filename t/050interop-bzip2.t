@@ -86,8 +86,10 @@ BEGIN
 {
 
     # Check external bzip2 is available
-    my $name = 'bzip2';
-    for my $dir (reverse split ":", $ENV{PATH})
+    my $name = $^O =~ /mswin/i ? 'bzip2.exe' : 'bzip2';
+    my $split = $^O =~ /mswin/i ? ";" : ":";
+
+    for my $dir (reverse split $split, $ENV{PATH})    
     {
         $BZIP2 = "$dir/$name"
             if -x "$dir/$name" ;
