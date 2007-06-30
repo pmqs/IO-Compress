@@ -81,6 +81,10 @@ t/109merge-deflate.t
 t/109merge-gzip.t
 t/109merge-rawdeflate.t
 t/109merge-zip.t
+t/110encode-deflate.t
+t/110encode-rawdeflate.t
+t/110encode-gzip.t
+t/110encode-zip.t
 t/999pod.t
 t/Test/Builder.pm
 t/Test/More.pm
@@ -88,6 +92,7 @@ t/Test/Simple.pm
 t/compress/any.pl
 t/compress/anyunc.pl
 t/compress/destroy.pl
+t/compress/encode.pl
 t/compress/generic.pl
 t/compress/merge.pl
 t/compress/multi.pl

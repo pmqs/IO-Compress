@@ -186,6 +186,7 @@ EOM
         $bz->close($hello);
 
         my $fil = new $UncompressClass $name,
+                                       Append  => 1,
                                        Small   => $value ;
 
         my $data = '';
