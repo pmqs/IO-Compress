@@ -1,12 +1,12 @@
 
-                             Compress::Zlib
+                             IO-Compress-Zlib
 
-                             Version 2.007
+                             Version 2.008
 
-                            22nd September 2007
+                             2nd November 2007
 
 
-       Copyright (c) 1995-2007 Paul Marquess. All rights reserved.
+       Copyright (c) 2005-2007 Paul Marquess. All rights reserved.
           This program is free software; you can redistribute it
            and/or modify it under the same terms as Perl itself.
 
@@ -17,7 +17,8 @@ DESCRIPTION
 -----------
 
 
-This module provides a Perl interface to the zlib compression library.  
+This module provides a Perl interface to allow reading and writing of RFC
+1950, 1951, 1952 (i.e. gzip) and zip files/buffers.
 
 
 
@@ -26,13 +27,13 @@ This module provides a Perl interface to the zlib compression library.
 PREREQUISITES
 -------------
 
-Before you can build Compress::Zlib you need to have the following
+Before you can build IO-Compress-Zlib you need to have the following
 installed on your system:
 
 
     * Perl 5.004 or better. 
     * Compress::Raw::Zlib
-    * IO::Compress::Zlib
+    * IO::Compress::Base
 
 
 
@@ -53,7 +54,7 @@ using this sequence of commands:
 INSTALLATION
 ------------
 
-To install Compress::Zlib, run the command below:
+To install IO-Compress-Zlib, run the command below:
 
     make install
 
@@ -65,41 +66,27 @@ TROUBLESHOOTING
 ---------------
 
 
-Undefined Symbol gzsetparams
-----------------------------
-
-If you get the error shown below when you run the Compress::Zlib test
-harness it probably means you are running a copy of zlib that is
-version 1.0.5 or older.
-
-t/01version.........Can't load 'blib/arch/auto/Compress/Zlib/Zlib.so' for 
-                    module Compress::Raw::Zlib: blib/arch/auto/Compress/Raw/Zlib/Zlib.so:
-                    undefined symbol: gzsetparams at ...
-
-There are two ways to fix this problem:
-
-    1. Upgrade to the latest version of zlib.
-
-    2. Edit config.in and set the OLD_ZLIB variable to True.
-
-
-
-Test Harness 01version fails
-----------------------------
-If the 01version test harness fails, and the problem isn't covered by the
-scenario above, it probably means that you have two versions of 
-zlib installed on your system.
-
-Run the command below to see if this is indeed the case
-
-    make test TEST_VERBOSE=1 TEST_FILES=t/01version.t 
-
-Try removing the one you don't want to use and rebuild.   
 
 
 
 
 
+
+
+The t/020isize Test Suite
+------------------------
+
+This test suite checks that IO-Compress-Zlib can cope with gzip files
+that are larger than 2^32 bytes.
+
+By default these test are NOT run when you do a "make test". If you
+really want to run them, you need to execute "make longtest".
+
+Be warned though -- this test suite can take hours to run on a slow box.
+
+Also, due to the way the tests are constructed, some architectures will
+run out of memory during this test. This should not be considered a bug
+in the IO-Compress-Zlib module.
 
 
 
@@ -107,7 +94,7 @@ Try removing the one you don't want to use and rebuild.
 FEEDBACK
 --------
 
-How to report a problem with Compress::Zlib.
+How to report a problem with IO-Compress-Zlib.
 
 To help me help you, I need all of the following information:
 
@@ -124,41 +111,25 @@ To help me help you, I need all of the following information:
         If your perl does not understand the "-V" option it is too
         old. This module needs Perl version 5.004 or better.     
 
-     b. The version of Compress::Zlib you have. 
-        If you have successfully installed Compress::Zlib, this one-liner
+     b. The version of IO-Compress-Zlib you have. 
+        If you have successfully installed IO-Compress-Zlib, this one-liner
         will tell you:
 
-           perl -MCompress::Zlib -e 'print qq[ver $Compress::Zlib::VERSION\n]'
-
-        If you areplete* output from running this
-     
-            perl -V
-     
-        Do not edit the output in any way.
-        Note, I want you to run "perl -V" and NOT "perl -v".
-     
-        If your perl does not understand the "-V" option it is too
-        old. This module needs Perl version 5.004 or better.     
-
-     b. The version of Compress::Zlib you have. 
-        If you have successfully installed Compress::Zlib, this one-liner
-        will tell you:
-
-           perl -MCompress::Zlib -e 'print qq[ver $Compress::Zlib::VERSION\n]'
+           perl -MIO::Compress::Gzip -e 'print qq[ver $IO::Compress::Gzip::VERSION\n]'
 
         If you are  running windows use this
 
-           perl -MCompress::Zlib -e "print qq[ver $Compress::Zlib::VERSION\n]"
+           perl -MIO::Compress::Gzip -e "print qq[ver $IO::Compress::Gzip::VERSION\n]"
 
-        If you haven't installed Compress::Zlib then search Compress::Zlib.pm
+        If you haven't installed IO-Compress-Zlib then search IO::Compress::Gzip.pm
         for a line like this:
 
-          $VERSION = "1.05" ;
+          $VERSION = "2.008" ;
 
 
 
- 2. If you are having problems building Compress::Zlib, send me a
-    complete log of what happened. Start by unpacking the Compress::Zlib
+ 2. If you are having problems building IO-Compress-Zlib, send me a
+    complete log of what happened. Start by unpacking the IO-Compress-Zlib
     module into a fresh directory and keep a log of all the steps
 
         [edit config.in, if necessary]

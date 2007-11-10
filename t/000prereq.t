@@ -11,14 +11,6 @@ use warnings ;
 
 use Test::More ;
 
-
-sub gotScalarUtilXS
-{
-    eval ' use Scalar::Util "dualvar" ';
-    return $@ ? 0 : 1 ;
-}
-
-
 BEGIN
 {
     # use Test::NoWarnings, if available
@@ -27,25 +19,26 @@ BEGIN
         if eval { require Test::NoWarnings ;  import Test::NoWarnings; 1 };
 
 
-    my $VERSION = '2.006';
+    my $VERSION = '2.008';
     my @NAMES = qw(
 			Compress::Raw::Zlib
 			IO::Compress::Base
-			IO::Compress::Gzip
-			IO::Uncompress::Gunzip
+			IO::Uncompress::Base
 			);
 
     my @OPT = qw(
-			
+			IO::Compress::Adapter::Bzip2
+			IO::Compress::Bzip2
+			IO::Uncompress::Adapter::Bunzip2
 			);
 
-    plan tests => 2 + @NAMES + @OPT + $extra ;
+
+    plan tests => @NAMES + @OPT + $extra ;
 
     foreach my $name (@NAMES)
     {
         use_ok($name, $VERSION);
     }
-
 
     foreach my $name (@OPT)
     {
@@ -62,12 +55,5 @@ BEGIN
         }         
     }
     
-    use_ok('Scalar::Util') ;
 }
-
-
-ok gotScalarUtilXS(), "Got XS Version of Scalar::Util"
-    or diag <<EOM;
-You don't have the XS version of Scalar::Util
-EOM
 
