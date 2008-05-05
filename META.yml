@@ -1,16 +1,16 @@
 --- #YAML:1.0
 name:                IO-Compress-Zlib
-version:             2.008
+version:             2.010
 abstract:            Perl interface to zlib
 license:             perl
-generated_by:        ExtUtils::MakeMaker version 6.36
+author:              
+    - Paul Marquess <pmqs@cpan.org>
+generated_by:        ExtUtils::MakeMaker version 6.44
 distribution_type:   module
 requires:     
-    Compress::Raw::Zlib:           2.008
-    IO::Compress::Base:            2.008
-    IO::Uncompress::Base:          2.008
+    Compress::Raw::Zlib:           2.010
+    IO::Compress::Base:            2.010
+    IO::Uncompress::Base:          2.010
 meta-spec:
-    url:     http://module-build.sourceforge.net/META-spec-v1.2.html
-    version: 1.2
-author:
-    - Paul Marquess <pmqs@cpan.org>
+    url:     http://module-build.sourceforge.net/META-spec-v1.3.html
+    version: 1.3
