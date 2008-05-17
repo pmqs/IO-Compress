@@ -34,6 +34,7 @@ t/002any-transparent.t
 t/002any-zip.t
 t/004gziphdr.t
 t/005defhdr.t
+t/006zip.t
 t/010examples.t
 t/020isize.t
 t/050interop-gzip.t
