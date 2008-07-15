@@ -19,7 +19,7 @@ BEGIN {
     $extra = 1
         if eval { require Test::NoWarnings ;  import Test::NoWarnings; 1 };
 
-    plan tests => 62 + $extra ;
+    plan tests => 77 + $extra ;
 
     use_ok('IO::Compress::Zip', qw(:all)) ;
     use_ok('IO::Uncompress::Unzip', qw(unzip $UnzipError)) ;
@@ -193,8 +193,7 @@ SKIP:
 {
     title "Create a simple zip - Deflate + STORE";
 
-    #my $lex = new LexFile my $file1;
-    my $file1 = "tryout.zip";
+    my $lex = new LexFile my $file1;
 
     my @content = qw(
                    hello 
@@ -249,3 +248,29 @@ SKIP:
     is $got[2], $content[2], "Got 3nd entry";
 }
 
+
+SKIP:
+for my $method (ZIP_CM_DEFLATE, ZIP_CM_STORE, ZIP_CM_BZIP2)
+{
+    title "Read a line from zip, Method $method";
+
+    skip "IO::Compress::Bzip2 not available", 14
+        unless defined $IO::Compress::Bzip2::VERSION;
+
+    my $content = "a single line\n";
+    my $zip ;
+
+    my $status = zip \$content => \$zip, 
+                    Method => $method, 
+                    Stream => 0, 
+                    Name => "123";
+    is $status, 1, "  Created a zip file";
+
+    my $u = new IO::Uncompress::Unzip \$zip;
+    isa_ok $u, "IO::Uncompress::Unzip";
+
+    is $u->getline, $content, "  Read first line ok";
+    ok ! $u->getline, "  Second line doesn't exist";
+
+
+}
