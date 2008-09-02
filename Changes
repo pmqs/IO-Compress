@@ -1,6 +1,11 @@
 CHANGES
 -------
 
+  2.014 2 September 2008
+
+      * Makefile.PL
+        Updated to check for indirect dependencies.
+
   2.012 15 July 2008
 
       * No Changes

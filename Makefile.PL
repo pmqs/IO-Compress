@@ -3,7 +3,7 @@
 use strict ;
 require 5.004 ;
 
-$::VERSION = '2.012' ;
+$::VERSION = '2.014' ;
 
 use private::MakeUtil;
 use ExtUtils::MakeMaker 5.16 ;
@@ -11,14 +11,26 @@ use ExtUtils::MakeMaker 5.16 ;
 UpDowngrade(getPerlFiles('MANIFEST')) 
     unless $ENV{PERL_CORE};
 
+# Modules supplied by this distribution    
+my @myModules = qw( IO::Compress::RawDeflate
+                    IO::Uncompress::RawInflate
+                    IO::Compress::Deflate
+                    IO::Uncompress::Inflate
+                    IO::Compress::Gzip
+                    IO::Uncompress::Gunzip
+                    IO::Compress::Zip
+                    IO::Uncompress::Unzip
+                  );
+
+# Direct dependencies                  
 my @MainPREREQ = qw(Compress::Raw::Zlib
                     IO::Compress::Base
                     IO::Uncompress::Base
                    );
 
-# Bzip2 is an option prereq.                   
-push @MainPREREQ, qw(IO::Compress::Bzip2 IO::Uncompress::Bunzip2)
-    if eval { require IO::Compress::Bzip2; };
+# Get indirect dependencies that will break if we install this version
+push @MainPREREQ, FindBrokenDependencies($::VERSION, @myModules)
+    unless $ENV{PERL_CORE} ;
 
 my %MainPREREQ = map { $_ => $::VERSION } @MainPREREQ; 
 

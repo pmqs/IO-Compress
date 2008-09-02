@@ -9,12 +9,12 @@ our (@ISA, $VERSION, @EXPORT_OK, %EXPORT_TAGS);
 @ISA    = qw(Exporter IO::File);
 
 
-$VERSION = '2.012';
+$VERSION = '2.014';
 
 use constant G_EOF => 0 ;
 use constant G_ERR => -1 ;
 
-use IO::Compress::Base::Common 2.012 ;
+use IO::Compress::Base::Common 2.014 ;
 #use Parse::Parameters ;
 
 use IO::File ;
@@ -692,12 +692,13 @@ sub _rd2
 
     my $status ;
     my $fh = $x->{fh};
-    
+
     while (1) {
 
         while (($status = $z->read($x->{buff})) > 0) {
             if ($fh) {
                 print $fh ${ $x->{buff} }
+
                     or return $z->saveErrorString(undef, "Error writing to output file: $!", $!);
                 ${ $x->{buff} } = '' ;
             }
