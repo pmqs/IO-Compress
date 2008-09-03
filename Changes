@@ -1,6 +1,11 @@
 CHANGES
 -------
 
+  2.015 3 September 2008
+
+      * Makefile.PL
+        Backout changes made in 2.014
+
   2.014 2 September 2008
 
       * Makefile.PL
