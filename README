@@ -1,29 +1,40 @@
 
-                             IO-Compress-Zlib
+                             IO-Compress
 
-                             Version 2.015
+                             Version 2.017
 
-                            2nd September 2008
+                            28th March 2009
 
-       Copyright (c) 2005-2008 Paul Marquess. All rights reserved.
+       Copyright (c) 1995-2009 Paul Marquess. All rights reserved.
           This program is free software; you can redistribute it
            and/or modify it under the same terms as Perl itself.
 
 DESCRIPTION
 -----------
 
-This module provides a Perl interface to allow reading and writing of RFC
-1950, 1951, 1952 (i.e. gzip) and zip files/buffers.
+This distribution provides a Perl interface to allow reading and writing of
+compressed data created with the zlib and bzip2 libraries.
+
+IO-Compress supports reading and writing of bzip2, RFC 1950, RFC
+1951, RFC 1952 (i.e. gzip) and zip files/buffers.
+
+The following modules used to be distributed separately, but are now
+included with the IO-Compress distribution.
+
+    Compress-Zlib
+    IO-Compress-Zlib
+    IO-Compress-Bzip2
+    IO-Compress-Base
 
 PREREQUISITES
 -------------
 
-Before you can build IO-Compress-Zlib you need to have the following
+Before you can build IO-Compress you need to have the following
 installed on your system:
 
     * Perl 5.004 or better. 
     * Compress::Raw::Zlib
-    * IO::Compress::Base
+    * Compress::Raw::Bzip2
 
 BUILDING THE MODULE
 -------------------
@@ -38,32 +49,17 @@ using this sequence of commands:
 INSTALLATION
 ------------
 
-To install IO-Compress-Zlib, run the command below:
+To install IO-Compress, run the command below:
 
     make install
 
 TROUBLESHOOTING
 ---------------
 
-The t/020isize Test Suite
-------------------------
-
-This test suite checks that IO-Compress-Zlib can cope with gzip files
-that are larger than 2^32 bytes.
-
-By default these tests are NOT run when you do a "make test". If you
-really want to run them, you need to execute "make longtest".
-
-Be warned though -- this test suite can take hours to run on a slow box.
-
-Also, due to the way the tests are constructed, some architectures will
-run out of memory during this test. This should not be considered a bug
-in the IO-Compress-Zlib module.
-
 FEEDBACK
 --------
 
-How to report a problem with IO-Compress-Zlib.
+How to report a problem with IO-Compress.
 
 To help me help you, I need all of the following information:
 
@@ -80,8 +76,8 @@ To help me help you, I need all of the following information:
         If your perl does not understand the "-V" option it is too
         old. This module needs Perl version 5.004 or better.     
 
-     b. The version of IO-Compress-Zlib you have. 
-        If you have successfully installed IO-Compress-Zlib, this one-liner
+     b. The version of IO-Compress you have. 
+        If you have successfully installed IO-Compress, this one-liner
         will tell you:
 
            perl -MIO::Compress::Gzip -e 'print qq[ver $IO::Compress::Gzip::VERSION\n]'
@@ -90,13 +86,13 @@ To help me help you, I need all of the following information:
 
            perl -MIO::Compress::Gzip -e "print qq[ver $IO::Compress::Gzip::VERSION\n]"
 
-        If you haven't installed IO-Compress-Zlib then search IO::Compress::Gzip.pm
+        If you haven't installed IO-Compress then search IO::Compress::Gzip.pm
         for a line like this:
 
-          $VERSION = "2.015" ;
+          $VERSION = "2.017" ;
 
- 2. If you are having problems building IO-Compress-Zlib, send me a
-    complete log of what happened. Start by unpacking the IO-Compress-Zlib
+ 2. If you are having problems building IO-Compress, send me a
+    complete log of what happened. Start by unpacking the IO-Compress
     module into a fresh directory and keep a log of all the steps
 
         [edit config.in, if necessary]

@@ -6,7 +6,7 @@ require 5.004 ;
 use strict ;
 use warnings;
 
-use IO::Compress::Base::Common 2.015 ;
+use IO::Compress::Base::Common 2.017 ;
 
 use IO::File ;
 use Scalar::Util qw(blessed readonly);
@@ -20,7 +20,7 @@ use bytes;
 our (@ISA, $VERSION);
 @ISA    = qw(Exporter IO::File);
 
-$VERSION = '2.015';
+$VERSION = '2.017';
 
 #Can't locate object method "SWASHNEW" via package "utf8" (perhaps you forgot to load "utf8"?) at .../ext/Compress-Zlib/Gzip/blib/lib/Compress/Zlib/Common.pm line 16.
 
@@ -217,8 +217,9 @@ sub _create
     }
 
     # If output is a file, check that it is writable
-    if ($outType eq 'filename' && -e $outValue && ! -w _)
-      { return $obj->saveErrorString(undef, "Output file '$outValue' is not writable" ) }
+    #no warnings;
+    #if ($outType eq 'filename' && -e $outValue && ! -w _)
+    #  { return $obj->saveErrorString(undef, "Output file '$outValue' is not writable" ) }
 
 
 
@@ -260,6 +261,7 @@ sub _create
                 }
             }
             elsif ($outType eq 'filename') {    
+                no warnings;
                 my $mode = '>' ;
                 $mode = '>>'
                     if $appendOutput;
@@ -299,8 +301,8 @@ sub ckOutputParam
     $self->croakError("$from: output parameter not a filename, filehandle or scalar ref")
         if ! $outType ;
 
-    $self->croakError("$from: output filename is undef or null string")
-        if $outType eq 'filename' && (! defined $_[0] || $_[0] eq '')  ;
+    #$self->croakError("$from: output filename is undef or null string")
+        #if $outType eq 'filename' && (! defined $_[0] || $_[0] eq '')  ;
 
     $self->croakError("$from: output buffer is read-only")
         if $outType eq 'buffer' && readonly(${ $_[0] });
@@ -972,7 +974,7 @@ See the Changes file.
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (c) 2005-2008 Paul Marquess. All rights reserved.
+Copyright (c) 2005-2009 Paul Marquess. All rights reserved.
 
 This program is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.

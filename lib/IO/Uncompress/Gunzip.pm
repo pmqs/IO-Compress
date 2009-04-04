@@ -9,12 +9,12 @@ use strict ;
 use warnings;
 use bytes;
 
-use IO::Uncompress::RawInflate 2.015 ;
+use IO::Uncompress::RawInflate 2.017 ;
 
-use Compress::Raw::Zlib 2.015 qw( crc32 ) ;
-use IO::Compress::Base::Common 2.015 qw(:Status createSelfTiedObject);
-use IO::Compress::Gzip::Constants 2.015 ;
-use IO::Compress::Zlib::Extra 2.015 ;
+use Compress::Raw::Zlib 2.017 qw( crc32 ) ;
+use IO::Compress::Base::Common 2.017 qw(:Status createSelfTiedObject);
+use IO::Compress::Gzip::Constants 2.017 ;
+use IO::Compress::Zlib::Extra 2.017 ;
 
 require Exporter ;
 
@@ -28,7 +28,7 @@ Exporter::export_ok_tags('all');
 
 $GunzipError = '';
 
-$VERSION = '2.015';
+$VERSION = '2.017';
 
 sub new
 {
@@ -47,7 +47,7 @@ sub gunzip
 
 sub getExtraParams
 {
-    use IO::Compress::Base::Common  2.015 qw(:Parse);
+    use IO::Compress::Base::Common  2.017 qw(:Parse);
     return ( 'ParseExtra' => [1, 1, Parse_boolean,  0] ) ;
 }
 
@@ -1063,7 +1063,7 @@ See the Changes file.
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (c) 2005-2008 Paul Marquess. All rights reserved.
+Copyright (c) 2005-2009 Paul Marquess. All rights reserved.
 
 This program is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.

@@ -1,7 +1,7 @@
 
 =head1 NAME
 
-IO::Compress::Zlib::FAQ -- Frequently Asked Questions about IO::Compress::Zlib
+IO::Compress::FAQ -- Frequently Asked Questions about IO::Compress
 
 =head1 DESCRIPTION
 
@@ -9,7 +9,10 @@ Common questions answered.
 
 =head2 Compatibility with Unix compress/uncompress.
 
-This module is not compatible with Unix C<compress>.
+Although C<Compress::Zlib> has a pair of functions called C<compress> and
+C<uncompress>, they are I<not> related to the Unix programs of the same
+name. The C<Compress::Zlib> module is not compatible with Unix
+C<compress>.
 
 If you have the C<uncompress> program available, you can use this to read
 compressed files
@@ -37,11 +40,14 @@ available
 
 =head2 Accessing .tar.Z files
 
-See previous FAQ item.
+The C<Archive::Tar> module can optionally use C<Compress::Zlib> (via the
+C<IO::Zlib> module) to access tar files that have been compressed with
+C<gzip>. Unfortunately tar files compressed with the Unix C<compress>
+utility cannot be read by C<Compress::Zlib> and so cannot be directly
+accessed by C<Archive::Tar>.
 
-If the C<Archive::Tar> module is installed and either the C<uncompress> or
-C<gunzip> programs are available, you can use one of these workarounds to
-read C<.tar.Z> files.
+If the C<uncompress> or C<gunzip> programs are available, you can use one
+of these workarounds to read C<.tar.Z> files from C<Archive::Tar>
 
 Firstly with C<uncompress>
 
@@ -499,7 +505,7 @@ See the Changes file.
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (c) 2005-2008 Paul Marquess. All rights reserved.
+Copyright (c) 2005-2009 Paul Marquess. All rights reserved.
 
 This program is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.

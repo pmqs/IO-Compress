@@ -4,22 +4,27 @@ use strict ;
 use warnings;
 use bytes;
 
-use IO::Compress::Base::Common  2.015 qw(:Status createSelfTiedObject);
-use IO::Compress::RawDeflate 2.015 ;
-use IO::Compress::Adapter::Deflate 2.015 ;
-use IO::Compress::Adapter::Identity 2.015 ;
-use IO::Compress::Zlib::Extra 2.015 ;
-use IO::Compress::Zip::Constants 2.015 ;
+use IO::Compress::Base::Common  2.017 qw(:Status createSelfTiedObject);
+use IO::Compress::RawDeflate 2.017 ;
+use IO::Compress::Adapter::Deflate 2.017 ;
+use IO::Compress::Adapter::Identity 2.017 ;
+use IO::Compress::Zlib::Extra 2.017 ;
+use IO::Compress::Zip::Constants 2.017 ;
 
 
-use Compress::Raw::Zlib  2.015 qw(crc32) ;
+use Compress::Raw::Zlib  2.017 qw(crc32) ;
 BEGIN
 {
     eval { require IO::Compress::Adapter::Bzip2 ; 
-           import  IO::Compress::Adapter::Bzip2 2.015 ; 
+           import  IO::Compress::Adapter::Bzip2 2.017 ; 
            require IO::Compress::Bzip2 ; 
-           import  IO::Compress::Bzip2 2.015 ; 
+           import  IO::Compress::Bzip2 2.017 ; 
          } ;
+#    eval { require IO::Compress::Adapter::Lzma ; 
+#           import  IO::Compress::Adapter::Lzma 2.017 ; 
+#           require IO::Compress::Lzma ; 
+#           import  IO::Compress::Lzma 2.017 ; 
+#         } ;
 }
 
 
@@ -27,7 +32,7 @@ require Exporter ;
 
 our ($VERSION, @ISA, @EXPORT_OK, %EXPORT_TAGS, $ZipError);
 
-$VERSION = '2.015';
+$VERSION = '2.017';
 $ZipError = '';
 
 @ISA = qw(Exporter IO::Compress::RawDeflate);
@@ -83,6 +88,11 @@ sub mkComp
                                                );
         *$self->{ZipData}{CRC32} = crc32(undef);
     }
+#    elsif (*$self->{ZipData}{Method} == ZIP_CM_LZMA) {
+#        ($obj, $errstr, $errno) = IO::Compress::Adapter::Lzma::mkCompObject(
+#                                               );
+#        *$self->{ZipData}{CRC32} = crc32(undef);
+#    }
 
     return $self->saveErrorString(undef, $errstr, $errno)
        if ! defined $obj;
@@ -146,13 +156,13 @@ sub mkHeader
         if $osCode == ZIP_OS_CODE_UNIX ;
 
     if (*$self->{ZipData}{Zip64}) {
-        $empty = 0xFFFF;
+        $empty = 0xFFFFFFFF;
 
         my $x = '';
         $x .= pack "V V", 0, 0 ; # uncompressedLength   
         $x .= pack "V V", 0, 0 ; # compressedLength   
         $x .= *$self->{ZipData}{Offset}->getPacked_V64() ; # offset to local hdr
-        #$x .= pack "V  ", 0    ; # disk no
+        $x .= pack "V", 0    ; # disk no
 
         $x = IO::Compress::Zlib::Extra::mkSubField(ZIP_EXTRA_ID_ZIP64, $x);
         $extra .= $x;
@@ -418,6 +428,10 @@ sub ckParams
         if $method == ZIP_CM_BZIP2 and 
            ! defined $IO::Compress::Adapter::Bzip2::VERSION;
 
+#    return $self->saveErrorString(undef, "Lzma not available")
+#        if $method == ZIP_CM_LZMA and 
+#           ! defined $IO::Compress::Adapter::Lzma::VERSION;
+
     *$self->{ZipData}{Method} = $method;
 
     *$self->{ZipData}{ZipComment} = $got->value('ZipComment') ;
@@ -452,8 +466,8 @@ sub getExtraParams
 {
     my $self = shift ;
 
-    use IO::Compress::Base::Common  2.015 qw(:Parse);
-    use Compress::Raw::Zlib  2.015 qw(Z_DEFLATED Z_DEFAULT_COMPRESSION Z_DEFAULT_STRATEGY);
+    use IO::Compress::Base::Common  2.017 qw(:Parse);
+    use Compress::Raw::Zlib  2.017 qw(Z_DEFLATED Z_DEFAULT_COMPRESSION Z_DEFAULT_STRATEGY);
 
     my @Bzip2 = ();
     
@@ -1464,13 +1478,13 @@ constructor.
 
 =head2 Apache::GZip Revisited
 
-See L<IO::Compress::Zlib::FAQ|IO::Compress::Zlib::FAQ/"Apache::GZip Revisited">
+See L<IO::Compress::FAQ|IO::Compress::FAQ/"Apache::GZip Revisited">
 
     
 
 =head2 Working with Net::FTP
 
-See L<IO::Compress::Zlib::FAQ|IO::Compress::Zlib::FAQ/"Compressed files and Net::FTP">
+See L<IO::Compress::FAQ|IO::Compress::FAQ/"Compressed files and Net::FTP">
 
 =head1 SEE ALSO
 
@@ -1505,7 +1519,7 @@ See the Changes file.
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (c) 2005-2008 Paul Marquess. All rights reserved.
+Copyright (c) 2005-2009 Paul Marquess. All rights reserved.
 
 This program is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.

@@ -8,19 +8,21 @@ use strict ;
 use warnings;
 use bytes;
 
-use IO::Uncompress::RawInflate  2.015 ;
-use IO::Compress::Base::Common  2.015 qw(:Status createSelfTiedObject);
-use IO::Uncompress::Adapter::Inflate  2.015 ;
-use IO::Uncompress::Adapter::Identity 2.015 ;
-use IO::Compress::Zlib::Extra 2.015 ;
-use IO::Compress::Zip::Constants 2.015 ;
+use IO::Uncompress::RawInflate  2.017 ;
+use IO::Compress::Base::Common  2.017 qw(:Status createSelfTiedObject);
+use IO::Uncompress::Adapter::Inflate  2.017 ;
+use IO::Uncompress::Adapter::Identity 2.017 ;
+use IO::Compress::Zlib::Extra 2.017 ;
+use IO::Compress::Zip::Constants 2.017 ;
 
-use Compress::Raw::Zlib  2.015 qw(crc32) ;
+use Compress::Raw::Zlib  2.017 qw(crc32) ;
 
 BEGIN
 {
     eval { require IO::Uncompress::Adapter::Bunzip2 ;
            import  IO::Uncompress::Adapter::Bunzip2 } ;
+   #eval { require IO::Uncompress::Adapter::UnLzma ;
+   #        import  IO::Uncompress::Adapter::UnLzma } ;
 }
 
 
@@ -28,7 +30,7 @@ require Exporter ;
 
 our ($VERSION, @ISA, @EXPORT_OK, %EXPORT_TAGS, $UnzipError, %headerLookup);
 
-$VERSION = '2.015';
+$VERSION = '2.017';
 $UnzipError = '';
 
 @ISA    = qw(Exporter IO::Uncompress::RawInflate);
@@ -61,7 +63,7 @@ sub unzip
 
 sub getExtraParams
 {
-    use IO::Compress::Base::Common  2.015 qw(:Parse);
+    use IO::Compress::Base::Common  2.017 qw(:Parse);
 
     
     return (
@@ -617,6 +619,18 @@ sub _readZipHeader($)
         *$self->{Uncomp} = $obj;
         *$self->{ZipData}{CRC32} = crc32(undef);
     }
+#    elsif ($compressedMethod == ZIP_CM_LZMA)
+#    {
+#        return $self->HeaderError("Unsupported Compression format $compressedMethod")
+#            if ! defined $IO::Uncompress::Adapter::UnLzma::VERSION ;
+#        
+#        *$self->{Type} = 'zip-lzma';
+#        
+#        my $obj = IO::Uncompress::Adapter::UnLzma::mkUncompObject();
+#
+#        *$self->{Uncomp} = $obj;
+#        *$self->{ZipData}{CRC32} = crc32(undef);
+#    }
     elsif ($compressedMethod == ZIP_CM_STORE)
     {
         # TODO -- add support for reading uncompressed
@@ -688,12 +702,9 @@ sub filterUncompressed
 }    
 
 
-# from Archive::Zip
+# from Archive::Zip & info-zip
 sub _dosToUnixTime
 {
-    #use Time::Local 'timelocal_nocheck';
-    use Time::Local 'timelocal';
-
 	my $dt = shift;
 
 	my $year = ( ( $dt >> 25 ) & 0x7f ) + 80;
@@ -704,11 +715,11 @@ sub _dosToUnixTime
 	my $min  = ( ( $dt >> 5 ) & 0x3f );
 	my $sec  = ( ( $dt << 1 ) & 0x3e );
 
-	# catch errors
-	my $time_t =
-	  eval { timelocal( $sec, $min, $hour, $mday, $mon, $year ); };
-	return 0 
-        if $@;
+
+    use POSIX 'mktime';
+
+    my $time_t = mktime( $sec, $min, $hour, $mday, $mon, $year, 0, 0, -1 );
+    return 0 if ! defined $time_t;
 	return $time_t;
 }
 
@@ -1408,43 +1419,6 @@ Same as doing this
 
 See L<IO::Uncompress::Unzip::FAQ|IO::Uncompress::Unzip::FAQ/"Compressed files and Net::FTP">
 
-=head2 Walking through a zip file
-
-The code below can be used to traverse a zip file, one compressed data
-stream at a time.
-
-    use IO::Uncompress::Unzip qw($UnzipError);
-
-    my $zipfile = "somefile.zip";
-    my $u = new IO::Uncompress::Unzip $zipfile
-        or die "Cannot open $zipfile: $UnzipError";
-
-    my $status;
-    for ($status = 1; ! $u->eof(); $status = $u->nextStream())
-    {
- 
-        my $name = $u->getHeaderInfo()->{Name};
-        warn "Processing member $name\n" ;
-
-        my $buff;
-        while (($status = $u->read($buff)) > 0) {
-            # Do something here
-        }
-
-        last unless $status == 0;
-    }
-
-    die "Error processing $zipfile: $!\n"
-        if $status < 0 ;
-
-Each individual compressed data stream is read until the logical
-end-of-file is reached. Then C<nextStream> is called. This will skip to the
-start of the next compressed data stream and clear the end-of-file flag.
-
-It is also worth noting that C<nextStream> can be called at any time -- you
-don't have to wait until you have exhausted a compressed data stream before
-skipping to the next one.
-
 =head1 SEE ALSO
 
 L<Compress::Zlib>, L<IO::Compress::Gzip>, L<IO::Uncompress::Gunzip>, L<IO::Compress::Deflate>, L<IO::Uncompress::Inflate>, L<IO::Compress::RawDeflate>, L<IO::Uncompress::RawInflate>, L<IO::Compress::Bzip2>, L<IO::Uncompress::Bunzip2>, L<IO::Compress::Lzop>, L<IO::Uncompress::UnLzop>, L<IO::Compress::Lzf>, L<IO::Uncompress::UnLzf>, L<IO::Uncompress::AnyInflate>, L<IO::Uncompress::AnyUncompress>
@@ -1478,7 +1452,7 @@ See the Changes file.
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (c) 2005-2008 Paul Marquess. All rights reserved.
+Copyright (c) 2005-2009 Paul Marquess. All rights reserved.
 
 This program is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.

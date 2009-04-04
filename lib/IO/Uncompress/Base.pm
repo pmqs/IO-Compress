@@ -9,12 +9,12 @@ our (@ISA, $VERSION, @EXPORT_OK, %EXPORT_TAGS);
 @ISA    = qw(Exporter IO::File);
 
 
-$VERSION = '2.015';
+$VERSION = '2.017';
 
 use constant G_EOF => 0 ;
 use constant G_ERR => -1 ;
 
-use IO::Compress::Base::Common 2.015 ;
+use IO::Compress::Base::Common 2.017 ;
 #use Parse::Parameters ;
 
 use IO::File ;
@@ -410,6 +410,7 @@ sub _create
                 if $got->value('Scan');
         }  
         else {    
+            no warnings ;
             my $mode = '<';
             $mode = '+<' if $got->value('Scan');
             *$obj->{StdIO} = ($inValue eq '-');
@@ -502,17 +503,17 @@ sub ckInputParam
     $self->croakError("$from: input parameter not a filename, filehandle, array ref or scalar ref")
         if ! $inType ;
 
-    if ($inType  eq 'filename' )
-    {
-        $self->croakError("$from: input filename is undef or null string")
-            if ! defined $_[0] || $_[0] eq ''  ;
-
-        if ($_[0] ne '-' && ! -e $_[0] )
-        {
-            return $self->saveErrorString(undef, 
-                            "input file '$_[0]' does not exist", STATUS_ERROR);
-        }
-    }
+#    if ($inType  eq 'filename' )
+#    {
+#        return $self->saveErrorString(1, "$from: input filename is undef or null string", STATUS_ERROR)
+#            if ! defined $_[0] || $_[0] eq ''  ;
+#
+#        if ($_[0] ne '-' && ! -e $_[0] )
+#        {
+#            return $self->saveErrorString(1, 
+#                            "input file '$_[0]' does not exist", STATUS_ERROR);
+#        }
+#    }
 
     return 1;
 }
@@ -715,6 +716,9 @@ sub _rd2
             $x->{buff} = \$buff;
         }
 
+        last if $status < 0 || $z->smartEof();
+        #last if $status < 0 ;
+
         last 
             unless *$self->{MultiStream};
 
@@ -849,9 +853,14 @@ sub _raw_read
         $status = *$self->{Uncomp}->uncompr(\$temp_buf, $buffer,
                                     defined *$self->{CompressedInputLengthDone} ||
                                                 $self->smartEof(), $outSize);
+                                                
+        $self->pushBack($temp_buf) if $beforeC_len != length $temp_buf;
 
+#return $self->saveErrorString(G_ERR, "unexpected end of file", STATUS_ERROR)
+#           if $self->smartEof() && $status != STATUS_ENDSTREAM;     
+                        
         return $self->saveErrorString(G_ERR, *$self->{Uncomp}{Error}, *$self->{Uncomp}{ErrorNo})
-            if $self->saveStatus($status) == STATUS_ERROR;
+            if $self->saveStatus($status) == STATUS_ERROR;    
 
         $self->postBlockChk($buffer, $before_len) == STATUS_OK
             or return G_ERR;
@@ -874,8 +883,8 @@ sub _raw_read
     if ($status == STATUS_ENDSTREAM) {
 
         *$self->{EndStream} = 1 ;
-        $self->pushBack($temp_buf)  ;
-        $temp_buf = '';
+#$self->pushBack($temp_buf)  ;
+#$temp_buf = '';
 
         my $trailer;
         my $trailer_size = *$self->{Info}{TrailerLength} ;
@@ -1081,6 +1090,7 @@ sub read
     # Need to jump through more hoops - either length or offset 
     # or both are specified.
     my $out_buffer = *$self->{Pending} ;
+    *$self->{Pending} = '';
 
 
     while (! *$self->{EndStream} && length($out_buffer) < $length)
@@ -1336,6 +1346,7 @@ sub seek
         last if $offset == 0 ;
     }
 
+    $here = $self->tell() ;
     return $offset == 0 ? 1 : 0 ;
 }
 
@@ -1448,9 +1459,8 @@ See the Changes file.
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (c) 2005-2008 Paul Marquess. All rights reserved.
+Copyright (c) 2005-2009 Paul Marquess. All rights reserved.
 
 This program is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.
-
 

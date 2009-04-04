@@ -8,17 +8,17 @@ use Carp ;
 use IO::Handle ;
 use Scalar::Util qw(dualvar);
 
-use IO::Compress::Base::Common 2.015 ;
-use Compress::Raw::Zlib 2.015 ;
-use IO::Compress::Gzip 2.015 ;
-use IO::Uncompress::Gunzip 2.015 ;
+use IO::Compress::Base::Common 2.017 ;
+use Compress::Raw::Zlib 2.017 ;
+use IO::Compress::Gzip 2.017 ;
+use IO::Uncompress::Gunzip 2.017 ;
 
 use strict ;
 use warnings ;
 use bytes ;
 our ($VERSION, $XS_VERSION, @ISA, @EXPORT, $AUTOLOAD);
 
-$VERSION = '2.015';
+$VERSION = '2.017';
 $XS_VERSION = $VERSION; 
 $VERSION = eval $VERSION;
 
@@ -452,7 +452,7 @@ sub inflate
 
 package Compress::Zlib ;
 
-use IO::Compress::Gzip::Constants 2.015 ;
+use IO::Compress::Gzip::Constants 2.017 ;
 
 sub memGzip($)
 {
@@ -632,8 +632,7 @@ Compress::Zlib - Interface to zlib compression library
     $crc = adler32_combine($crc1, $crc2, $len2)l
     $crc = crc32_combine($adler1, $adler2, $len2)
 
-    ZLIB_VERSION
-    ZLIB_VERNUM
+    my $version = Compress::Raw::Zlib::zlib_version();
 
 =head1 DESCRIPTION
 
@@ -1406,6 +1405,12 @@ CRC-related functions are available.
 
 These functions allow checksums to be merged.
 
+=head1 Misc
+
+=head2 my $version = Compress::Zlib::zlib_version();
+
+Returns the version of the zlib library.
+
 =head1 CONSTANTS
 
 All the I<zlib> constants are automatically imported when you make use
@@ -1444,7 +1449,7 @@ See the Changes file.
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (c) 1995-2008 Paul Marquess. All rights reserved.
+Copyright (c) 1995-2009 Paul Marquess. All rights reserved.
 
 This program is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.

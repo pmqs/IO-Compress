@@ -5,19 +5,16 @@ use strict ;
 use warnings;
 use bytes;
 
-use Compress::Raw::Zlib  2.015 ;
-use IO::Compress::Base::Common  2.015 qw(:Status createSelfTiedObject);
+use Compress::Raw::Zlib  2.017 ;
+use IO::Compress::Base::Common  2.017 qw(:Status createSelfTiedObject);
 
-use IO::Uncompress::Base  2.015 ;
-use IO::Uncompress::Adapter::Inflate  2.015 ;
-
-
-
+use IO::Uncompress::Base  2.017 ;
+use IO::Uncompress::Adapter::Inflate  2.017 ;
 
 require Exporter ;
 our ($VERSION, @ISA, @EXPORT_OK, %EXPORT_TAGS, %DEFLATE_CONSTANTS, $RawInflateError);
 
-$VERSION = '2.015';
+$VERSION = '2.017';
 $RawInflateError = '';
 
 @ISA    = qw( Exporter IO::Uncompress::Base );
@@ -27,7 +24,23 @@ $RawInflateError = '';
 push @{ $EXPORT_TAGS{all} }, @EXPORT_OK ;
 Exporter::export_ok_tags('all');
 
-
+#{
+#    # Execute at runtime  
+#    my %bad;
+#    for my $module (qw(Compress::Raw::Zlib IO::Compress::Base::Common IO::Uncompress::Base IO::Uncompress::Adapter::Inflate))
+#    {
+#        my $ver = ${ $module . "::VERSION"} ;
+#        
+#        $bad{$module} = $ver
+#            if $ver ne $VERSION;
+#    }
+#    
+#    if (keys %bad)
+#    {
+#        my $string = join "\n", map { "$_ $bad{$_}" } keys %bad;
+#        die caller(0)[0] . "needs version $VERSION mismatch\n$string\n";
+#    }
+#}
 
 sub new
 {
@@ -142,9 +155,15 @@ sub _isRawx
     *$self->{HeaderPending} = $temp_buf ;    
     $buffer = '';
     my $status = *$self->{Uncomp}->uncompr(\$temp_buf, \$buffer, $self->smartEof()) ;
+    
     return $self->saveErrorString(undef, *$self->{Uncomp}{Error}, STATUS_ERROR)
         if $status == STATUS_ERROR;
 
+    $self->pushBack($temp_buf)  ;
+
+    return $self->saveErrorString(undef, "unexpected end of file", STATUS_ERROR)
+        if $self->smartEof() && $status != STATUS_ENDSTREAM;
+            
     #my $buf_len = *$self->{Uncomp}->uncompressedBytes();
     my $buf_len = length $buffer;
 
@@ -153,11 +172,9 @@ sub _isRawx
                     && (length $temp_buf || ! $self->smartEof())){
             *$self->{NewStream} = 1 ;
             *$self->{EndStream} = 0 ;
-            $self->pushBack($temp_buf);
         }
         else {
             *$self->{EndStream} = 1 ;
-            $self->pushBack($temp_buf);
         }
     }
     *$self->{HeaderPending} = $buffer ;    
@@ -1045,7 +1062,7 @@ See the Changes file.
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (c) 2005-2008 Paul Marquess. All rights reserved.
+Copyright (c) 2005-2009 Paul Marquess. All rights reserved.
 
 This program is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.

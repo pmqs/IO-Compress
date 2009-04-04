@@ -13,7 +13,7 @@ use bytes;
 
 use Test::More ;
 use CompTestUtils;
-use IO::Compress::Gzip 'gzip' ;
+use Compress::Zlib;
 
 BEGIN 
 { 
@@ -25,7 +25,7 @@ BEGIN
     $extra = 1
         if eval { require Test::NoWarnings ;  import Test::NoWarnings; 1 };
 
-    plan tests => 19 + $extra ;
+    plan tests => 26 + $extra ;
 }
 
 
@@ -37,9 +37,8 @@ my $Perl = ($ENV{'FULLPERL'} or $^X or 'perl') ;
 $Perl = qq["$Perl"] if $^O eq 'MSWin32' ;
  
 $Perl = "$Perl $Inc -w" ;
-#$Perl .= " -Mblib " ;
-my $examples = $ENV{PERL_CORE} ? "../ext/Compress/Zlib/examples" 
-                               : "./examples";
+my $examples = $ENV{PERL_CORE} ? "../ext/IO-Compress/examples/compress-zlib" 
+                               : "./examples/compress-zlib";
 
 my $hello1 = <<EOM ;
 hello
@@ -73,8 +72,13 @@ my $stderr = "err.out" ;
 for ($file1, $file2, $stderr) { 1 while unlink $_ } ;
 
 
-gzip \$hello1 => $file1 ;
-gzip \$hello2 => $file2 ;
+my $gz = gzopen($file1, "wb");
+$gz->gzwrite($hello1);
+$gz->gzclose();
+
+$gz = gzopen($file2, "wb");
+$gz->gzwrite($hello2);
+$gz->gzclose();
 
 sub check
 {
@@ -126,6 +130,20 @@ for ($file1, $file2, $stderr) { 1 while unlink $_ } ;
 
 
 
+# filtdef/filtinf
+# ##############
+
+
+writeFile($file1, $hello1) ;
+writeFile($file2, $hello2) ;
+
+title "filtdef" ;
+# there's no way to set binmode on backticks in Win32 so we won't use $a later
+check "$Perl ${examples}/filtdef $file1 $file2" ;
+
+title "filtdef | filtinf";
+check "$Perl ${examples}/filtdef $file1 $file2 | $Perl ${examples}/filtinf",
+        $hello1 . $hello2;
 # gzstream
 # ########
 

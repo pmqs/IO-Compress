@@ -63,9 +63,9 @@ foreach my $CompressClass ( 'IO::Compress::RawDeflate')
                                   -Transparent => 0))
             or diag "$$Error\n";
     my $un;
-    ok $gz->read($un) > 0 ;
+    is $gz->read($un, length($hello)), length($hello);
     ok $gz->close();
-    ok $un eq $hello ;
+    is $un, $hello ;
     
     for my $trans (0 .. 1)
     {
@@ -95,7 +95,7 @@ foreach my $CompressClass ( 'IO::Compress::RawDeflate')
                 ok $gz;
                 ok ! $gz->error() ;
                 my $buff = '';
-                is $gz->read($buff), length $part ;
+                is $gz->read($buff, length $part), length $part ;
                 is $buff, $part ;
                 ok $gz->eof() ;
                 $gz->close();

@@ -7,16 +7,16 @@ use warnings;
 use bytes;
 
 
-use IO::Compress::Base 2.015 ;
-use IO::Compress::Base::Common  2.015 qw(:Status createSelfTiedObject);
-use IO::Compress::Adapter::Deflate  2.015 ;
+use IO::Compress::Base 2.017 ;
+use IO::Compress::Base::Common  2.017 qw(:Status createSelfTiedObject);
+use IO::Compress::Adapter::Deflate  2.017 ;
 
 require Exporter ;
 
 
 our ($VERSION, @ISA, @EXPORT_OK, %DEFLATE_CONSTANTS, %EXPORT_TAGS, $RawDeflateError);
 
-$VERSION = '2.015';
+$VERSION = '2.017';
 $RawDeflateError = '';
 
 @ISA = qw(Exporter IO::Compress::Base);
@@ -142,8 +142,8 @@ sub getZlibParams
 {
     my $self = shift ;
 
-    use IO::Compress::Base::Common  2.015 qw(:Parse);
-    use Compress::Raw::Zlib  2.015 qw(Z_DEFLATED Z_DEFAULT_COMPRESSION Z_DEFAULT_STRATEGY);
+    use IO::Compress::Base::Common  2.017 qw(:Parse);
+    use Compress::Raw::Zlib  2.017 qw(Z_DEFLATED Z_DEFAULT_COMPRESSION Z_DEFAULT_STRATEGY);
 
     
     return (
@@ -928,13 +928,13 @@ These symbolic constants are used by the C<Strategy> option in the constructor.
 
 =head2 Apache::GZip Revisited
 
-See L<IO::Compress::Zlib::FAQ|IO::Compress::Zlib::FAQ/"Apache::GZip Revisited">
+See L<IO::Compress::FAQ|IO::Compress::FAQ/"Apache::GZip Revisited">
 
     
 
 =head2 Working with Net::FTP
 
-See L<IO::Compress::Zlib::FAQ|IO::Compress::Zlib::FAQ/"Compressed files and Net::FTP">
+See L<IO::Compress::FAQ|IO::Compress::FAQ/"Compressed files and Net::FTP">
 
 =head1 SEE ALSO
 
@@ -969,7 +969,7 @@ See the Changes file.
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (c) 2005-2008 Paul Marquess. All rights reserved.
+Copyright (c) 2005-2009 Paul Marquess. All rights reserved.
 
 This program is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.

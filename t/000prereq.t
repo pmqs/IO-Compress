@@ -19,19 +19,15 @@ BEGIN
         if eval { require Test::NoWarnings ;  import Test::NoWarnings; 1 };
 
 
-    my $VERSION = '2.015';
+    my $VERSION = '2.017';
     my @NAMES = qw(
+			Compress::Raw::Bzip2
 			Compress::Raw::Zlib
-			IO::Compress::Base
-			IO::Uncompress::Base
 			);
 
     my @OPT = qw(
-			IO::Compress::Adapter::Bzip2
-			IO::Compress::Bzip2
-			IO::Uncompress::Adapter::Bunzip2
+			
 			);
-
 
     plan tests => @NAMES + @OPT + $extra ;
 
@@ -39,6 +35,7 @@ BEGIN
     {
         use_ok($name, $VERSION);
     }
+
 
     foreach my $name (@OPT)
     {
