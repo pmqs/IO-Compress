@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:               IO-Compress
-version:            2.019
+version:            2.020
 abstract:           IO Interface to compressed data files/buffers
 author:
     - Paul Marquess <pmqs@cpan.org>
@@ -11,13 +11,13 @@ configure_requires:
 build_requires:
     ExtUtils::MakeMaker:  0
 requires:
-    Compress::Raw::Bzip2:  2.019
-    Compress::Raw::Zlib:  2.019
+    Compress::Raw::Bzip2:  2.020
+    Compress::Raw::Zlib:  2.020
 no_index:
     directory:
         - t
         - inc
-generated_by:       ExtUtils::MakeMaker version 6.50
+generated_by:       ExtUtils::MakeMaker version 6.52
 meta-spec:
     url:      http://module-build.sourceforge.net/META-spec-v1.4.html
     version:  1.4
