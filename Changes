@@ -1,6 +1,11 @@
 CHANGES
 -------
 
+  2.023 9 November 2009
+
+      * IO::Compress::AnyUncompress 
+        Added support for lzma_alone & xz.
+
   2.022 9 October 2009
 
       * IO::Compress - Makefile.PL

@@ -1,9 +1,9 @@
 
-                                IO-Compress
+                             IO-Compress
 
-                               Version 2.022
+                             Version 2.023
 
-                             9th October 2009
+                             9th November 2009
 
        Copyright (c) 1995-2009 Paul Marquess. All rights reserved.
           This program is free software; you can redistribute it
@@ -89,7 +89,7 @@ To help me help you, I need all of the following information:
         If you haven't installed IO-Compress then search IO::Compress::Gzip.pm
         for a line like this:
 
-          $VERSION = "2.021" ;
+          $VERSION = "2.023" ;
 
  2. If you are having problems building IO-Compress, send me a
     complete log of what happened. Start by unpacking the IO-Compress
