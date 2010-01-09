@@ -4,26 +4,26 @@ use strict ;
 use warnings;
 use bytes;
 
-use IO::Compress::Base::Common  2.023 qw(:Status createSelfTiedObject);
-use IO::Compress::RawDeflate 2.023 ;
-use IO::Compress::Adapter::Deflate 2.023 ;
-use IO::Compress::Adapter::Identity 2.023 ;
-use IO::Compress::Zlib::Extra 2.023 ;
-use IO::Compress::Zip::Constants 2.023 ;
+use IO::Compress::Base::Common  2.024 qw(:Status createSelfTiedObject);
+use IO::Compress::RawDeflate 2.024 ;
+use IO::Compress::Adapter::Deflate 2.024 ;
+use IO::Compress::Adapter::Identity 2.024 ;
+use IO::Compress::Zlib::Extra 2.024 ;
+use IO::Compress::Zip::Constants 2.024 ;
 
 
-use Compress::Raw::Zlib  2.023 qw(crc32) ;
+use Compress::Raw::Zlib  2.024 qw(crc32) ;
 BEGIN
 {
     eval { require IO::Compress::Adapter::Bzip2 ; 
-           import  IO::Compress::Adapter::Bzip2 2.023 ; 
+           import  IO::Compress::Adapter::Bzip2 2.024 ; 
            require IO::Compress::Bzip2 ; 
-           import  IO::Compress::Bzip2 2.023 ; 
+           import  IO::Compress::Bzip2 2.024 ; 
          } ;
 #    eval { require IO::Compress::Adapter::Lzma ; 
 #           import  IO::Compress::Adapter::Lzma 2.020 ; 
 #           require IO::Compress::Lzma ; 
-#           import  IO::Compress::Lzma 2.023 ; 
+#           import  IO::Compress::Lzma 2.024 ; 
 #         } ;
 }
 
@@ -32,7 +32,7 @@ require Exporter ;
 
 our ($VERSION, @ISA, @EXPORT_OK, %EXPORT_TAGS, $ZipError);
 
-$VERSION = '2.023';
+$VERSION = '2.024';
 $ZipError = '';
 
 @ISA = qw(Exporter IO::Compress::RawDeflate);
@@ -513,8 +513,8 @@ sub getExtraParams
 {
     my $self = shift ;
 
-    use IO::Compress::Base::Common  2.023 qw(:Parse);
-    use Compress::Raw::Zlib  2.023 qw(Z_DEFLATED Z_DEFAULT_COMPRESSION Z_DEFAULT_STRATEGY);
+    use IO::Compress::Base::Common  2.024 qw(:Parse);
+    use Compress::Raw::Zlib  2.024 qw(Z_DEFLATED Z_DEFAULT_COMPRESSION Z_DEFAULT_STRATEGY);
 
     my @Bzip2 = ();
     
@@ -1605,7 +1605,7 @@ See the Changes file.
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (c) 2005-2009 Paul Marquess. All rights reserved.
+Copyright (c) 2005-2010 Paul Marquess. All rights reserved.
 
 This program is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.

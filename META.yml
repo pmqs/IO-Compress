@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:               IO-Compress
-version:            2.023
+version:            2.024
 abstract:           IO Interface to compressed data files/buffers
 author:
     - Paul Marquess <pmqs@cpan.org>
@@ -11,8 +11,8 @@ configure_requires:
 build_requires:
     ExtUtils::MakeMaker:  0
 requires:
-    Compress::Raw::Bzip2:  2.023
-    Compress::Raw::Zlib:  2.023
+    Compress::Raw::Bzip2:  2.024
+    Compress::Raw::Zlib:  2.024
     Scalar::Util:         0
 no_index:
     directory:

@@ -7,16 +7,16 @@ use warnings;
 use bytes;
 
 
-use IO::Compress::Base 2.023 ;
-use IO::Compress::Base::Common  2.023 qw(:Status createSelfTiedObject);
-use IO::Compress::Adapter::Deflate  2.023 ;
+use IO::Compress::Base 2.024 ;
+use IO::Compress::Base::Common  2.024 qw(:Status createSelfTiedObject);
+use IO::Compress::Adapter::Deflate  2.024 ;
 
 require Exporter ;
 
 
 our ($VERSION, @ISA, @EXPORT_OK, %DEFLATE_CONSTANTS, %EXPORT_TAGS, $RawDeflateError);
 
-$VERSION = '2.023';
+$VERSION = '2.024';
 $RawDeflateError = '';
 
 @ISA = qw(Exporter IO::Compress::Base);
@@ -142,8 +142,8 @@ sub getZlibParams
 {
     my $self = shift ;
 
-    use IO::Compress::Base::Common  2.023 qw(:Parse);
-    use Compress::Raw::Zlib  2.023 qw(Z_DEFLATED Z_DEFAULT_COMPRESSION Z_DEFAULT_STRATEGY);
+    use IO::Compress::Base::Common  2.024 qw(:Parse);
+    use Compress::Raw::Zlib  2.024 qw(Z_DEFLATED Z_DEFAULT_COMPRESSION Z_DEFAULT_STRATEGY);
 
     
     return (
@@ -1010,7 +1010,7 @@ See the Changes file.
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (c) 2005-2009 Paul Marquess. All rights reserved.
+Copyright (c) 2005-2010 Paul Marquess. All rights reserved.
 
 This program is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.
