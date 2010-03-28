@@ -6,16 +6,16 @@ use bytes;
 
 require Exporter ;
 
-use IO::Compress::RawDeflate 2.024 ;
+use IO::Compress::RawDeflate 2.025 ;
 
-use Compress::Raw::Zlib  2.024 ;
-use IO::Compress::Zlib::Constants 2.024 ;
-use IO::Compress::Base::Common  2.024 qw(createSelfTiedObject);
+use Compress::Raw::Zlib  2.025 ;
+use IO::Compress::Zlib::Constants 2.025 ;
+use IO::Compress::Base::Common  2.025 qw(createSelfTiedObject);
 
 
 our ($VERSION, @ISA, @EXPORT_OK, %EXPORT_TAGS, $DeflateError);
 
-$VERSION = '2.024';
+$VERSION = '2.025';
 $DeflateError = '';
 
 @ISA    = qw(Exporter IO::Compress::RawDeflate);

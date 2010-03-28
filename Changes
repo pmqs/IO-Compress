@@ -1,6 +1,15 @@
 CHANGES
 -------
 
+  2.025 27 March 2010
+
+      * IO::Uncompress::Unzip
+        The "Name" option wasn't documented.
+
+      * Allow zlib version check to be disabled by setting
+        TEST_SKIP_VERSION_CHECK environment variable.
+        [RT #54510]
+
   2.024 7 January 2010
 
       * Compress::Zlib
