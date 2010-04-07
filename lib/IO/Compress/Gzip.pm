@@ -8,12 +8,12 @@ use warnings;
 use bytes;
 
 
-use IO::Compress::RawDeflate 2.025 ;
+use IO::Compress::RawDeflate 2.026 ;
 
-use Compress::Raw::Zlib  2.025 ;
-use IO::Compress::Base::Common  2.025 qw(:Status :Parse createSelfTiedObject);
-use IO::Compress::Gzip::Constants 2.025 ;
-use IO::Compress::Zlib::Extra 2.025 ;
+use Compress::Raw::Zlib  2.026 ;
+use IO::Compress::Base::Common  2.026 qw(:Status :Parse createSelfTiedObject);
+use IO::Compress::Gzip::Constants 2.026 ;
+use IO::Compress::Zlib::Extra 2.026 ;
 
 BEGIN
 {
@@ -27,7 +27,7 @@ require Exporter ;
 
 our ($VERSION, @ISA, @EXPORT_OK, %EXPORT_TAGS, $GzipError);
 
-$VERSION = '2.025';
+$VERSION = '2.026';
 $GzipError = '' ;
 
 @ISA    = qw(Exporter IO::Compress::RawDeflate);
@@ -392,8 +392,6 @@ If C<$input> is a string that is delimited by the characters "<" and ">"
 C<gzip> will assume that it is an I<input fileglob string>. The
 input is the list of files that match the fileglob.
 
-If the fileglob does not match any files ...
-
 See L<File::GlobMapper|File::GlobMapper> for more details.
 
 =back
@@ -444,6 +442,8 @@ output is the list of files that match the fileglob.
 
 When C<$output> is an fileglob string, C<$input> must also be a fileglob
 string. Anything else is an error.
+
+See L<File::GlobMapper|File::GlobMapper> for more details.
 
 =back
 

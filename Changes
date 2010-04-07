@@ -1,6 +1,13 @@
 CHANGES
 -------
 
+  2.026 7 April 2010
+
+      * IO::Uncompress::Zip
+        - Some updates to IO::Compress::Zip documentation.
+        - Fixed default setting for ExtAttr.
+
+
   2.025 27 March 2010
 
       * IO::Uncompress::Unzip
