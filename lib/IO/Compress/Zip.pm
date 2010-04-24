@@ -4,26 +4,26 @@ use strict ;
 use warnings;
 use bytes;
 
-use IO::Compress::Base::Common  2.026 qw(:Status createSelfTiedObject);
-use IO::Compress::RawDeflate 2.026 ;
-use IO::Compress::Adapter::Deflate 2.026 ;
-use IO::Compress::Adapter::Identity 2.026 ;
-use IO::Compress::Zlib::Extra 2.026 ;
-use IO::Compress::Zip::Constants 2.026 ;
+use IO::Compress::Base::Common  2.027 qw(:Status createSelfTiedObject);
+use IO::Compress::RawDeflate 2.027 ;
+use IO::Compress::Adapter::Deflate 2.027 ;
+use IO::Compress::Adapter::Identity 2.027 ;
+use IO::Compress::Zlib::Extra 2.027 ;
+use IO::Compress::Zip::Constants 2.027 ;
 
 
-use Compress::Raw::Zlib  2.026 qw(crc32) ;
+use Compress::Raw::Zlib  2.027 qw(crc32) ;
 BEGIN
 {
     eval { require IO::Compress::Adapter::Bzip2 ; 
-           import  IO::Compress::Adapter::Bzip2 2.026 ; 
+           import  IO::Compress::Adapter::Bzip2 2.027 ; 
            require IO::Compress::Bzip2 ; 
-           import  IO::Compress::Bzip2 2.026 ; 
+           import  IO::Compress::Bzip2 2.027 ; 
          } ;
 #    eval { require IO::Compress::Adapter::Lzma ; 
 #           import  IO::Compress::Adapter::Lzma 2.020 ; 
 #           require IO::Compress::Lzma ; 
-#           import  IO::Compress::Lzma 2.026 ; 
+#           import  IO::Compress::Lzma 2.027 ; 
 #         } ;
 }
 
@@ -32,7 +32,7 @@ require Exporter ;
 
 our ($VERSION, @ISA, @EXPORT_OK, %EXPORT_TAGS, $ZipError);
 
-$VERSION = '2.026';
+$VERSION = '2.027';
 $ZipError = '';
 
 @ISA = qw(Exporter IO::Compress::RawDeflate);
@@ -513,8 +513,8 @@ sub getExtraParams
 {
     my $self = shift ;
 
-    use IO::Compress::Base::Common  2.026 qw(:Parse);
-    use Compress::Raw::Zlib  2.026 qw(Z_DEFLATED Z_DEFAULT_COMPRESSION Z_DEFAULT_STRATEGY);
+    use IO::Compress::Base::Common  2.027 qw(:Parse);
+    use Compress::Raw::Zlib  2.027 qw(Z_DEFLATED Z_DEFAULT_COMPRESSION Z_DEFAULT_STRATEGY);
 
     my @Bzip2 = ();
     

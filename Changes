@@ -1,6 +1,12 @@
 CHANGES
 -------
 
+  2.027 24 April 2010
+
+      * Compress::Zlib
+        Remove autoload code from Zlib.pm.
+        [perl #74088]
+
   2.026 7 April 2010
 
       * IO::Uncompress::Zip
