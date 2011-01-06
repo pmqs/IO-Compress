@@ -8,14 +8,14 @@ use strict ;
 use warnings;
 use bytes;
 
-use IO::Uncompress::RawInflate  2.030 ;
-use IO::Compress::Base::Common  2.030 qw(:Status createSelfTiedObject);
-use IO::Uncompress::Adapter::Inflate  2.030 ;
-use IO::Uncompress::Adapter::Identity 2.030 ;
-use IO::Compress::Zlib::Extra 2.030 ;
-use IO::Compress::Zip::Constants 2.030 ;
+use IO::Uncompress::RawInflate  2.032 ;
+use IO::Compress::Base::Common  2.032 qw(:Status createSelfTiedObject);
+use IO::Uncompress::Adapter::Inflate  2.032 ;
+use IO::Uncompress::Adapter::Identity 2.032 ;
+use IO::Compress::Zlib::Extra 2.032 ;
+use IO::Compress::Zip::Constants 2.032 ;
 
-use Compress::Raw::Zlib  2.030 qw(crc32) ;
+use Compress::Raw::Zlib  2.032 qw(crc32) ;
 
 BEGIN
 {
@@ -30,7 +30,7 @@ require Exporter ;
 
 our ($VERSION, @ISA, @EXPORT_OK, %EXPORT_TAGS, $UnzipError, %headerLookup);
 
-$VERSION = '2.030';
+$VERSION = '2.032';
 $UnzipError = '';
 
 @ISA    = qw(Exporter IO::Uncompress::RawInflate);
@@ -63,7 +63,7 @@ sub unzip
 
 sub getExtraParams
 {
-    use IO::Compress::Base::Common  2.030 qw(:Parse);
+    use IO::Compress::Base::Common  2.032 qw(:Parse);
 
     
     return (
@@ -1586,7 +1586,7 @@ See the Changes file.
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (c) 2005-2010 Paul Marquess. All rights reserved.
+Copyright (c) 2005-2011 Paul Marquess. All rights reserved.
 
 This program is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.

@@ -1,6 +1,22 @@
 CHANGES
 -------
 
+  2.032 4 Jan 2011
+
+      * IO::Uncompress::Base
+        - Am input file that had a valid header, and so would allow
+          creation of the uncompression object, but was then followed by
+          corrupt data would trigger an infinite loop when using the 
+          input line oprator.
+          [RT #61915]
+
+      * IO::Compress::Gzip
+        - XFL default settings for max compression & fastest algorithm were 
+          the wrong way around. Thanks to Andrey Zholos for spotting this.
+
+      * IO::Compress::Base::Common
+        - Fixed precedence problem in parameter parsing code.
+
   2.030 22 July 2010
 
       * IO::Compress::Zip

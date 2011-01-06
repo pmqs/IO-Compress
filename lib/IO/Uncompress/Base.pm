@@ -9,12 +9,12 @@ our (@ISA, $VERSION, @EXPORT_OK, %EXPORT_TAGS);
 @ISA    = qw(Exporter IO::File);
 
 
-$VERSION = '2.030';
+$VERSION = '2.032';
 
 use constant G_EOF => 0 ;
 use constant G_ERR => -1 ;
 
-use IO::Compress::Base::Common 2.030 ;
+use IO::Compress::Base::Common 2.032 ;
 #use Parse::Parameters ;
 
 use IO::File ;
@@ -1123,33 +1123,34 @@ sub read
 sub _getline
 {
     my $self = shift ;
+    my $status = 0 ;
 
     # Slurp Mode
     if ( ! defined $/ ) {
         my $data ;
-        1 while $self->read($data) > 0 ;
-        return \$data ;
+        1 while ($status = $self->read($data)) > 0 ;
+        return $status < 0 ? \undef : \$data ;
     }
 
     # Record Mode
     if ( ref $/ eq 'SCALAR' && ${$/} =~ /^\d+$/ && ${$/} > 0) {
         my $reclen = ${$/} ;
         my $data ;
-        $self->read($data, $reclen) ;
-        return \$data ;
+        $status = $self->read($data, $reclen) ;
+        return $status < 0 ? \undef : \$data ;
     }
 
     # Paragraph Mode
     if ( ! length $/ ) {
         my $paragraph ;    
-        while ($self->read($paragraph) > 0 ) {
+        while (($status = $self->read($paragraph)) > 0 ) {
             if ($paragraph =~ s/^(.*?\n\n+)//s) {
                 *$self->{Pending}  = $paragraph ;
                 my $par = $1 ;
                 return \$par ;
             }
         }
-        return \$paragraph;
+        return $status < 0 ? \undef : \$paragraph;
     }
 
     # $/ isn't empty, or a reference, so it's Line Mode.
@@ -1165,7 +1166,7 @@ sub _getline
             return \$l;
         }
 
-        while ($self->read($line) > 0 ) {
+        while (($status = $self->read($line)) > 0 ) {
             my $offset = index($line, $/);
             if ($offset >= 0) {
                 my $l = substr($line, 0, $offset + length $/ );
@@ -1175,7 +1176,7 @@ sub _getline
             }
         }
 
-        return \$line;
+        return $status < 0 ? \undef : \$line;
     }
 }
 
@@ -1467,7 +1468,7 @@ See the Changes file.
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (c) 2005-2010 Paul Marquess. All rights reserved.
+Copyright (c) 2005-2011 Paul Marquess. All rights reserved.
 
 This program is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.

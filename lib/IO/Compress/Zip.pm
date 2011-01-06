@@ -4,26 +4,26 @@ use strict ;
 use warnings;
 use bytes;
 
-use IO::Compress::Base::Common  2.030 qw(:Status createSelfTiedObject);
-use IO::Compress::RawDeflate 2.030 ;
-use IO::Compress::Adapter::Deflate 2.030 ;
-use IO::Compress::Adapter::Identity 2.030 ;
-use IO::Compress::Zlib::Extra 2.030 ;
-use IO::Compress::Zip::Constants 2.030 ;
+use IO::Compress::Base::Common  2.032 qw(:Status createSelfTiedObject);
+use IO::Compress::RawDeflate 2.032 ;
+use IO::Compress::Adapter::Deflate 2.032 ;
+use IO::Compress::Adapter::Identity 2.032 ;
+use IO::Compress::Zlib::Extra 2.032 ;
+use IO::Compress::Zip::Constants 2.032 ;
 
 
-use Compress::Raw::Zlib  2.030 qw(crc32) ;
+use Compress::Raw::Zlib  2.032 qw(crc32) ;
 BEGIN
 {
     eval { require IO::Compress::Adapter::Bzip2 ; 
-           import  IO::Compress::Adapter::Bzip2 2.030 ; 
+           import  IO::Compress::Adapter::Bzip2 2.032 ; 
            require IO::Compress::Bzip2 ; 
-           import  IO::Compress::Bzip2 2.030 ; 
+           import  IO::Compress::Bzip2 2.032 ; 
          } ;
 #    eval { require IO::Compress::Adapter::Lzma ; 
 #           import  IO::Compress::Adapter::Lzma 2.020 ; 
 #           require IO::Compress::Lzma ; 
-#           import  IO::Compress::Lzma 2.030 ; 
+#           import  IO::Compress::Lzma 2.032 ; 
 #         } ;
 }
 
@@ -32,7 +32,7 @@ require Exporter ;
 
 our ($VERSION, @ISA, @EXPORT_OK, %EXPORT_TAGS, $ZipError);
 
-$VERSION = '2.030';
+$VERSION = '2.032';
 $ZipError = '';
 
 @ISA = qw(Exporter IO::Compress::RawDeflate);
@@ -513,8 +513,8 @@ sub getExtraParams
 {
     my $self = shift ;
 
-    use IO::Compress::Base::Common  2.030 qw(:Parse);
-    use Compress::Raw::Zlib  2.030 qw(Z_DEFLATED Z_DEFAULT_COMPRESSION Z_DEFAULT_STRATEGY);
+    use IO::Compress::Base::Common  2.032 qw(:Parse);
+    use Compress::Raw::Zlib  2.032 qw(Z_DEFLATED Z_DEFAULT_COMPRESSION Z_DEFAULT_STRATEGY);
 
     my @Bzip2 = ();
     
@@ -1084,7 +1084,7 @@ If you are running a Unix derivative this value defaults to
     0100644 << 16
 
 This should allow read/write access to any files that are extracted from
-the zip file/buffer.
+the zip file/buffer`.
 
 For all other systems it defaults to 0.
 
@@ -1618,7 +1618,7 @@ See the Changes file.
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (c) 2005-2010 Paul Marquess. All rights reserved.
+Copyright (c) 2005-2011 Paul Marquess. All rights reserved.
 
 This program is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.
