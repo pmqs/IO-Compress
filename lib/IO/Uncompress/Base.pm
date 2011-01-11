@@ -9,12 +9,12 @@ our (@ISA, $VERSION, @EXPORT_OK, %EXPORT_TAGS);
 @ISA    = qw(Exporter IO::File);
 
 
-$VERSION = '2.032';
+$VERSION = '2.033';
 
 use constant G_EOF => 0 ;
 use constant G_ERR => -1 ;
 
-use IO::Compress::Base::Common 2.032 ;
+use IO::Compress::Base::Common 2.033 ;
 #use Parse::Parameters ;
 
 use IO::File ;
@@ -34,9 +34,11 @@ sub smartRead
     my $self = $_[0];
     my $out = $_[1];
     my $size = $_[2];
+    #$$out = "" ;
     $$out = "" ;
 
     my $offset = 0 ;
+    my $status = 1;
 
 
     if (defined *$self->{InputLength}) {
@@ -69,11 +71,12 @@ sub smartRead
             # because the filehandle may not support the offset parameter
             # An example is Net::FTP
             my $tmp = '';
-            *$self->{FH}->read($tmp, $get_size) &&
-                (substr($$out, $offset) = $tmp);
+            $status = *$self->{FH}->read($tmp, $get_size) ;
+            substr($$out, $offset) = $tmp
+                if defined $status && $status > 0 ;
         }
         else
-          { *$self->{FH}->read($$out, $get_size) }
+          { $status = *$self->{FH}->read($$out, $get_size) }
     }
     elsif (defined *$self->{InputEvent}) {
         my $got = 1 ;
@@ -105,6 +108,11 @@ sub smartRead
     *$self->{InputLengthRemaining} -= length($$out) #- $offset 
         if defined *$self->{InputLength};
         
+    if (! defined $status) {
+        $self->saveStatus($!) ;
+        return STATUS_ERROR;
+    }
+
     $self->saveStatus(length $$out < 0 ? STATUS_ERROR : STATUS_OK) ;
 
     return length $$out;
@@ -776,8 +784,8 @@ sub readBlock
     }
     
     my $status = $self->smartRead($buff, $size) ;
-    return $self->saveErrorString(STATUS_ERROR, "Error Reading Data")
-        if $status < 0  ;
+    return $self->saveErrorString(STATUS_ERROR, "Error Reading Data: $!")
+        if $status == STATUS_ERROR  ;
 
     if ($status == 0 ) {
         *$self->{Closed} = 1 ;
@@ -814,7 +822,7 @@ sub _raw_read
         my $len = $self->smartRead(\$tmp_buff, *$self->{BlockSize}) ;
         
         return $self->saveErrorString(G_ERR, "Error reading data: $!", $!) 
-                if $len < 0 ;
+                if $len == STATUS_ERROR ;
 
         if ($len == 0 ) {
             *$self->{EndStream} = 1 ;
@@ -1446,7 +1454,7 @@ IO::Uncompress::Base - Base Class for IO::Uncompress modules
 =head1 DESCRIPTION
 
 This module is not intended for direct use in application code. Its sole
-purpose if to to be sub-classed by IO::Unompress modules.
+purpose if to to be sub-classed by IO::Uncompress modules.
 
 =head1 SEE ALSO
 

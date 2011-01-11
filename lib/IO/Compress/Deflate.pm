@@ -6,16 +6,16 @@ use bytes;
 
 require Exporter ;
 
-use IO::Compress::RawDeflate 2.032 ;
+use IO::Compress::RawDeflate 2.033 ;
 
-use Compress::Raw::Zlib  2.032 ;
-use IO::Compress::Zlib::Constants 2.032 ;
-use IO::Compress::Base::Common  2.032 qw(createSelfTiedObject);
+use Compress::Raw::Zlib  2.033 ;
+use IO::Compress::Zlib::Constants 2.033 ;
+use IO::Compress::Base::Common  2.033 qw(createSelfTiedObject);
 
 
 our ($VERSION, @ISA, @EXPORT_OK, %EXPORT_TAGS, $DeflateError);
 
-$VERSION = '2.032';
+$VERSION = '2.033';
 $DeflateError = '';
 
 @ISA    = qw(Exporter IO::Compress::RawDeflate);
@@ -394,8 +394,8 @@ data to the output data stream.
 
 So when the output is a filehandle it will carry out a seek to the eof
 before writing any compressed data. If the output is a filename, it will be opened for
-appending. If the output is a buffer, all compressed data will be appened to
-the existing buffer.
+appending. If the output is a buffer, all compressed data will be
+appended to the existing buffer.
 
 Conversely when C<Append> is not specified, or it is present and is set to
 false, it will operate as follows.

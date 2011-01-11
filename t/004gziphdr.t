@@ -479,7 +479,7 @@ for my $value ( "0D", "0A", "0A0D", "0D0A", "0A0A", "0D0D")
 }
 
 {
-    # Check Minimal + no comressed data
+    # Check Minimal + no compressed data
     # This is the smallest possible gzip file (20 bytes)
 
     ok my $x = new IO::Compress::Gzip $name, -Minimal => 1;

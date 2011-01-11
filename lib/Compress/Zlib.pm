@@ -7,17 +7,17 @@ use Carp ;
 use IO::Handle ;
 use Scalar::Util qw(dualvar);
 
-use IO::Compress::Base::Common 2.032 ;
-use Compress::Raw::Zlib 2.032 ;
-use IO::Compress::Gzip 2.032 ;
-use IO::Uncompress::Gunzip 2.032 ;
+use IO::Compress::Base::Common 2.033 ;
+use Compress::Raw::Zlib 2.033 ;
+use IO::Compress::Gzip 2.033 ;
+use IO::Uncompress::Gunzip 2.033 ;
 
 use strict ;
 use warnings ;
 use bytes ;
 our ($VERSION, $XS_VERSION, @ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS);
 
-$VERSION = '2.032';
+$VERSION = '2.033';
 $XS_VERSION = $VERSION; 
 $VERSION = eval $VERSION;
 
@@ -451,7 +451,7 @@ sub inflate
 
 package Compress::Zlib ;
 
-use IO::Compress::Gzip::Constants 2.032 ;
+use IO::Compress::Gzip::Constants 2.033 ;
 
 sub memGzip($)
 {
@@ -1007,7 +1007,7 @@ carry out in-memory gzip compression.
 This function is used to uncompress an in-memory gzip file.
 
     $dest = Compress::Zlib::memGunzip($buffer) 
-        or die "Cannot uncomprss: $gzerrno\n";
+        or die "Cannot uncompress: $gzerrno\n";
 
 If successful, it returns the uncompressed gzip file. Otherwise it
 returns C<undef> and the C<$gzerrno> variable will store the zlib error
