@@ -79,16 +79,15 @@ sub run
         }
 
         {
-            my $dir = "tmpdir";
+            my $dir ;
             my $lex = new LexDir $dir ;
-            mkdir $dir, 0777 ;
 
-            $a = $Func->($dir, \$x) ;
+            $a = $Func->("$dir", \$x) ;
             is $a, undef, "  $TopType returned undef";
             like $$Error, "/input file '$dir' is a directory/",
                 '  Input filename is a directory';
 
-            $a = $Func->(\$x, $dir) ;
+            $a = $Func->(\$x, "$dir") ;
             is $a, undef, "  $TopType returned undef";
             like $$Error, "/output file '$dir' is a directory/",
                 '  Output filename is a directory';
@@ -890,15 +889,11 @@ sub run
         for my $files ( [qw(a1)], [qw(a1 a2 a3)] )
         {
 
-            my $tmpDir1 = 'tmpdir1';
-            my $tmpDir2 = 'tmpdir2';
+            my $tmpDir1 ;
+            my $tmpDir2 ;
             my $lex = new LexDir($tmpDir1, $tmpDir2) ;
 
-            mkdir $tmpDir1, 0777;
-            mkdir $tmpDir2, 0777;
-
             ok   -d $tmpDir1, "  Temp Directory $tmpDir1 exists";
-            #ok ! -d $tmpDir2, "  Temp Directory $tmpDir2 does not exist";
 
             my @files = map { "$tmpDir1/$_.tmp" } @$files ;
             foreach (@files) { writeFile($_, "abc $_") }
@@ -961,8 +956,7 @@ sub run
                 {
                     title "$TopType - From FileGlob to Filename files [@$files], MS $ms" ;
 
-                    my $filename = "abcde";
-                    my $lex = new LexFile($filename) ;
+                    my $lex = new LexFile(my $filename) ;
                     
                     ok &$Func("<$tmpDir1/a*.tmp>" => $filename,
                               MultiStream => $ms), '  Compressed ok' 
@@ -980,8 +974,7 @@ sub run
                 {
                     title "$TopType - From FileGlob to Filehandle files [@$files], MS $ms" ;
 
-                    my $filename = "abcde";
-                    my $lex = new LexFile($filename) ;
+                    my $lex = new LexFile(my $filename) ;
                     my $fh = new IO::File ">$filename";
                     
                     ok &$Func("<$tmpDir1/a*.tmp>" => $fh, 
@@ -1399,19 +1392,15 @@ sub run
         my $Func = getTopFuncRef($bit);
         my $TopType = getTopFuncName($bit);
 
-        my $tmpDir1 = 'tmpdir1';
-        my $tmpDir2 = 'tmpdir2';
+        my $tmpDir1 ;
+        my $tmpDir2 ;
         my $lex = new LexDir($tmpDir1, $tmpDir2) ;
-
-        mkdir $tmpDir1, 0777;
-        mkdir $tmpDir2, 0777;
 
         my @opts = ();
         @opts = (RawInflate => 1, UnLzma => 1)
             if $bit eq 'IO::Uncompress::AnyUncompress';
 
         ok   -d $tmpDir1, "  Temp Directory $tmpDir1 exists";
-        #ok ! -d $tmpDir2, "  Temp Directory $tmpDir2 does not exist";
 
         my @files = map { "$tmpDir1/$_.tmp" } qw( a1 a2 a3) ;
         foreach (@files) { writeFile($_, compressBuffer($UncompressClass, "abc $_")) }
@@ -1475,8 +1464,7 @@ sub run
         {
             title "$TopType - From FileGlob to Filehandle" ;
 
-            my $output = 'abc' ;
-            my $lex = new LexFile $output ;
+            my $lex = new LexFile my $output ;
             my $fh = new IO::File ">$output" ;
             ok &$Func("<$tmpDir1/a*.tmp>" => $fh, AutoClose => 1, @opts), '  UnCompressed ok' 
                 or diag $$Error ;
