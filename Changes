@@ -1,6 +1,10 @@
 CHANGES
 -------
 
+  2.035 6 May 2011
+
+      * RT #67931: Test failure on Windows
+
   2.034 2 May 2011
 
       * Compress::Zlib

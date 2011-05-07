@@ -59,8 +59,9 @@ Perl $]" )
     #my $tmpDir = 'td';
     my $tmpDir ;
     my $lex = new LexDir $tmpDir;
+    my $d = quotemeta $tmpDir;
 
-    my $gm = new File::GlobMapper("$tmpDir/Z*", '*.X');
+    my $gm = new File::GlobMapper("$d/Z*", '*.X');
     ok $gm, "  created GlobMapper object" ;
 
     my $map = $gm->getFileMap() ;

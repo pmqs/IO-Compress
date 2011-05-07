@@ -107,7 +107,7 @@ sub printHeaderInfo
 # Check the Deflate Header Parameters
 #========================================
 
-my $lex = new LexFile my $name ;
+#my $lex = new LexFile my $name ;
 
 {
     title "Check default header settings" ;
@@ -287,6 +287,7 @@ EOM
         foreach my $s (0, 1)
         {
             title "Trailer Corruption - Trailer truncated to $got bytes, strict $s" ;
+		my $lex = new LexFile my $name ;
             my $buffer = $good ;
             my $expected_trailing = substr($good, -4, 4) ;
             substr($expected_trailing, $trim) = '';
@@ -321,6 +322,7 @@ EOM
         my $buffer = $good ;
         my $crc = unpack("N", substr($buffer, -4, 4));
         substr($buffer, -4, 4) = pack('N', $crc+1);
+		my $lex = new LexFile my $name ;
         writeFile($name, $buffer) ;
 
         ok my $gunz = new IO::Uncompress::Inflate $name, Append => 1, Strict => 1;
@@ -341,6 +343,7 @@ EOM
         my $buffer = $good ;
         my $crc = unpack("N", substr($buffer, -4, 4));
         substr($buffer, -4, 4) = pack('N', $crc+1);
+		my $lex = new LexFile my $name ;
         writeFile($name, $buffer) ;
 
         ok my $gunz = new IO::Uncompress::Inflate $name, Append => 1, Strict => 0;

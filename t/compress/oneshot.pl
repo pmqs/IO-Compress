@@ -81,15 +81,16 @@ sub run
         {
             my $dir ;
             my $lex = new LexDir $dir ;
+            my $d = quotemeta $dir;
 
             $a = $Func->("$dir", \$x) ;
             is $a, undef, "  $TopType returned undef";
-            like $$Error, "/input file '$dir' is a directory/",
+            like $$Error, "/input file '$d' is a directory/",
                 '  Input filename is a directory';
 
             $a = $Func->(\$x, "$dir") ;
             is $a, undef, "  $TopType returned undef";
-            like $$Error, "/output file '$dir' is a directory/",
+            like $$Error, "/output file '$d' is a directory/",
                 '  Output filename is a directory';
         }
 
@@ -892,6 +893,8 @@ sub run
             my $tmpDir1 ;
             my $tmpDir2 ;
             my $lex = new LexDir($tmpDir1, $tmpDir2) ;
+            my $d1 = quotemeta $tmpDir1 ;
+            my $d2 = quotemeta $tmpDir2 ;
 
             ok   -d $tmpDir1, "  Temp Directory $tmpDir1 exists";
 
@@ -899,7 +902,7 @@ sub run
             foreach (@files) { writeFile($_, "abc $_") }
 
             my @expected = map { "abc $_" } @files ;
-            my @outFiles = map { s/$tmpDir1/$tmpDir2/; $_ } @files ;
+            my @outFiles = map { s/$d1/$tmpDir2/; $_ } @files ;
 
             {
                 title "$TopType - From FileGlob to FileGlob files [@$files]" ;
@@ -1395,6 +1398,8 @@ sub run
         my $tmpDir1 ;
         my $tmpDir2 ;
         my $lex = new LexDir($tmpDir1, $tmpDir2) ;
+        my $d1 = quotemeta $tmpDir1 ;
+        my $d2 = quotemeta $tmpDir2 ;
 
         my @opts = ();
         @opts = (RawInflate => 1, UnLzma => 1)
@@ -1406,7 +1411,7 @@ sub run
         foreach (@files) { writeFile($_, compressBuffer($UncompressClass, "abc $_")) }
 
         my @expected = map { "abc $_" } @files ;
-        my @outFiles = map { s/$tmpDir1/$tmpDir2/; $_ } @files ;
+        my @outFiles = map { s/$d1/$tmpDir2/; $_ } @files ;
 
         {
             title "$TopType - From FileGlob to FileGlob" ;

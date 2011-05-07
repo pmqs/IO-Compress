@@ -82,7 +82,7 @@ BEGIN {
             foreach (@_)
             {
                 Carp::croak "NO!!!!" if defined $_;
-                $_ = File::Temp->newdir();
+                $_ = File::Temp->newdir(DIR => '.');
             }
             bless [ @_ ], $self ;
         }
@@ -91,7 +91,7 @@ BEGIN {
             foreach (@_)
             {
                 Carp::croak "NO!!!!" if defined $_;
-                $_ = File::Temp::tempdir(CLEANUP => 1);
+                $_ = File::Temp::tempdir(DIR => '.', CLEANUP => 1);
             }
             bless [ @_ ], $self ;
         }
