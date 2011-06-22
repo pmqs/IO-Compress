@@ -95,6 +95,7 @@ t/105oneshot-gzip.t
 t/105oneshot-rawdeflate.t
 t/105oneshot-zip-bzip2-only.t
 t/105oneshot-zip-only.t
+t/105oneshot-zip-store-only.t
 t/105oneshot-zip.t
 t/106prime-bzip2.t
 t/106prime-deflate.t
