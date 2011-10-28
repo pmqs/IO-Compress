@@ -1,6 +1,15 @@
 CHANGES
 -------
 
+  2.040 28 October 2011
+
+      * t/105oneshot-zip-only.t
+        - CanonicalName test failure on Windows
+          [RT# 68926]
+
+      * IO::Compress::Zip
+        - ExtAttr now populates MSDOS attributes 
+
   2.039 28 October 2011
 
       * IO::Compress::Zip

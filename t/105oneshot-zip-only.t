@@ -146,7 +146,7 @@ sub zipGetHeader
     is $hdr->{Name}, "fred/joe", "  Name is 'fred/joe'" ;
 
     $hdr = zipGetHeader($file1, $content, Name => $abs, CanonicalName => 0) ;
-    is $hdr->{Name}, "/fred/joe", "  Name is '/fred/joe'" ;
+    is $hdr->{Name}, File::Spec->catfile("", "fred", "joe"), "  Name is '/fred/joe'" ;
 
     $hdr = zipGetHeader($file1, $content, FilterName => sub {$_ = "abcde"});
     is $hdr->{Name}, "abcde", "  Name is 'abcde'" ;
@@ -158,7 +158,7 @@ sub zipGetHeader
     $hdr = zipGetHeader($file1, $content, Name => $abs, 
          CanonicalName => 0,
          FilterName => sub { s/joe/jim/ });
-    is $hdr->{Name}, "/fred/jim", "  Name is '/fred/jim'" ;
+    is $hdr->{Name}, File::Spec->catfile("", "fred", "jim"), "  Name is '/fred/jim'" ;
 }
 
 for my $stream (0, 1)

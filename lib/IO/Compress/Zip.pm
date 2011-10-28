@@ -4,27 +4,27 @@ use strict ;
 use warnings;
 use bytes;
 
-use IO::Compress::Base::Common  2.039 qw(:Status createSelfTiedObject);
-use IO::Compress::RawDeflate 2.039 ;
-use IO::Compress::Adapter::Deflate 2.039 ;
-use IO::Compress::Adapter::Identity 2.039 ;
-use IO::Compress::Zlib::Extra 2.039 ;
-use IO::Compress::Zip::Constants 2.039 ;
+use IO::Compress::Base::Common  2.040 qw(:Status createSelfTiedObject);
+use IO::Compress::RawDeflate 2.040 ;
+use IO::Compress::Adapter::Deflate 2.040 ;
+use IO::Compress::Adapter::Identity 2.040 ;
+use IO::Compress::Zlib::Extra 2.040 ;
+use IO::Compress::Zip::Constants 2.040 ;
 
 use File::Spec();
 
-use Compress::Raw::Zlib  2.039 qw(crc32) ;
+use Compress::Raw::Zlib  2.040 qw(crc32) ;
 BEGIN
 {
     eval { require IO::Compress::Adapter::Bzip2 ; 
-           import  IO::Compress::Adapter::Bzip2 2.039 ; 
+           import  IO::Compress::Adapter::Bzip2 2.040 ; 
            require IO::Compress::Bzip2 ; 
-           import  IO::Compress::Bzip2 2.039 ; 
+           import  IO::Compress::Bzip2 2.040 ; 
          } ;
     eval { require IO::Compress::Adapter::Lzma ; 
            import  IO::Compress::Adapter::Lzma 2.036 ; 
            require IO::Compress::Lzma ; 
-           import  IO::Compress::Lzma 2.039 ; 
+           import  IO::Compress::Lzma 2.040 ; 
          } ;
 }
 
@@ -33,7 +33,7 @@ require Exporter ;
 
 our ($VERSION, @ISA, @EXPORT_OK, %EXPORT_TAGS, $ZipError);
 
-$VERSION = '2.039';
+$VERSION = '2.040';
 $ZipError = '';
 
 @ISA = qw(Exporter IO::Compress::RawDeflate);
@@ -626,8 +626,8 @@ sub getExtraParams
 {
     my $self = shift ;
 
-    use IO::Compress::Base::Common  2.039 qw(:Parse);
-    use Compress::Raw::Zlib  2.039 qw(Z_DEFLATED Z_DEFAULT_COMPRESSION Z_DEFAULT_STRATEGY);
+    use IO::Compress::Base::Common  2.040 qw(:Parse);
+    use Compress::Raw::Zlib  2.040 qw(Z_DEFLATED Z_DEFAULT_COMPRESSION Z_DEFAULT_STRATEGY);
 
     my @Bzip2 = ();
     
@@ -706,8 +706,15 @@ sub getFileInfo
     }
 
     # NOTE - Unix specific code alert
-    $params->value('ExtAttr' => $mode << 16) 
-        if ! $params->parsed('ExtAttr');
+    if (! $params->parsed('ExtAttr'))
+    {
+        use Fcntl qw(:mode) ;
+        my $attr = $mode << 16;
+        $attr |= ZIP_A_RONLY if ($mode & S_IWRITE) == 0 ;
+        $attr |= ZIP_A_DIR   if ($mode & S_IFMT  ) == S_IFDIR ;
+        
+        $params->value('ExtAttr' => $attr);
+    }
 
     $params->value('UID' => $uid) ;
     $params->value('GID' => $gid) ;
