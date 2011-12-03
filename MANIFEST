@@ -1,4 +1,5 @@
 Changes
+bin/zipdetails  perl
 examples/io/anycat  perl
 examples/io/bzip2/bzcat perl
 examples/io/bzip2/bzgrep    perl
@@ -14,6 +15,7 @@ examples/compress-zlib/gzgrep   perl
 examples/compress-zlib/gzstream perl
 lib/Compress/Zlib.pm
 lib/File/GlobMapper.pm
+lib/IO/Compress/FAQ.pod
 lib/IO/Compress/Adapter/Bzip2.pm
 lib/IO/Compress/Adapter/Deflate.pm
 lib/IO/Compress/Adapter/Identity.pm
@@ -41,7 +43,6 @@ lib/IO/Uncompress/RawInflate.pm
 lib/IO/Uncompress/Unzip.pm
 Makefile.PL
 MANIFEST
-pod/FAQ.pod
 private/MakeUtil.pm
 README
 t/000prereq.t
