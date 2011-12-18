@@ -149,4 +149,3 @@ t/Test/Builder.pm
 t/Test/More.pm
 META.yml                                 Module meta-data (added by MakeMaker)
 t/Test/Simple.pm
-META.json                                Module JSON meta-data (added by MakeMaker)
