@@ -123,6 +123,7 @@ t/110encode-deflate.t
 t/110encode-gzip.t
 t/110encode-rawdeflate.t
 t/110encode-zip.t
+t/111const-deflate.t
 t/999pod.t
 t/cz-01version.t
 t/cz-03zlib-v1.t
@@ -149,3 +150,4 @@ t/Test/Builder.pm
 t/Test/More.pm
 META.yml                                 Module meta-data (added by MakeMaker)
 t/Test/Simple.pm
+META.json                                Module JSON meta-data (added by MakeMaker)
