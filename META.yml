@@ -17,8 +17,10 @@ no_index:
   directory:
     - t
     - inc
+    - t
+    - private
 requires:
-  Compress::Raw::Bzip2: 2.049
-  Compress::Raw::Zlib: 2.049
+  Compress::Raw::Bzip2: 2.052
+  Compress::Raw::Zlib: 2.052
   Scalar::Util: 0
-version: 2.049
+version: 2.052

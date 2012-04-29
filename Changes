@@ -1,6 +1,14 @@
 CHANGES
 -------
 
+  2.052 29 April 2012
+
+      * IO::Compress::Zip
+        Force a ZIP64 archive when it contains >= 0xFFFF entries.
+        
+      * Typos in POD
+        [RT# #76130: Gunzip Pod typo in OO section: $$output instead of $$input
+
   2.049 18 February 2012
 
       * IO::Compress::Zip

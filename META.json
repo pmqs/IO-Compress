@@ -16,7 +16,9 @@
    "no_index" : {
       "directory" : [
          "t",
-         "inc"
+         "inc",
+         "t",
+         "private"
       ]
    },
    "prereqs" : {
@@ -32,12 +34,12 @@
       },
       "runtime" : {
          "requires" : {
-            "Compress::Raw::Bzip2" : "2.049",
-            "Compress::Raw::Zlib" : "2.049",
+            "Compress::Raw::Bzip2" : "2.052",
+            "Compress::Raw::Zlib" : "2.052",
             "Scalar::Util" : 0
          }
       }
    },
    "release_status" : "stable",
-   "version" : "2.049"
+   "version" : "2.052"
 }
