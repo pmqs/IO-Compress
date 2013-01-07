@@ -34,12 +34,12 @@
       },
       "runtime" : {
          "requires" : {
-            "Compress::Raw::Bzip2" : "2.059",
-            "Compress::Raw::Zlib" : "2.059",
+            "Compress::Raw::Bzip2" : "2.060",
+            "Compress::Raw::Zlib" : "2.060",
             "Scalar::Util" : 0
          }
       }
    },
    "release_status" : "stable",
-   "version" : "2.059"
+   "version" : "2.060"
 }
