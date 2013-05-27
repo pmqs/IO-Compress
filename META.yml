@@ -20,7 +20,7 @@ no_index:
     - t
     - private
 requires:
-  Compress::Raw::Bzip2: 2.060
-  Compress::Raw::Zlib: 2.060
+  Compress::Raw::Bzip2: 2.061
+  Compress::Raw::Zlib: 2.061
   Scalar::Util: 0
-version: 2.060
+version: 2.061
