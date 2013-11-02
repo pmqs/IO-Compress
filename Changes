@@ -1,6 +1,10 @@
 CHANGES
 -------
 
+  2.063 20 October 2013
+
+      * RT#89305: Typo in Compress::Zlib _combine function documentation
+
   2.062 11 August 2013
 
       * RT#87335: [PATCH] Fix up tests for imminent bleadperl changes
