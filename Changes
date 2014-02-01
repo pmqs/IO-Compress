@@ -1,6 +1,11 @@
 CHANGES
 -------
 
+  2.064 1 February 2014
+
+      * RT #90216: IO-Compress/t/050interop-gzip.t: Use android-compatible
+        flags when calling gzip
+
   2.063 20 October 2013
 
       * RT#89305: Typo in Compress::Zlib _combine function documentation
@@ -217,7 +222,7 @@ CHANGES
           This is different from when Append isn't specified - the buffer 
           parameter is set to an empty string.
 
-        - There area couple of issues with reading a file that contains an 
+        - There are a couple of issues with reading a file that contains an 
           empty file that is compressed. 
           Create with -- touch /tmp/empty; gzip /tmp/empty.
           Issue 1 - eof is not true immediately. Have to read from the file
