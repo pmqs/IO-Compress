@@ -1,6 +1,16 @@
 CHANGES
 -------
 
+  2.066 21 Sept 2014
+
+      * IO::Uncompress::Gzip
+        Documentation of ExtraFlags stated the XFL values for BEST_COMPRESSION
+        and BEST_SPEED use the values 2 & 4 respectively. They should
+        be 4 & 2. Code for setting XFL was correct.
+
+      * RT #95494: IO::Uncompress::Gunzip: Can no longer gunzip to in-memory 
+        file handle
+
   2.064 1 February 2014
 
       * RT #90216: IO-Compress/t/050interop-gzip.t: Use android-compatible
