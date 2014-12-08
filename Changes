@@ -1,6 +1,10 @@
 CHANGES
 -------
 
+  2.067 8 Dec 2014
+
+      * RT #100257: IO::Compress::RawDeflate unnecessarily loads IO::Seekable
+
   2.066 21 Sept 2014
 
       * IO::Uncompress::Gzip
