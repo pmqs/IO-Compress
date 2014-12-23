@@ -1,6 +1,12 @@
 CHANGES
 -------
 
+  2.068 23 Dec 2014
+
+      * Disable running of some of the slower test harnesses by default.
+        COMPRESS_ZLIB_RUN_MOST needs set to run them. Make life more
+        bearable on legacy platforms
+
   2.067 8 Dec 2014
 
       * RT #100257: IO::Compress::RawDeflate unnecessarily loads IO::Seekable
