@@ -1,6 +1,17 @@
 CHANGES
 -------
 
+
+  2.069 26 Sept 2015
+
+      * IO::Compress::FAQ
+        - Added a section of bgzip
+          RT #103295: IO::Compress Feature request
+
+      * IO::Compress::Zip
+        - Zip64 needs to be first in extra field to workaround a Windows Explorer Bug
+          See http://www.info-zip.org/phpBB3/viewtopic.php?f=3&t=440 for details
+
   2.068 23 Dec 2014
 
       * Disable running of some of the slower test harnesses by default.
