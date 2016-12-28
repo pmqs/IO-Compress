@@ -1,6 +1,13 @@
 CHANGES
 -------
 
+  2.070 28 Dec 2016
+
+      * File::GlobMapper
+        #117675: Fix prototype errors while lazy loading the module
+
+      * zipdetails
+        #116538: CVE-2016-1238: avoid loading optional modules from default .
 
   2.069 26 Sept 2015
 

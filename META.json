@@ -4,7 +4,7 @@
       "Paul Marquess <pmqs@cpan.org>"
    ],
    "dynamic_config" : 1,
-   "generated_by" : "ExtUtils::MakeMaker version 6.62, CPAN::Meta::Converter version 2.112150",
+   "generated_by" : "ExtUtils::MakeMaker version 7.1001, CPAN::Meta::Converter version 2.150005",
    "license" : [
       "perl_5"
    ],
@@ -24,22 +24,23 @@
    "prereqs" : {
       "build" : {
          "requires" : {
-            "ExtUtils::MakeMaker" : 0
+            "ExtUtils::MakeMaker" : "0"
          }
       },
       "configure" : {
          "requires" : {
-            "ExtUtils::MakeMaker" : 0
+            "ExtUtils::MakeMaker" : "0"
          }
       },
       "runtime" : {
          "requires" : {
-            "Compress::Raw::Bzip2" : "2.069",
-            "Compress::Raw::Zlib" : "2.069",
-            "Scalar::Util" : 0
+            "Compress::Raw::Bzip2" : "2.070",
+            "Compress::Raw::Zlib" : "2.070",
+            "Scalar::Util" : "0"
          }
       }
    },
    "release_status" : "stable",
-   "version" : "2.069"
+   "version" : "2.070",
+   "x_serialization_backend" : "JSON::PP version 2.27300"
 }
