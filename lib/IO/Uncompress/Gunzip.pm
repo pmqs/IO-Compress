@@ -9,12 +9,12 @@ use strict ;
 use warnings;
 use bytes;
 
-use IO::Uncompress::RawInflate 2.070 ;
+use IO::Uncompress::RawInflate 2.072 ;
 
-use Compress::Raw::Zlib 2.070 () ;
-use IO::Compress::Base::Common 2.070 qw(:Status );
-use IO::Compress::Gzip::Constants 2.070 ;
-use IO::Compress::Zlib::Extra 2.070 ;
+use Compress::Raw::Zlib 2.072 () ;
+use IO::Compress::Base::Common 2.072 qw(:Status );
+use IO::Compress::Gzip::Constants 2.072 ;
+use IO::Compress::Zlib::Extra 2.072 ;
 
 require Exporter ;
 
@@ -28,7 +28,7 @@ Exporter::export_ok_tags('all');
 
 $GunzipError = '';
 
-$VERSION = '2.070';
+$VERSION = '2.072';
 
 sub new
 {
@@ -1118,7 +1118,7 @@ See the Changes file.
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (c) 2005-2016 Paul Marquess. All rights reserved.
+Copyright (c) 2005-2017 Paul Marquess. All rights reserved.
 
 This program is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.

@@ -4,16 +4,16 @@ use strict;
 use warnings;
 use bytes;
 
-use IO::Compress::Base::Common 2.070 ();
+use IO::Compress::Base::Common 2.072 ();
 
-use IO::Uncompress::Base 2.070 ;
+use IO::Uncompress::Base 2.072 ;
 
 
 require Exporter ;
 
 our ($VERSION, @ISA, @EXPORT_OK, %EXPORT_TAGS, $AnyUncompressError);
 
-$VERSION = '2.070';
+$VERSION = '2.072';
 $AnyUncompressError = '';
 
 @ISA = qw( Exporter IO::Uncompress::Base );
@@ -29,22 +29,22 @@ BEGIN
 {
    local @INC = @INC;
    pop @INC if $INC[-1] eq '.';
-   eval ' use IO::Uncompress::Adapter::Inflate 2.070 ;';
-   eval ' use IO::Uncompress::Adapter::Bunzip2 2.070 ;';
-   eval ' use IO::Uncompress::Adapter::LZO 2.070 ;';
-   eval ' use IO::Uncompress::Adapter::Lzf 2.070 ;';
-   eval ' use IO::Uncompress::Adapter::UnLzma 2.070 ;';
-   eval ' use IO::Uncompress::Adapter::UnXz 2.070 ;';
+   eval ' use IO::Uncompress::Adapter::Inflate 2.072 ;';
+   eval ' use IO::Uncompress::Adapter::Bunzip2 2.072 ;';
+   eval ' use IO::Uncompress::Adapter::LZO 2.072 ;';
+   eval ' use IO::Uncompress::Adapter::Lzf 2.072 ;';
+   eval ' use IO::Uncompress::Adapter::UnLzma 2.072 ;';
+   eval ' use IO::Uncompress::Adapter::UnXz 2.072 ;';
 
-   eval ' use IO::Uncompress::Bunzip2 2.070 ;';
-   eval ' use IO::Uncompress::UnLzop 2.070 ;';
-   eval ' use IO::Uncompress::Gunzip 2.070 ;';
-   eval ' use IO::Uncompress::Inflate 2.070 ;';
-   eval ' use IO::Uncompress::RawInflate 2.070 ;';
-   eval ' use IO::Uncompress::Unzip 2.070 ;';
-   eval ' use IO::Uncompress::UnLzf 2.070 ;';
-   eval ' use IO::Uncompress::UnLzma 2.070 ;';
-   eval ' use IO::Uncompress::UnXz 2.070 ;';
+   eval ' use IO::Uncompress::Bunzip2 2.072 ;';
+   eval ' use IO::Uncompress::UnLzop 2.072 ;';
+   eval ' use IO::Uncompress::Gunzip 2.072 ;';
+   eval ' use IO::Uncompress::Inflate 2.072 ;';
+   eval ' use IO::Uncompress::RawInflate 2.072 ;';
+   eval ' use IO::Uncompress::Unzip 2.072 ;';
+   eval ' use IO::Uncompress::UnLzf 2.072 ;';
+   eval ' use IO::Uncompress::UnLzma 2.072 ;';
+   eval ' use IO::Uncompress::UnXz 2.072 ;';
 }
 
 sub new
@@ -1027,7 +1027,7 @@ See the Changes file.
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (c) 2005-2016 Paul Marquess. All rights reserved.
+Copyright (c) 2005-2017 Paul Marquess. All rights reserved.
 
 This program is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.

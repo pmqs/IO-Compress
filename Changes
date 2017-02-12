@@ -1,6 +1,13 @@
 CHANGES
 -------
 
+  2.072 12 Feb 2017
+      * Makefile.PL
+        #120084: Need Fix for Makefile.PL depending on . in @INC
+
+      * Makefile.PL
+        #120084: Need Fix for Makefile.PL depending on . in @INC
+
   2.070 28 Dec 2016
 
       * File::GlobMapper
