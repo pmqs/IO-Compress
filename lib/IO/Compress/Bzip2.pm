@@ -5,16 +5,16 @@ use warnings;
 use bytes;
 require Exporter ;
 
-use IO::Compress::Base 2.073 ;
+use IO::Compress::Base 2.074 ;
 
-use IO::Compress::Base::Common  2.073 qw();
-use IO::Compress::Adapter::Bzip2 2.073 ;
+use IO::Compress::Base::Common  2.074 qw();
+use IO::Compress::Adapter::Bzip2 2.074 ;
 
 
 
 our ($VERSION, @ISA, @EXPORT_OK, %EXPORT_TAGS, $Bzip2Error);
 
-$VERSION = '2.073';
+$VERSION = '2.074';
 $Bzip2Error = '';
 
 @ISA    = qw(IO::Compress::Base Exporter);
@@ -51,7 +51,7 @@ sub getExtraParams
 {
     my $self = shift ;
 
-    use IO::Compress::Base::Common  2.073 qw(:Parse);
+    use IO::Compress::Base::Common  2.074 qw(:Parse);
     
     return (  
             'blocksize100k' => [IO::Compress::Base::Common::Parse_unsigned,  1],

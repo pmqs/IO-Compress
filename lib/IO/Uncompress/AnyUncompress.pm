@@ -4,16 +4,16 @@ use strict;
 use warnings;
 use bytes;
 
-use IO::Compress::Base::Common 2.073 ();
+use IO::Compress::Base::Common 2.074 ();
 
-use IO::Uncompress::Base 2.073 ;
+use IO::Uncompress::Base 2.074 ;
 
 
 require Exporter ;
 
 our ($VERSION, @ISA, @EXPORT_OK, %EXPORT_TAGS, $AnyUncompressError);
 
-$VERSION = '2.073';
+$VERSION = '2.074';
 $AnyUncompressError = '';
 
 @ISA = qw(IO::Uncompress::Base Exporter);
@@ -29,22 +29,22 @@ BEGIN
 {
    local @INC = @INC;
    pop @INC if $INC[-1] eq '.';
-   eval ' use IO::Uncompress::Adapter::Inflate 2.073 ;';
-   eval ' use IO::Uncompress::Adapter::Bunzip2 2.073 ;';
-   eval ' use IO::Uncompress::Adapter::LZO 2.073 ;';
-   eval ' use IO::Uncompress::Adapter::Lzf 2.073 ;';
-   eval ' use IO::Uncompress::Adapter::UnLzma 2.073 ;';
-   eval ' use IO::Uncompress::Adapter::UnXz 2.073 ;';
+   eval ' use IO::Uncompress::Adapter::Inflate 2.074 ;';
+   eval ' use IO::Uncompress::Adapter::Bunzip2 2.074 ;';
+   eval ' use IO::Uncompress::Adapter::LZO 2.074 ;';
+   eval ' use IO::Uncompress::Adapter::Lzf 2.074 ;';
+   eval ' use IO::Uncompress::Adapter::UnLzma 2.074 ;';
+   eval ' use IO::Uncompress::Adapter::UnXz 2.074 ;';
 
-   eval ' use IO::Uncompress::Bunzip2 2.073 ;';
-   eval ' use IO::Uncompress::UnLzop 2.073 ;';
-   eval ' use IO::Uncompress::Gunzip 2.073 ;';
-   eval ' use IO::Uncompress::Inflate 2.073 ;';
-   eval ' use IO::Uncompress::RawInflate 2.073 ;';
-   eval ' use IO::Uncompress::Unzip 2.073 ;';
-   eval ' use IO::Uncompress::UnLzf 2.073 ;';
-   eval ' use IO::Uncompress::UnLzma 2.073 ;';
-   eval ' use IO::Uncompress::UnXz 2.073 ;';
+   eval ' use IO::Uncompress::Bunzip2 2.074 ;';
+   eval ' use IO::Uncompress::UnLzop 2.074 ;';
+   eval ' use IO::Uncompress::Gunzip 2.074 ;';
+   eval ' use IO::Uncompress::Inflate 2.074 ;';
+   eval ' use IO::Uncompress::RawInflate 2.074 ;';
+   eval ' use IO::Uncompress::Unzip 2.074 ;';
+   eval ' use IO::Uncompress::UnLzf 2.074 ;';
+   eval ' use IO::Uncompress::UnLzma 2.074 ;';
+   eval ' use IO::Uncompress::UnXz 2.074 ;';
 }
 
 sub new
