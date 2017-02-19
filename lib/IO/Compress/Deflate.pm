@@ -8,19 +8,19 @@ use bytes;
 
 require Exporter ;
 
-use IO::Compress::RawDeflate 2.072 ();
-use IO::Compress::Adapter::Deflate 2.072 ;
+use IO::Compress::RawDeflate 2.073 ();
+use IO::Compress::Adapter::Deflate 2.073 ;
 
-use IO::Compress::Zlib::Constants 2.072 ;
-use IO::Compress::Base::Common  2.072 qw();
+use IO::Compress::Zlib::Constants 2.073 ;
+use IO::Compress::Base::Common  2.073 qw();
 
 
 our ($VERSION, @ISA, @EXPORT_OK, %EXPORT_TAGS, %DEFLATE_CONSTANTS, $DeflateError);
 
-$VERSION = '2.072';
+$VERSION = '2.073';
 $DeflateError = '';
 
-@ISA    = qw(Exporter IO::Compress::RawDeflate);
+@ISA    = qw(IO::Compress::RawDeflate Exporter);
 @EXPORT_OK = qw( $DeflateError deflate ) ;
 %EXPORT_TAGS = %IO::Compress::RawDeflate::DEFLATE_CONSTANTS ;
 

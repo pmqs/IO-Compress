@@ -3,9 +3,9 @@
 use strict ;
 require 5.006 ;
 
-$::VERSION = '2.072' ;
+$::VERSION = '2.073' ;
 
-use lib '.';
+#use lib '.';
 use private::MakeUtil;
 use ExtUtils::MakeMaker 5.16 ;
 

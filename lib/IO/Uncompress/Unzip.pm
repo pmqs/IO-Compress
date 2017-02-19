@@ -9,19 +9,19 @@ use warnings;
 use bytes;
 
 use IO::File;
-use IO::Uncompress::RawInflate  2.072 ;
-use IO::Compress::Base::Common  2.072 qw(:Status );
-use IO::Uncompress::Adapter::Inflate  2.072 ;
-use IO::Uncompress::Adapter::Identity 2.072 ;
-use IO::Compress::Zlib::Extra 2.072 ;
-use IO::Compress::Zip::Constants 2.072 ;
+use IO::Uncompress::RawInflate  2.073 ;
+use IO::Compress::Base::Common  2.073 qw(:Status );
+use IO::Uncompress::Adapter::Inflate  2.073 ;
+use IO::Uncompress::Adapter::Identity 2.073 ;
+use IO::Compress::Zlib::Extra 2.073 ;
+use IO::Compress::Zip::Constants 2.073 ;
 
-use Compress::Raw::Zlib  2.072 () ;
+use Compress::Raw::Zlib  2.073 () ;
 
 BEGIN
 {
     eval{ require IO::Uncompress::Adapter::Bunzip2 ;
-           import  IO::Uncompress::Adapter::Bunzip2 } ;
+          import  IO::Uncompress::Adapter::Bunzip2 } ;
     eval{ require IO::Uncompress::Adapter::UnLzma ;
           import  IO::Uncompress::Adapter::UnLzma } ;
 }
@@ -31,10 +31,10 @@ require Exporter ;
 
 our ($VERSION, @ISA, @EXPORT_OK, %EXPORT_TAGS, $UnzipError, %headerLookup);
 
-$VERSION = '2.072';
+$VERSION = '2.073';
 $UnzipError = '';
 
-@ISA    = qw(Exporter IO::Uncompress::RawInflate);
+@ISA    = qw(IO::Uncompress::RawInflate Exporter);
 @EXPORT_OK = qw( $UnzipError unzip );
 %EXPORT_TAGS = %IO::Uncompress::RawInflate::EXPORT_TAGS ;
 push @{ $EXPORT_TAGS{all} }, @EXPORT_OK ;

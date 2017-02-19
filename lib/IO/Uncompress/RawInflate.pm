@@ -5,19 +5,19 @@ use strict ;
 use warnings;
 use bytes;
 
-use Compress::Raw::Zlib  2.072 ;
-use IO::Compress::Base::Common  2.072 qw(:Status );
+use Compress::Raw::Zlib  2.073 ;
+use IO::Compress::Base::Common  2.073 qw(:Status );
 
-use IO::Uncompress::Base  2.072 ;
-use IO::Uncompress::Adapter::Inflate  2.072 ;
+use IO::Uncompress::Base  2.073 ;
+use IO::Uncompress::Adapter::Inflate  2.073 ;
 
 require Exporter ;
 our ($VERSION, @ISA, @EXPORT_OK, %EXPORT_TAGS, %DEFLATE_CONSTANTS, $RawInflateError);
 
-$VERSION = '2.072';
+$VERSION = '2.073';
 $RawInflateError = '';
 
-@ISA    = qw( Exporter IO::Uncompress::Base );
+@ISA    = qw(IO::Uncompress::Base Exporter);
 @EXPORT_OK = qw( $RawInflateError rawinflate ) ;
 %DEFLATE_CONSTANTS = ();
 %EXPORT_TAGS = %IO::Uncompress::Base::EXPORT_TAGS ;

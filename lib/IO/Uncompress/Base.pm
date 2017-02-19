@@ -6,15 +6,15 @@ use warnings;
 use bytes;
 
 our (@ISA, $VERSION, @EXPORT_OK, %EXPORT_TAGS);
-@ISA    = qw(Exporter IO::File);
+@ISA    = qw(IO::File Exporter);
 
 
-$VERSION = '2.072';
+$VERSION = '2.073';
 
 use constant G_EOF => 0 ;
 use constant G_ERR => -1 ;
 
-use IO::Compress::Base::Common 2.072 ;
+use IO::Compress::Base::Common 2.073 ;
 
 use IO::File ;
 use Symbol;
