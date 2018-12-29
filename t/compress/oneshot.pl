@@ -16,7 +16,7 @@ BEGIN {
     $extra = 1
         if eval { require Test::NoWarnings ;  import Test::NoWarnings; 1 };
 
-    plan tests => 1002 + $extra ;
+    plan tests => 1007 + $extra ;
 
     use_ok('IO::Uncompress::AnyUncompress', qw(anyuncompress $AnyUncompressError)) ;
 
@@ -642,6 +642,33 @@ sub run
                 is $$ErrorInverse, "unexpected end of file", "  Got unexpected eof";
             }
         }
+    }
+
+    foreach my $bit ($CompressClass)
+    {
+
+        my $Error = getErrorRef($bit);
+        my $Func = getTopFuncRef($bit);
+        my $TopType = getTopFuncName($bit);
+
+        my $TopTypeInverse = getInverse($bit);
+        my $FuncInverse = getTopFuncRef($TopTypeInverse);
+        my $ErrorInverse = getErrorRef($TopTypeInverse);
+
+        title 'Round trip binary data that happens to include \r\n' ;
+
+        my $lex = new LexFile(my $file1, my $file2, my $file3) ;
+
+        my $original = join '', map { chr } 0x00 .. 0xff ;
+        $original .= "data1\r\ndata2\r\ndata3\r\n" ;
+
+        writeFile($file1, $original);
+        is readFile($file1), $original;
+
+        ok &$Func($file1 => $file2), '  Compressed ok' ;
+        ok &$FuncInverse($file2 => $file3), '  Uncompressed ok' ;
+        is readFile($file3), $original, "  round tripped ok";
+ 
     }
 
     foreach my $bit ($UncompressClass,
@@ -1622,6 +1649,8 @@ sub run
         ok &$UncompFunc($fh_in2 => $fh_out2), '  UnCompressed ok' ;
         is $output, $input, "round trip ok" ;
     }
+
+  
 }
 
 # TODO add more error cases

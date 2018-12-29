@@ -4,16 +4,16 @@ use strict;
 use warnings;
 use bytes;
 
-use IO::Compress::Base::Common 2.081 ();
+use IO::Compress::Base::Common 2.082 ();
 
-use IO::Uncompress::Base 2.081 ;
+use IO::Uncompress::Base 2.082 ;
 
 
 require Exporter ;
 
 our ($VERSION, @ISA, @EXPORT_OK, %EXPORT_TAGS, $AnyUncompressError);
 
-$VERSION = '2.081';
+$VERSION = '2.082';
 $AnyUncompressError = '';
 
 @ISA = qw(IO::Uncompress::Base Exporter);
@@ -29,22 +29,22 @@ BEGIN
 {
    local @INC = @INC;
    pop @INC if $INC[-1] eq '.';
-   eval ' use IO::Uncompress::Adapter::Inflate 2.081 ;';
-   eval ' use IO::Uncompress::Adapter::Bunzip2 2.081 ;';
-   eval ' use IO::Uncompress::Adapter::LZO 2.081 ;';
-   eval ' use IO::Uncompress::Adapter::Lzf 2.081 ;';
-   eval ' use IO::Uncompress::Adapter::UnLzma 2.081 ;';
-   eval ' use IO::Uncompress::Adapter::UnXz 2.081 ;';
+   eval ' use IO::Uncompress::Adapter::Inflate 2.082 ;';
+   eval ' use IO::Uncompress::Adapter::Bunzip2 2.082 ;';
+   eval ' use IO::Uncompress::Adapter::LZO 2.082 ;';
+   eval ' use IO::Uncompress::Adapter::Lzf 2.082 ;';
+   eval ' use IO::Uncompress::Adapter::UnLzma 2.082 ;';
+   eval ' use IO::Uncompress::Adapter::UnXz 2.082 ;';
 
-   eval ' use IO::Uncompress::Bunzip2 2.081 ;';
-   eval ' use IO::Uncompress::UnLzop 2.081 ;';
-   eval ' use IO::Uncompress::Gunzip 2.081 ;';
-   eval ' use IO::Uncompress::Inflate 2.081 ;';
-   eval ' use IO::Uncompress::RawInflate 2.081 ;';
-   eval ' use IO::Uncompress::Unzip 2.081 ;';
-   eval ' use IO::Uncompress::UnLzf 2.081 ;';
-   eval ' use IO::Uncompress::UnLzma 2.081 ;';
-   eval ' use IO::Uncompress::UnXz 2.081 ;';
+   eval ' use IO::Uncompress::Bunzip2 2.082 ;';
+   eval ' use IO::Uncompress::UnLzop 2.082 ;';
+   eval ' use IO::Uncompress::Gunzip 2.082 ;';
+   eval ' use IO::Uncompress::Inflate 2.082 ;';
+   eval ' use IO::Uncompress::RawInflate 2.082 ;';
+   eval ' use IO::Uncompress::Unzip 2.082 ;';
+   eval ' use IO::Uncompress::UnLzf 2.082 ;';
+   eval ' use IO::Uncompress::UnLzma 2.082 ;';
+   eval ' use IO::Uncompress::UnXz 2.082 ;';
 }
 
 sub new
@@ -452,10 +452,7 @@ This parameter defaults to 0.
 
 =item C<< BinModeOut => 0|1 >>
 
-When writing to a file or filehandle, set C<binmode> before writing to the
-file.
-
-Defaults to 0.
+This option is now a no-op. All files will be written  in binmode.
 
 =item C<< Append => 0|1 >>
 
