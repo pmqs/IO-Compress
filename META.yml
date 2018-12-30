@@ -20,8 +20,8 @@ no_index:
     - t
     - private
 requires:
-  Compress::Raw::Bzip2: '2.082'
-  Compress::Raw::Zlib: '2.082'
+  Compress::Raw::Bzip2: '2.083'
+  Compress::Raw::Zlib: '2.083'
   Scalar::Util: '0'
-version: '2.082'
+version: '2.083'
 x_serialization_backend: 'CPAN::Meta::YAML version 0.018'

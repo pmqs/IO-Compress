@@ -1,7 +1,7 @@
 CHANGES
 -------
 
-  2.082 29 December 2018
+  2.083 30 December 2018
 
       * IO::Compress::*
       * IO::Uncompress::*

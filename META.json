@@ -34,13 +34,13 @@
       },
       "runtime" : {
          "requires" : {
-            "Compress::Raw::Bzip2" : "2.082",
-            "Compress::Raw::Zlib" : "2.082",
+            "Compress::Raw::Bzip2" : "2.083",
+            "Compress::Raw::Zlib" : "2.083",
             "Scalar::Util" : "0"
          }
       }
    },
    "release_status" : "stable",
-   "version" : "2.082",
+   "version" : "2.083",
    "x_serialization_backend" : "JSON::PP version 2.27300"
 }

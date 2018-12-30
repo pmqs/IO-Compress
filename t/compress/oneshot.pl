@@ -22,6 +22,18 @@ BEGIN {
 
 }
 
+my $OriginalContent1 = <<EOM ;
+Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Ut tempus odio id
+ dolor. Camelus perlus.  Larrius in lumen numen.  Dolor en quiquum filia
+ est.  Quintus cenum parat.
+EOM
+
+my $OriginalContent2 = <<EOM ;
+LOREM ipsum dolor sit amet, consectetuer adipiscing elit. Ut tempus odio id
+ dolor. Camelus perlus.  Larrius in lumen numen.  Dolor en quiquum filia
+ est.  Quintus cenum PARAT.
+EOM
+
 sub run
 {
 
@@ -286,9 +298,8 @@ sub run
             my $already = '';
             $already = 'abcde' if $append ;
 
-            for my $buffer ( undef, '', "abcde" )
+            for my $buffer ( undef, '', $OriginalContent1 )
             {
-
                 my $disp_content = defined $buffer ? $buffer : '<undef>' ;
 
                 my $keep = $buffer;
@@ -306,7 +317,6 @@ sub run
                     $got = undef if ! defined $buffer && $got eq '' ;
                     ok ! $$Error, "  no error [$$Error]" ;
                     is $got, $buffer, "  Uncompressed matches original";
-
                 }
 
                 {
@@ -520,22 +530,22 @@ sub run
 
         my $lex = new LexFile(my $file1, my $file2) ;
 
-        writeFile($file1, "data1");
-        writeFile($file2, "data2");
+        writeFile($file1, $OriginalContent1);
+        writeFile($file2, $OriginalContent2);
         my $of = new IO::File "<$file1" ;
         ok $of, "  Created output filehandle" ;
 
         #my @input = (   undef, "", $file2, \undef, \'', \"abcde", $of) ;
-        #my @expected = ("", "", $file2, "", "", "abcde", "data1");
-        #my @uexpected = ("", "", "data2", "", "", "abcde", "data1");
+        #my @expected = ("", "", $file2, "", "", "abcde", $OriginalContent1);
+        #my @uexpected = ("", "", $OriginalContent2, "", "", "abcde", $OriginalContent1);
         #my @input = (   $file2, \"abcde", $of) ;
-        #my @expected = ( $file2, "abcde", "data1");
-        #my @uexpected = ("data2", "abcde", "data1");
+        #my @expected = ( $file2, "abcde", $OriginalContent1);
+        #my @uexpected = ($OriginalContent2, "abcde", $OriginalContent1);
 
         my @input = (   $file1, $file2) ;
         #my @expected = ( $file1, $file2);
-        my @expected = ("data1", "data2");
-        my @uexpected = ("data1", "data2");
+        my @expected = ($OriginalContent1, $OriginalContent2);
+        my @uexpected = ($OriginalContent1, $OriginalContent2);
 
         my @keep = @input ;
 
@@ -1035,8 +1045,8 @@ sub run
         my $Func = getTopFuncRef($bit);
         my $TopType = getTopFuncName($bit);
 
-        my $buffer = "abcde" ;
-        my $buffer2 = "ABCDE" ;
+        my $buffer = $OriginalContent1;
+        my $buffer2 = $OriginalContent2; 
         my $keep_orig = $buffer;
 
         my $comp = compressBuffer($UncompressClass, $buffer) ;
@@ -1354,8 +1364,8 @@ sub run
 
         my $lex = new LexFile(my $file1, my $file2) ;
 
-        writeFile($file1, compressBuffer($UncompressClass,"data1"));
-        writeFile($file2, compressBuffer($UncompressClass,"data2"));
+        writeFile($file1, compressBuffer($UncompressClass, $OriginalContent1));
+        writeFile($file2, compressBuffer($UncompressClass, $OriginalContent2));
 
         my $of = new IO::File "<$file1" ;
         ok $of, "  Created output filehandle" ;
@@ -1363,7 +1373,7 @@ sub run
         #my @input    = ($file2, \$undef, \$null, \$comp, $of) ;
         #my @expected = ('data2', '',      '',    'abcde', 'data1');
         my @input    = ($file1, $file2);
-        my @expected = ('data1', 'data2');
+        my @expected = ($OriginalContent1, $OriginalContent2);
 
         my @keep = @input ;
 
