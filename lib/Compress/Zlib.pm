@@ -224,7 +224,7 @@ sub Compress::Zlib::gzFile::gzseek
 
     my $gz = $self->[0] ;
     my $status ;
-    eval { $status = $gz->seek($offset, $whence) ; };
+    eval { local $SIG{__DIE__}; $status = $gz->seek($offset, $whence) ; };
     if ($@)
     {
         my $error = $@;

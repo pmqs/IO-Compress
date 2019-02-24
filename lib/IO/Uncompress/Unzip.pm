@@ -20,6 +20,9 @@ use Compress::Raw::Zlib  2.084 () ;
 
 BEGIN
 {
+   # Don't trigger any __DIE__ Hooks.
+   local $SIG{__DIE__};
+       
     eval{ require IO::Uncompress::Adapter::Bunzip2 ;
           import  IO::Uncompress::Adapter::Bunzip2 } ;
     eval{ require IO::Uncompress::Adapter::UnLzma ;

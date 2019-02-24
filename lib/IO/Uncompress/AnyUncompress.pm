@@ -29,6 +29,10 @@ BEGIN
 {
    local @INC = @INC;
    pop @INC if $INC[-1] eq '.';
+
+   # Don't trigger any __DIE__ Hooks.
+   local $SIG{__DIE__};
+
    eval ' use IO::Uncompress::Adapter::Inflate 2.084 ;';
    eval ' use IO::Uncompress::Adapter::Bunzip2 2.084 ;';
    eval ' use IO::Uncompress::Adapter::LZO 2.084 ;';
