@@ -325,8 +325,8 @@ sub mkHeader
     $gpFlag |= ZIP_GP_FLAG_LZMA_EOS_PRESENT
         if $method == ZIP_CM_LZMA ;
 
-#    $gpFlag |= ZIP_GP_FLAG_LANGUAGE_ENCODING
-#        if  $param->getValue('utf8') && (length($filename) || length($comment));
+    $gpFlag |= ZIP_GP_FLAG_LANGUAGE_ENCODING
+        if  $param->getValue('utf8') && (length($filename) || length($comment));
 
     my $version = $ZIP_CM_MIN_VERSIONS{$method};
     $version = ZIP64_MIN_VERSION
@@ -682,7 +682,7 @@ our %PARAMS = (
             'name'      => [IO::Compress::Base::Common::Parse_any,       ''],
             'filtername'=> [IO::Compress::Base::Common::Parse_code,      undef],
             'canonicalname'=> [IO::Compress::Base::Common::Parse_boolean,   0],
-#            'utf8'      => [IO::Compress::Base::Common::Parse_boolean,   0],
+            'utf8'      => [IO::Compress::Base::Common::Parse_boolean,   0],
             'time'      => [IO::Compress::Base::Common::Parse_any,       undef],
             'extime'    => [IO::Compress::Base::Common::Parse_any,       undef],
             'exunix2'   => [IO::Compress::Base::Common::Parse_any,       undef], 
@@ -1342,6 +1342,13 @@ filenames before they are stored in C<$zipfile>.
         zip [ <$dir/*.txt> ] => $zipfile,
             FilterName => sub { s[^$dir/][] } ;
     }
+
+=item C<< Utf8 => 0|1 >>
+
+This option allows to control the language encoding (EFS) flag. If set, the
+filename and comment fields for the file must be encoded using UTF-8.
+
+This option defaults to B<false>.
 
 =item C<< Time => $number >>
 

@@ -554,6 +554,7 @@ sub _readZipHeader($)
     my $extraField;
     my @EXTRA = ();
     my $streamingMode = ($gpFlag & ZIP_GP_FLAG_STREAMING_MASK) ? 1 : 0 ;
+    my $utf8 = ($gpFlag & ZIP_GP_FLAG_LANGUAGE_ENCODING) ? 1 : 0;
 
     return $self->HeaderError("Encrypted content not supported")
         if $gpFlag & (ZIP_GP_FLAG_ENCRYPTED_MASK|ZIP_GP_FLAG_STRONG_ENCRYPTED_MASK);
@@ -708,6 +709,7 @@ sub _readZipHeader($)
         'UncompressedLength' => $uncompressedLength ,
         'CRC32'              => $crc32 ,
         'Name'               => $filename,
+        'Utf8'               => $utf8,
         'Time'               => _dosToUnixTime($lastModTime),
         'Stream'             => $streamingMode,
 
