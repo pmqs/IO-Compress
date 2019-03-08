@@ -1050,6 +1050,10 @@ sub gotoNextStream
             return 0;
         }
 
+        # Not EOF, so Transparent mode kicks in now for trailing data
+        # Reset member name in case anyone calls getHeaderInfo()->{Name}
+        *$self->{Info} = { Name => undef, Type  => 'plain' };
+
         $self->clearError();
         *$self->{Type} = 'plain';
         *$self->{Plain} = 1;

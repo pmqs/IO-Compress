@@ -1734,6 +1734,10 @@ Skips to the next compressed data stream in the input file/buffer. If a new
 compressed data stream is found, the eof marker will be cleared and C<$.>
 will be reset to 0.
 
+If trailing data is present immediately after the zip archive and the
+C<<Transparent>> option is enabled, this method will consider that trailing
+data to be another member of the zip archive.
+
 Returns 1 if a new stream was found, 0 if none was found, and -1 if an
 error was encountered.
 
