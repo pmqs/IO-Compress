@@ -246,13 +246,13 @@ sub mkHeader
         &{ *$self->{ZipData}{FilterName} }() ;
     }
 
-#    if ( $param->getValue('utf8') ) {
-#        require Encode ;
-#        $filename = Encode::encode_utf8($filename)
-#            if length $filename ;
-#        $comment = Encode::encode_utf8($comment)
-#            if length $comment ;
-#    }
+   if ( $param->getValue('efs') ) {
+       require Encode ;
+       $filename = Encode::encode_utf8($filename)
+           if length $filename ;
+       $comment = Encode::encode_utf8($comment)
+           if length $comment ;
+   }
 
     my $hdr = '';
 
@@ -326,7 +326,7 @@ sub mkHeader
         if $method == ZIP_CM_LZMA ;
 
     $gpFlag |= ZIP_GP_FLAG_LANGUAGE_ENCODING
-        if  $param->getValue('utf8') && (length($filename) || length($comment));
+        if  $param->getValue('efs') && (length($filename) || length($comment));
 
     my $version = $ZIP_CM_MIN_VERSIONS{$method};
     $version = ZIP64_MIN_VERSION
@@ -682,7 +682,7 @@ our %PARAMS = (
             'name'      => [IO::Compress::Base::Common::Parse_any,       ''],
             'filtername'=> [IO::Compress::Base::Common::Parse_code,      undef],
             'canonicalname'=> [IO::Compress::Base::Common::Parse_boolean,   0],
-            'utf8'      => [IO::Compress::Base::Common::Parse_boolean,   0],
+            'efs'       => [IO::Compress::Base::Common::Parse_boolean,   0],
             'time'      => [IO::Compress::Base::Common::Parse_any,       undef],
             'extime'    => [IO::Compress::Base::Common::Parse_any,       undef],
             'exunix2'   => [IO::Compress::Base::Common::Parse_any,       undef], 
@@ -1291,6 +1291,9 @@ no zip filename field will be created.
 Note that both the C<CanonicalName> and C<FilterName> options
 can modify the value used for the zip filename header field.
 
+Also note that you should set the C<Efs> option to true if you are working
+with UTF8 filenames. 
+
 =item C<< CanonicalName => 0|1 >>
 
 This option controls whether the filename field in the zip header is
@@ -1343,10 +1346,11 @@ filenames before they are stored in C<$zipfile>.
             FilterName => sub { s[^$dir/][] } ;
     }
 
-=item C<< Utf8 => 0|1 >>
+=item C<< Efs => 0|1 >>
 
-This option allows to control the language encoding (EFS) flag. If set, the
-filename and comment fields for the file must be encoded using UTF-8.
+This option controls setting of the language encoding flag (EFS) in the zip
+archive. When set, the filename and comment fields for the zip archive MUST
+be valid UTF-8. 
 
 This option defaults to B<false>.
 
@@ -1430,6 +1434,8 @@ By default no UnixN extra field is created.
 
 Stores the contents of C<$comment> in the Central File Header of
 the zip file.
+
+Set the C<Efs> option to true if you want to store a UTF8 comment.
 
 By default, no comment field is written to the zip file.
 
