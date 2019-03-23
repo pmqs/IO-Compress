@@ -554,6 +554,7 @@ sub _readZipHeader($)
     my $extraField;
     my @EXTRA = ();
     my $streamingMode = ($gpFlag & ZIP_GP_FLAG_STREAMING_MASK) ? 1 : 0 ;
+    my $efs_flag = ($gpFlag & ZIP_GP_FLAG_LANGUAGE_ENCODING) ? 1 : 0;
 
     return $self->HeaderError("Encrypted content not supported")
         if $gpFlag & (ZIP_GP_FLAG_ENCRYPTED_MASK|ZIP_GP_FLAG_STRONG_ENCRYPTED_MASK);
@@ -568,6 +569,13 @@ sub _readZipHeader($)
     {
         $self->smartReadExact(\$filename, $filename_length)
             or return $self->TruncatedHeader("Filename");
+
+        if ($efs_flag)
+        {
+            require Encode ;
+            $filename = Encode::decode_utf8($filename) ;
+        }     
+
         $keep .= $filename ;
     }
 
@@ -708,6 +716,7 @@ sub _readZipHeader($)
         'UncompressedLength' => $uncompressedLength ,
         'CRC32'              => $crc32 ,
         'Name'               => $filename,
+        'efs'                => $efs_flag, # language encoding flag
         'Time'               => _dosToUnixTime($lastModTime),
         'Stream'             => $streamingMode,
 
@@ -1735,7 +1744,7 @@ compressed data stream is found, the eof marker will be cleared and C<$.>
 will be reset to 0.
 
 If trailing data is present immediately after the zip archive and the
-C<<Transparent>> option is enabled, this method will consider that trailing
+C<Transparent> option is enabled, this method will consider that trailing
 data to be another member of the zip archive.
 
 Returns 1 if a new stream was found, 0 if none was found, and -1 if an
