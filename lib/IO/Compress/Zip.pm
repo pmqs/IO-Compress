@@ -246,13 +246,17 @@ sub mkHeader
         &{ *$self->{ZipData}{FilterName} }() ;
     }
 
-   if ( $param->getValue('efs') ) {
-       require Encode ;
-       $filename = Encode::encode_utf8($filename)
-           if length $filename ;
-       $comment = Encode::encode_utf8($comment)
-           if length $comment ;
-   }
+   if ( $param->getValue('efs') && $] >= 5.008004) {
+        if (length $filename) {
+            utf8::downgrade($filename, 1)
+                or Carp::croak "Wide character in zip filename";
+        }
+
+        if (length $comment) {
+            utf8::downgrade($comment, 1)
+                or Carp::croak "Wide character in zip comment";
+        }
+   }   
 
     my $hdr = '';
 
@@ -1348,9 +1352,14 @@ filenames before they are stored in C<$zipfile>.
 
 =item C<< Efs => 0|1 >>
 
-This option controls setting of the language encoding flag (EFS) in the zip
+This option controls setting of the "Language Encoding Flag" (EFS) in the zip
 archive. When set, the filename and comment fields for the zip archive MUST
 be valid UTF-8. 
+
+If the string used for the filename and/or comment is not valid UTF-8 when this option
+is true, the script will die with a "wide character" error.
+
+Note that this option only works with Perl 5.8.4 or better.
 
 This option defaults to B<false>.
 

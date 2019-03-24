@@ -147,6 +147,7 @@ t/compress/prime.pl
 t/compress/tied.pl
 t/compress/truncate.pl
 t/compress/zlib-generic.pl
+t/files/bad-efs.zip
 t/files/meta.xml
 t/files/test.ods
 t/globmapper.t

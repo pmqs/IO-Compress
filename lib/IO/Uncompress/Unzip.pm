@@ -73,6 +73,7 @@ sub getExtraParams
             'name'    => [IO::Compress::Base::Common::Parse_any,       undef],
 
             'stream'  => [IO::Compress::Base::Common::Parse_boolean,   0],
+            'efs'     => [IO::Compress::Base::Common::Parse_boolean,   0],
             
             # TODO - This means reading the central directory to get
             # 1. the local header offsets
@@ -89,6 +90,7 @@ sub ckParams
     $got->setValue('crc32' => 1);
 
     *$self->{UnzipData}{Name} = $got->getValue('name');
+    *$self->{UnzipData}{efs} = $got->getValue('efs');
 
     return 1;
 }
@@ -570,10 +572,11 @@ sub _readZipHeader($)
         $self->smartReadExact(\$filename, $filename_length)
             or return $self->TruncatedHeader("Filename");
 
-        if ($efs_flag)
+        if (*$self->{UnzipData}{efs} && $efs_flag && $] >= 5.008004)
         {
-            require Encode ;
-            $filename = Encode::decode_utf8($filename) ;
+            require Encode;
+            eval { $filename = Encode::decode_utf8($filename, 1) }
+                or Carp::croak "Zip Filename not UTF-8" ;
         }     
 
         $keep .= $filename ;
@@ -1442,6 +1445,18 @@ OPTS is a combination of the following options:
 =item C<< Name => "membername" >>
 
 Open "membername" from the zip file for reading.
+
+=item C<< Efs => 0| 1 >>
+
+When this option is set to true AND the zip archive being read has 
+the "Language Encoding Flag" (EFS) set, the member name is assumed to be encoded in UTF-8.
+
+If the member name in the zip archive is not valid UTF-8 when this optionn is true,
+the script will die with an error message.
+
+Note that this option only works with Perl 5.8.4 or better.
+
+This option defaults to B<false>.
 
 =item C<< AutoClose => 0|1 >>
 
