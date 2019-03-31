@@ -129,8 +129,6 @@ t/112utf8-zip.t
 t/999meta-json.t
 t/999meta-yml.t
 t/999pod.t
-t/meta-json.t 
-t/meta-yaml.t
 t/cz-01version.t
 t/cz-03zlib-v1.t
 t/cz-05examples.t
