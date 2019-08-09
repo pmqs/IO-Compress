@@ -1010,6 +1010,9 @@ sub nextStream
     $status == 1
         or return $status ;
 
+    *$self->{Pending} = ''
+        if $self !~ /IO::Uncompress::RawInflate/ && ! *$self->{MultiStream};
+
     *$self->{TotalInflatedBytesRead} = 0 ;
     *$self->{LineNo} = $. = 0;
 
