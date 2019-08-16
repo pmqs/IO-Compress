@@ -270,7 +270,7 @@ __END__
 
 =head1 NAME
 
-IO::Uncompress::AnyUncompress - Uncompress gzip, zip, bzip2 or lzop file/buffer
+IO::Uncompress::AnyUncompress - Uncompress gzip, zip, bzip2, xz, lzma, lzip, lzf or lzop file/buffer
 
 =head1 SYNOPSIS
 
