@@ -24,7 +24,7 @@ BEGIN {
     $extra = 1
         if eval { require Test::NoWarnings ;  import Test::NoWarnings; 1 };
 
-    plan tests => 219 + $extra ;
+    plan tests => 224 + $extra ;
 
     #use_ok('IO::Compress::Zip', qw(zip $ZipError :zip_method)) ;
     use_ok('IO::Compress::Zip', qw(:all)) ;
@@ -160,6 +160,23 @@ sub zipGetHeader
          CanonicalName => 0,
          FilterName => sub { s/joe/jim/ });
     is $hdr->{Name}, File::Spec->catfile("", "fred", "jim"), "  Name is '/fred/jim'" ;
+}
+
+{
+    title "Detect encrypted zip file";
+
+    my $files = "./t/" ;
+    $files = "./" if $ENV{PERL_CORE} ;
+    $files .= "files/";
+
+    my $zipfile = "$files/encrypt-standard.zip" ;
+    my $output;
+
+    ok ! unzip "$files/encrypt-standard.zip" => \$output ;
+    like $UnzipError, qr/Encrypted content not supported/ ;
+
+    ok ! unzip "$files/encrypt-aes.zip" => \$output ;
+    like $UnzipError, qr/Encrypted content not supported/ ;
 }
 
 for my $stream (0, 1)
