@@ -23,7 +23,9 @@ before_install:
   - eval $(curl https://travis-perl.github.io/init) --auto
 
 install:
-  # cpanm not supported on 5.6, so use cpan
+  - perl -V
+  - cpan-install --deps
+  # Force latest version of these modules
   - cpan Scalar::Util
   - cpan Compress::Raw::Zlib 
   - cpan Compress::Raw::Bzip2
