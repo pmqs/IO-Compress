@@ -23,5 +23,5 @@ before_install:
   - eval $(curl https://travis-perl.github.io/init) --auto
  
 install:
-  - cpanm Compress::Raw::Zlib 
-  - cpanm Compress::Raw::Bzip2
+  - cpan Compress::Raw::Zlib 
+  - cpan Compress::Raw::Bzip2
