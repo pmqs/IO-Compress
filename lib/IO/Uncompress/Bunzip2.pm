@@ -887,7 +887,7 @@ L<File::GlobMapper|File::GlobMapper>, L<Archive::Zip|Archive::Zip>,
 L<Archive::Tar|Archive::Tar>,
 L<IO::Zlib|IO::Zlib>
 
-The primary site for the bzip2 program is L<http://www.bzip.org>.
+The primary site for the bzip2 program is L<https://sourceware.org/bzip2/>.
 
 See the module L<Compress::Bzip2|Compress::Bzip2>
 
