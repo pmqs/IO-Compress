@@ -4,10 +4,10 @@ use strict;
 use warnings;
 use bytes;
 
-use IO::Compress::Base::Common  2.087 qw(:Status);
+use IO::Compress::Base::Common  2.088 qw(:Status);
 our ($VERSION);
 
-$VERSION = '2.087';
+$VERSION = '2.088';
 
 sub mkCompObject
 {
