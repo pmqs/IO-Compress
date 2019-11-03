@@ -42,7 +42,7 @@ WriteMakefile(
 
     INSTALLDIRS => ($] >= 5.009 && $] < 5.011 ? 'perl' : 'site'),
 
-    EXE_FILES => ['bin/zipdetails', 'bin/zipstream'],
+    EXE_FILES => ['bin/zipdetails', 'bin/streamzip'],
     
     (
     $] >= 5.009 && $] <= 5.011001 && ! $ENV{PERL_CORE}
