@@ -1,6 +1,14 @@
 CHANGES
 -------
 
+  2.089 3 November 2019
+
+      * bin/streamzip
+        Add zipstream to EXE_FILES
+        https://github.com/pmqs/IO-Compress/issues/5
+        7f5ed78e5652125c9ba78aab720e18d384d59c00
+        fb8cd6480af6303f58fd2e12d4999cd1830f0c5f
+
   2.088 31 October 2019
 
       * t/105oneshot-zip-only.t
