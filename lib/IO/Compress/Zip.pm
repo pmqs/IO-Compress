@@ -1356,7 +1356,7 @@ You should only need to use this option if you want the I<archive member name>
 to be different from the uncompressed filename or when the input is a filehandle or a buffer.
 
 The default behaviour for what I<archive member name> is used when the C<Name> option 
-is I<not> speficied depends on the form of the C<$input> parameter:
+is I<not> specified depends on the form of the C<$input> parameter:
 
 =over 5
 
