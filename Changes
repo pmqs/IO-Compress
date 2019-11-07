@@ -1,6 +1,12 @@
 CHANGES
 -------
 
+  2.090 7 November 2019
+
+      * MANIFEST error for streamzip
+        https://github.com/pmqs/IO-Compress/issues/6
+        70dd9bb4d27bd23d47ac9392320f55c124bc347b  
+
   2.089 3 November 2019
 
       * bin/streamzip
