@@ -93,7 +93,7 @@ sub check
     title "streamzip" ;
 
     my ($infile, $outfile);
-    my $lex = new LexFile my $infile, my $outfile ;
+    my $lex = new LexFile $infile, $outfile ;
 
     writeFile($infile, $hello1) ;
     check "$Perl ${binDir}/streamzip <$infile >$outfile";
