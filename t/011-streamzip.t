@@ -92,6 +92,7 @@ sub check
 {
     title "streamzip" ;
 
+    my ($infile, $outfile);
     my $lex = new LexFile my $infile, my $outfile ;
 
     writeFile($infile, $hello1) ;
