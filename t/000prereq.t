@@ -60,9 +60,7 @@ BEGIN
 
 			);
 
-    my @OPT = qw(
-            # IO::Compress::Lzma
-            # IO::Uncompress::UnLzma			
+    my @OPT = qw(			
 			);
 
     plan tests => 1 + 2 + @NAMES + @OPT + $extra ;
