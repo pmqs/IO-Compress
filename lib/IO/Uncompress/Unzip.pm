@@ -555,7 +555,13 @@ sub _readZipHeader($)
     my $filename;
     my $extraField;
     my @EXTRA = ();
-    my $streamingMode = ($gpFlag & ZIP_GP_FLAG_STREAMING_MASK) ? 1 : 0 ;
+
+    # Some programs (some versions of LibreOffice) mark entries as streamed, but still fill out 
+    # compressedLength/uncompressedLength & crc32 in the local file header.
+    # The expected data descriptor is not populated.
+    # So only assume streaming if the Streaming bit is set AND the compressed length is zero
+    my $streamingMode = (($gpFlag & ZIP_GP_FLAG_STREAMING_MASK)  && $crc32 == 0) ? 1 : 0 ;
+    
     my $efs_flag = ($gpFlag & ZIP_GP_FLAG_LANGUAGE_ENCODING) ? 1 : 0;
 
     return $self->HeaderError("Encrypted content not supported")

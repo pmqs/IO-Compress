@@ -24,7 +24,7 @@ BEGIN {
     $extra = 1
         if eval { require Test::NoWarnings ;  import Test::NoWarnings; 1 };
 
-    plan tests => 227 + $extra ;
+    plan tests => 230 + $extra ;
 
     #use_ok('IO::Compress::Zip', qw(zip $ZipError :zip_method)) ;
     use_ok('IO::Compress::Zip', qw(:all)) ;
@@ -317,6 +317,36 @@ for my $stream (0, 1)
         or diag $UnzipError ;
 
     my $meta = readFile("$files/$file");
+    is $got, $meta, "  content ok";    
+}
+
+{
+    title "Regression: odt non-streaming issue";
+    # https://github.com/pmqs/IO-Compress/issues/13
+
+    # Some programs (LibreOffice) mark entries as Streamed (bit 3 of the General Purpose Bit Flags field is set) , 
+    # but still fill out the Compressed Length, Uncompressed Length & CRC32 fields in the local file header
+
+    my $files = "./t/" ;
+    $files = "./" if $ENV{PERL_CORE} ;
+    $files .= "files/";
+
+    my $zipfile = "$files/testfile1.odt" ;
+    my $file = "manifest.rdf";
+
+    my $got;
+
+    ok unzip($zipfile => \$got, Name => $file), "  unzip $file ok"
+        or diag $UnzipError ;
+
+    my $meta = <<'EOM';
+<?xml version="1.0" encoding="utf-8"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+  <rdf:Description rdf:about="">
+    <rdf:type rdf:resource="http://docs.oasis-open.org/ns/office/1.2/meta/pkg#Document"/>
+  </rdf:Description>
+</rdf:RDF>
+EOM
     is $got, $meta, "  content ok";    
 }
 
