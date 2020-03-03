@@ -1,0 +1,107 @@
+#!/usr/bin/perl
+
+# TODO - if a nested  zip file is encrypted, next will bomb out with an unhelpful message
+
+use strict;
+use warnings;
+
+use IO::Uncompress::Unzip qw($UnzipError) ;
+use Getopt::Long;
+
+my $version = '1.0';
+
+my $first = 1 ;
+my $one = 0;
+my $pipe = 0;
+my $verbose = 0;
+
+GetOptions ("1" => \$one,
+            "p" => \$pipe,
+            "verbose"  => \$verbose)   # flag
+  or die("Error in command line arguments\n");
+
+usage()
+    if ! @ARGV;
+
+my $zipfile = $ARGV[0];
+my @want = @ARGV;
+my %want = map { $_ => 1 } @want;
+my $wantRE = join '|', map { toRegex($) } @want;
+
+my $unzip = new IO::Uncompress::Unzip $zipfile
+            or die "Cannot open '$zipfile': $UnzipError";
+
+walk($unzip, [$zipfile]) ;
+
+sub nextStream
+{
+    my $unzip = shift ;
+
+    if ($first)
+    {
+        $first = 0;
+        return 1;
+    }
+
+    my $status = $unzip->nextStream();
+    return undef
+        if $status <= 0;
+
+    return 1;
+}
+
+sub walk
+{
+    my $unzip  = shift ;
+    my @unzip_path = @{ shift() };
+    my $matchZip = shift ;
+
+    while (nextStream($unzip))
+    {
+        my $hdrInfo = $unzip->getHeaderInfo();
+        my $name = $hdrInfo->{Name};
+
+        my $matched = ! @want || $want{$name} || $matchZip ;
+        my $matchZipNext = $matchZip || ( $matched && $name =~ /\.zip$/i );
+
+        if ($matched)
+        {
+            if ($pipe)
+            {
+                my $buff;
+                my $status;
+                while (($status = $unzip->read($buff)) > 0)
+                {
+                    print $buff;
+                }
+            }
+            elsif ($one)
+            {
+                print $name . "\n" ;
+            }
+            else
+            {
+                print "  " x (@unzip_path-1) . "$name\n" ;
+            }
+        }
+
+        if ($name =~ /\.zip$/i)
+        {
+            my $newunzip = new IO::Uncompress::Unzip $unzip
+                or die "Cannot open '$name': $UnzipError";
+            walk($newunzip, [@unzip_path, $name], $matchZipNext);
+        }
+    }
+}
+
+sub toRegex
+{
+    
+}
+
+sub usage
+{
+    die <<EOM;
+nested-zip [opt] filename member
+EOM
+}
