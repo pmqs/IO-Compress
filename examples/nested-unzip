@@ -28,7 +28,7 @@ my $zipfile = $ARGV[0];
 my @want = @ARGV;
 my %want = map { $_ => 1 } @want;
 my $wantRE = join '|', map { toRegex($) } @want;
-my @wantGlobRE = map { glob_to_regex($_) } @want ;
+my $wantGlobRE = '(?:' . join() '|', map { glob_to_regex_string($_) } @want) . ')' ;
 
 my $unzip = new IO::Uncompress::Unzip $zipfile
             or die "Cannot open '$zipfile': $UnzipError";
@@ -63,19 +63,13 @@ sub walk
         my $hdrInfo = $unzip->getHeaderInfo();
         my $name = $hdrInfo->{Name};
 
-        my $fullname = $matchZip ? join('.', @unzip_path) : $name;
+        my $fullname = $matchZip ? join('/', @unzip_path) : $name;
 
         my $matched = 0;
-        if (@want)
+        if ($wantGlobRE)
         {
-            for my $re (@wantGlobRE)
-            {
-                if ($fullname =~ /$re/i)
-                {
-                    $matched = 1 ;
-                    last;
-                }
-            }
+            $matched = 1
+                if $fullname =~ /$wantGlobRE/ ;
         }
         else
         {
