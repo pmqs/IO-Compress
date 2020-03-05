@@ -12,7 +12,7 @@ use Text::Glob qw(glob_to_regex_string);
 
 my $VERSION = '0.001';
 
-my $first = 1 ;
+my %first  ;
 my $one = 0;
 my $pipe = 0;
 my $verbose = 0;
@@ -44,9 +44,9 @@ sub nextStream
 {
     my $unzip = shift ;
 
-    if ($first)
+    if (! $first{$unzip})
     {
-        $first = 0;
+        $first{$unzip} =1;
         return 1;
     }
 
@@ -69,6 +69,14 @@ sub walk
         my $name = $hdrInfo->{Name};
 
         my $fullname = $matchZip ? join('/', @unzip_path, $name) : $name;
+
+        if ($name =~ /\.zip$/i)
+        {
+            my $newunzip = new IO::Uncompress::Unzip $unzip
+                or die "Cannot open '$name': $UnzipError\n";
+            walk($newunzip, [@unzip_path, $name], 1);
+            next ;
+        }
 
         my $matched = 0;
         if ($wantGlobRE)
@@ -106,13 +114,6 @@ sub walk
 
                 print join(" : ", @unzip_path, $name) . "\n";
             }
-        }
-
-        if ($name =~ /\.zip$/i)
-        {
-            my $newunzip = new IO::Uncompress::Unzip $unzip
-                or die "Cannot open '$name': $UnzipError\n";
-            walk($newunzip, [@unzip_path, $name], 1);
         }
     }
 }
