@@ -197,8 +197,8 @@ sub checkOutputTree
 
 {
     title "List";
-    my $zipfile = "/tmp/abc.zip";
-    # my $lex = new LexFile $zipfile;
+    my $zipfile ;
+    my $lex = new LexFile $zipfile;
     createTestZip($zipfile,
         [
            'abc',
