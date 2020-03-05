@@ -7,7 +7,7 @@ use warnings;
 
 use IO::Uncompress::Unzip qw($UnzipError) ;
 use Getopt::Long;
-use Text::Glob qr(glob_to_regex);
+use Text::Glob qw(glob_to_regex_string);
 
 my $version = '1.0';
 
@@ -27,8 +27,10 @@ usage()
 my $zipfile = $ARGV[0];
 my @want = @ARGV;
 my %want = map { $_ => 1 } @want;
-my $wantRE = join '|', map { toRegex($) } @want;
-my $wantGlobRE = '(?:' . join() '|', map { glob_to_regex_string($_) } @want) . ')' ;
+# my $wantRE = join '|', map { toRegex($_) } @want;
+my $wantGlobRE  ;
+$wantGlobRE = '(?:' . join( '|', map { glob_to_regex_string($_) } @want) . ')' 
+    if @want;
 
 my $unzip = new IO::Uncompress::Unzip $zipfile
             or die "Cannot open '$zipfile': $UnzipError";
@@ -63,7 +65,7 @@ sub walk
         my $hdrInfo = $unzip->getHeaderInfo();
         my $name = $hdrInfo->{Name};
 
-        my $fullname = $matchZip ? join('/', @unzip_path) : $name;
+        my $fullname = $matchZip ? join('/', @unzip_path, $name) : $name;
 
         my $matched = 0;
         if ($wantGlobRE)
@@ -76,7 +78,7 @@ sub walk
             $matched  = 1 ;
         }
 
-        my $matched = ! @want || $want{$name} || $matchZip ;
+        # my $matched = ! @want || $want{$name} || $matchZip ;
         my $matchZipNext = $matchZip || ( $matched && $name =~ /\.zip$/i );
 
         if ($matched)
