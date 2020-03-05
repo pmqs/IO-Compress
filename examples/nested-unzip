@@ -5,37 +5,40 @@
 use strict;
 use warnings;
 
+# TODO - need to include the minimum version of IO::Uncompress::Unzip that works with this script.
 use IO::Uncompress::Unzip qw($UnzipError) ;
 use Getopt::Long;
 use Text::Glob qw(glob_to_regex_string);
 
-my $version = '1.0';
+my $VERSION = '0.001';
 
 my $first = 1 ;
 my $one = 0;
 my $pipe = 0;
 my $verbose = 0;
 
-GetOptions ("1" => \$one,
-            "p" => \$pipe,
-            "verbose"  => \$verbose)   # flag
-  or die("Error in command line arguments\n");
+GetOptions ("1"         => \$one,
+            "p"         => \$pipe,
+            "verbose"   => \$verbose,
+            'version'    => sub { print "$VERSION\n"; exit 0 },
+            'help'      => \&Usage,)
+  or Usage();
 
 usage()
     if ! @ARGV;
 
-my $zipfile = $ARGV[0];
+my $zipfile = shift ;
 my @want = @ARGV;
 my %want = map { $_ => 1 } @want;
 # my $wantRE = join '|', map { toRegex($_) } @want;
 my $wantGlobRE  ;
-$wantGlobRE = '(?:' . join( '|', map { glob_to_regex_string($_) } @want) . ')' 
+$wantGlobRE = '^(?:' . join( '|', map { glob_to_regex_string($_) } @want) . ')$'
     if @want;
 
 my $unzip = new IO::Uncompress::Unzip $zipfile
-            or die "Cannot open '$zipfile': $UnzipError";
+            or die "Cannot open '$zipfile': $UnzipError\n";
 
-walk($unzip, [$zipfile]) ;
+walk($unzip, []) ;
 
 sub nextStream
 {
@@ -70,6 +73,7 @@ sub walk
         my $matched = 0;
         if ($wantGlobRE)
         {
+            warn "Matching against [$fullname]\n";
             $matched = 1
                 if $fullname =~ /$wantGlobRE/ ;
         }
@@ -98,15 +102,17 @@ sub walk
             }
             else
             {
-                print "  " x (@unzip_path-1) . "$name\n" ;
+                # print "  " x (@unzip_path) . "$name\n" ;
+
+                print join(" : ", @unzip_path, $name) . "\n";
             }
         }
 
         if ($name =~ /\.zip$/i)
         {
             my $newunzip = new IO::Uncompress::Unzip $unzip
-                or die "Cannot open '$name': $UnzipError";
-            walk($newunzip, [@unzip_path, $name], $matchZipNext);
+                or die "Cannot open '$name': $UnzipError\n";
+            walk($newunzip, [@unzip_path, $name], 1);
         }
     }
 }
@@ -119,6 +125,74 @@ sub toRegex
 sub usage
 {
     die <<EOM;
-nested-zip [opt] filename member
+Usage: nested-unzip [OPTIONS] file.zip [list]
+
+Unzip a zip file that itself contains zip files, nested to any level.
+
+OPTIONS
+
 EOM
 }
+
+__END__
+=head1 NAME
+
+nested-unzip - uncompress zip files that also contain zip files
+
+=head1 SYNOPSIS
+
+    nested-unzip [opts] file.zip [list]
+
+=head1 DESCRIPTION
+
+This program is used to uncompress zip files that themselves contain other zip files.
+Those nested zip files can in turn also have zip files embedded.
+Zip files can be nested to any depth.
+
+To paraphrase the well-known poem "Siphonaptera"
+
+    Great zips have little zips upon their backs to bite 'em,
+    And little zips have lesser zips, and so ad infinitum.
+
+Where possible, and it makes sense, the interface has been written to match the Linux unzip program.
+
+=head2 Default Behavior
+
+The default behavior of the program is to uncompress all
+the nested zip files into a directory tree that mirrors the top-level zip file. The directories created for each of the nested
+zip files is named ...
+
+The nested zip files themselves are not extracted unless option xxx is enabled.
+
+=head2 OPTIONS
+
+=over 5
+
+=item  -version
+
+Display version number [$VERSION]
+
+=item -help
+
+Display help
+
+=back
+
+=head1 LIMITATIONS
+
+=head1 SUPPORT
+
+General feedback/questions/bug reports should be sent to
+L<https://github.com/pmqs/IO-Compress/issues> (preferred) or
+L<https://rt.cpan.org/Public/Dist/Display.html?Name=IO-Compress>.
+
+=head1 AUTHOR
+
+Paul Marquess F<pmqs@cpan.org>.
+
+=head1 COPYRIGHT
+
+Copyright (c) 2020 Paul Marquess. All rights reserved.
+
+This program is free software; you can redistribute it and/or modify it
+under the same terms as Perl itself.
