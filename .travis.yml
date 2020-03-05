@@ -27,5 +27,6 @@ install:
   - cpan-install --deps
   # Force latest version of these modules
   - cpan Scalar::Util
+  - cpan Text::Glob  
   - cpan Compress::Raw::Zlib 
   - cpan Compress::Raw::Bzip2
