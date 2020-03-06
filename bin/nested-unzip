@@ -8,7 +8,7 @@ use warnings;
 # TODO - need to include the minimum version of IO::Uncompress::Unzip that works with this script.
 use IO::Uncompress::Unzip qw($UnzipError) ;
 use Getopt::Long;
-use Text::Glob qw(glob_to_regex_string);
+# use Text::Glob qw(glob_to_regex_string);
 use File::Basename;
 
 my $VERSION = '0.001';
@@ -39,7 +39,12 @@ my @want = @ARGV;
 my %want = map { $_ => 1 } @want;
 # my $wantRE = join '|', map { toRegex($_) } @want;
 my $wantGlobRE  ;
-$wantGlobRE = '^(?:' . join( '|', map { glob_to_regex_string($_) } @want) . ')$'
+
+# print join "\n", globToRegex($_) for @want; exit;
+# $wantGlobRE = '^(?:' . join( '|', map { glob_to_regex_string($_) } @want) . ')$'
+#     if @want;
+
+$wantGlobRE = '^(?:' . join( '|', map { globToRegex($_) } @want) . ')$'
     if @want;
 
 my $unzip = new IO::Uncompress::Unzip $zipfile
@@ -88,7 +93,7 @@ sub walk
         my $matched = 0;
         if ($wantGlobRE)
         {
-            warn "Matching against [$fullname]\n";
+            # warn "Matching against [$fullname]\n";
             $matched = 1
                 if $fullname =~ /$wantGlobRE/ ;
         }
@@ -145,9 +150,50 @@ sub walk
     }
 }
 
-sub toRegex
-{
 
+
+sub globToRegex
+{
+    my $string = shift ;
+
+    my $inGlob = '';
+
+    # our ($noPreBS, $metachars, $matchMetaRE, %mapping, %wildCount);
+    my $noPreBS = '(?<!\\\)' ; # no preceding backslash
+    my $metachars = '.?';
+    my $matchMetaRE = '[' . quotemeta($metachars) . ']';
+    $matchMetaRE = "(?:\\*{1,2}|$matchMetaRE)";
+    # warn "MM [$matchMetaRE]\n";
+
+    my %mapping = (
+                '*' => '[^/]*',
+                '?' => '[^/]',
+                '.' => '\.',
+                '**' => '.*',
+                # '[' => '([',
+                # '(' => '(',
+                # ')' => ')',
+           );
+
+    # Multiple concatenated *'s don't make sense
+    #$string =~ s#\*\*+#*# ;
+
+    # TODO -- Allow space to delimit patterns?
+    #my @strings = split /\s+/, $string ;
+    #for my $str (@strings)
+    my $out = '';
+    my $depth = 0 ;
+
+    while ($string =~ s/(.*?)$noPreBS($matchMetaRE)//)
+    {
+        $out .= quotemeta($1) ;
+        $out .= $mapping{$2}
+            if defined $mapping{$2};
+    }
+
+    $out .= quotemeta($string);
+
+    return $out;
 }
 
 sub usage

@@ -26,7 +26,7 @@ BEGIN
     $extra = 1
         if eval { require Test::NoWarnings ;  import Test::NoWarnings; 1 };
 
-    plan tests => 9 + $extra ;
+    plan tests => 17 + $extra ;
 }
 
 
@@ -260,9 +260,9 @@ EOM
         or diag "Got [ @$got ]";
 }
 
-if (0)
+if (1)
 {
-    title "glob";
+    title "glob tests";
 
     my $zipdir ;
     my $lex = new LexDir $zipdir;
@@ -278,14 +278,24 @@ if (0)
 
     my $lexd = new PushLexDir();
 
-    runNestedUnzip("-l $zipfile abc", <<'EOM');
+    runNestedUnzip("-l $zipfile a?c **/c **b2", <<'EOM');
 abc
+def.zip : c
+ghi.zip : xx.zip : b2
+ghi.zip : c
 EOM
+    is_deeply getOutputTree('.'), [], "Directory tree ok" ;
 
-    runNestedUnzip("$zipfile abc");
+    runNestedUnzip("$zipfile a?c **/c **b2");
 
     my $expected = [ sort map { "./" . $_ } qw(
         abc
+        def.zip
+        def.zip/c
+        ghi.zip
+        ghi.zip/c
+        ghi.zip/xx.zip
+        ghi.zip/xx.zip/b2
         ) ] ;
     my $got = getOutputTree('.') ;
     is_deeply $got, $expected, "Directory tree ok"
