@@ -1,7 +1,7 @@
 BEGIN {
     if ($ENV{PERL_CORE}) {
-	chdir 't' if -d 't';
-	@INC = ("../lib", "lib/compress");
+        chdir 't' if -d 't';
+        @INC = ("../lib", "lib/compress");
     }
 }
 
@@ -9,12 +9,12 @@ use lib qw(t t/compress);
 
 use strict;
 use warnings;
-use bytes;
 
+use Cwd;
 use Test::More ;
 use CompTestUtils;
 use IO::Compress::Zip 'zip' ;
-use IO::Uncompress::Unzip 'unzip' ;
+# use IO::Uncompress::Unzip 'unzip' ;
 
 BEGIN
 {
@@ -26,7 +26,7 @@ BEGIN
     $extra = 1
         if eval { require Test::NoWarnings ;  import Test::NoWarnings; 1 };
 
-    plan tests => 4 + $extra ;
+    plan tests => 9 + $extra ;
 }
 
 
@@ -39,64 +39,46 @@ $Perl = qq["$Perl"] if $^O eq 'MSWin32' ;
 
 $Perl = "$Perl $Inc -w" ;
 #$Perl .= " -Mblib " ;
-my $binDir = $ENV{PERL_CORE} ? "../ext/IO-Compress/bin/"
-                             : "./bin";
+
+my $HERE = getcwd;
+my $binDir = $HERE . '/' ;
+$binDir .= $ENV{PERL_CORE} ? "../ext/IO-Compress/bin/"
+                           : "./bin";
 
 my $nestedUnzip = "$binDir/nested-unzip";
 
-# my $tmpDir1 ;
-# my $tmpDir2 ;
-# my $LexDir $tmpDir1, $tmpDir2 ;
 
-my ($file1, $file2, $stderr) ;
-my $lex = new LexFile $file1, $file2, $stderr ;
+{
+    package PushLexDir;
 
-my $UNZIP ;
-my $ZIP ;
+    use Cwd;
 
+    sub new
+    {
+        my $class = shift;
 
-# sub ExternalGzipWorks
-# {
-#     my $lex = new LexFile my $outfile;
-#     my $content = qq {
-# Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Ut tempus odio id
-#  dolor. Camelus perlus.  Larrius in lumen numen.  Dolor en quiquum filia
-#  est.  Quintus cenum parat.
-# };
+        my $dir ;
+        my $lexd = new LexDir $dir;
 
-#     writeWithGzip($outfile, $content)
-#         or return 0;
+        my $here = getcwd;
+        chdir $dir
+            or die "Cannot chdir to '$lexd': $!\n";
 
-#     my $got ;
-#     readWithGzip($outfile, $got)
-#         or return 0;
+        my %object = (Lex    => $lexd,
+                      TmpDir => $dir,
+                      Here   => $here
+                     );
 
-#     if ($content ne $got)
-#     {
-#         diag "Uncompressed content is wrong";
-#         return 0 ;
-#     }
+        return bless \%object, $class;
+    }
 
-#     return 1 ;
-# }
-
-# sub readWithGzip
-# {
-#     my $file = shift ;
-
-#     my $lex = new LexFile my $outfile;
-
-#     my $comp = "$GZIP -d -c" ;
-
-#     if ( system("$comp $file >$outfile") == 0 )
-#     {
-#         $_[0] = readFile($outfile);
-#         return 1
-#     }
-
-#     diag "'$comp' failed: \$?=$? \$!=$!";
-#     return 0 ;
-# }
+    sub DESTROY
+    {
+        my $self = shift ;
+        chdir $self->{Here}
+            or die "Cannot chdir to '$self->{Here}': $!\n";
+    }
+}
 
 sub check
 {
@@ -149,7 +131,6 @@ sub createNestedZip
     my $out ;
     my $zip ;
 
-
     for my $entry (@$tree)
     {
         my $name = $entry;
@@ -188,29 +169,125 @@ sub createTestZip
     writeFile($filename, createNestedZip($tree));
 }
 
-sub checkOutputTree
+sub getOutputTree
 {
     my $base = shift ;
-    my $expected = shift ;
 
+    use File::Find;
+
+    my @found;
+    find( sub { push @found, $File::Find::name
+                    if ! /^\.\.?$/  # ignore . & .. directories
+              },
+          $base) ;
+
+    return  [ sort @found ] ;
 }
 
+if (1)
 {
     title "List";
-    my $zipfile ;
-    my $lex = new LexFile $zipfile;
+
+    # chdir $HERE;
+
+    my $zipdir ;
+    my $lex = new LexDir $zipdir;
+    my $zipfile = "$HERE/$zipdir/zip1.zip";
+
     createTestZip($zipfile,
         [
            'abc',
            [ 'def.zip' => 'a', 'b', 'c' ],
+           [ 'ghi.zip' => 'a', ['xx.zip' => 'b1', 'b2'], 'c' ],
            'def',
          ]);
-    runNestedUnzip("$zipfile", <<'EOM');
+
+    my $lexd = new PushLexDir();
+
+    runNestedUnzip("-l $zipfile", <<'EOM');
 abc
 def.zip : a
 def.zip : b
 def.zip : c
+ghi.zip : a
+ghi.zip : xx.zip : b1
+ghi.zip : xx.zip : b2
+ghi.zip : c
 def
 EOM
 
+    is_deeply getOutputTree('.'), [], "Directory tree ok" ;
+}
+
+
+{
+    title "Extract";
+
+    my $zipdir ;
+    my $lex = new LexDir $zipdir;
+    my $zipfile = "$HERE/$zipdir/zip1.zip";
+
+    createTestZip($zipfile,
+        [
+           'abc',
+           [ 'def.zip' => 'a', 'b', 'c' ],
+           [ 'ghi.zip' => 'a', [ 'xx.zip' => 'b1', 'b2'], 'c' ],
+           'def',
+         ]);
+
+    my $lexd = new PushLexDir();
+
+    runNestedUnzip("$zipfile");
+
+    my $expected = [ sort map { "./" . $_ } qw(
+        abc
+        def
+        def.zip
+        def.zip/a
+        def.zip/b
+        def.zip/c
+        ghi.zip
+        ghi.zip/a
+        ghi.zip/c
+        ghi.zip/xx.zip
+        ghi.zip/xx.zip/b1
+        ghi.zip/xx.zip/b2
+        ) ] ;
+
+    my $got = getOutputTree('.') ;
+
+    is_deeply $got, $expected, "Directory tree ok"
+        or diag "Got [ @$got ]";
+}
+
+if (0)
+{
+    title "glob";
+
+    my $zipdir ;
+    my $lex = new LexDir $zipdir;
+    my $zipfile = "$HERE/$zipdir/zip1.zip";
+
+    createTestZip($zipfile,
+        [
+           'abc',
+           [ 'def.zip' => 'a', 'b', 'c' ],
+           [ 'ghi.zip' => 'a', [ 'xx.zip' => 'b1', 'b2'], 'c' ],
+           'def',
+         ]);
+
+    my $lexd = new PushLexDir();
+
+    runNestedUnzip("-l $zipfile abc", <<'EOM');
+abc
+EOM
+
+    runNestedUnzip("$zipfile abc");
+
+    my $expected = [ sort map { "./" . $_ } qw(
+        abc
+        ) ] ;
+    my $got = getOutputTree('.') ;
+    is_deeply $got, $expected, "Directory tree ok"
+        or diag "Got [ @$got ]";
 }

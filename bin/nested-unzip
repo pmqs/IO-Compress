@@ -9,18 +9,25 @@ use warnings;
 use IO::Uncompress::Unzip qw($UnzipError) ;
 use Getopt::Long;
 use Text::Glob qw(glob_to_regex_string);
+use File::Basename;
 
 my $VERSION = '0.001';
 
 my %first  ;
+my $list = 0;
 my $one = 0;
 my $pipe = 0;
-my $verbose = 0;
+my $verbose = 0; # TODO
+my $destDir = './'; # TODO
+my $junkPaths = 0; # TODO
 
-GetOptions ("1"         => \$one,
-            "p"         => \$pipe,
-            "verbose"   => \$verbose,
-            'version'    => sub { print "$VERSION\n"; exit 0 },
+GetOptions ('1'         => \$one,
+            'l'         => \$list,
+            'p'         => \$pipe,
+            'd=s'       => \$destDir,
+            'j'         => \$junkPaths,
+            'verbose'   => \$verbose,
+            'version'   => sub { print "$VERSION\n"; exit 0 },
             'help'      => \&Usage,)
   or Usage();
 
@@ -108,11 +115,31 @@ sub walk
             {
                 print $name . "\n" ;
             }
-            else
+            elsif ($list)
             {
                 # print "  " x (@unzip_path) . "$name\n" ;
 
                 print join(" : ", @unzip_path, $name) . "\n";
+            }
+            else
+            {
+                # extract
+                use File::Path qw(make_path);
+
+                my $path = dirname $fullname;
+                make_path($path)
+                    if length $path;
+
+                open my $fh, '>', $fullname
+                    or die "Cannot open '$fullname: $!\n" ;
+                binmode $fh;
+
+                my $buff;
+                my $status;
+                while (($status = $unzip->read($buff)) > 0)
+                {
+                    print $fh $buff;
+                }
             }
         }
     }
