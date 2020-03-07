@@ -206,13 +206,13 @@ if (1)
 
     runNestedUnzip("-l $zipfile", <<'EOM');
 abc
-def.zip : a
-def.zip : b
-def.zip : c
-ghi.zip : a
-ghi.zip : xx.zip : b1
-ghi.zip : xx.zip : b2
-ghi.zip : c
+def.zip/a
+def.zip/b
+def.zip/c
+ghi.zip/a
+ghi.zip/xx.zip/b1
+ghi.zip/xx.zip/b2
+ghi.zip/c
 def
 EOM
 
@@ -280,9 +280,9 @@ if (1)
 
     runNestedUnzip("-l $zipfile a?c **/c **b2", <<'EOM');
 abc
-def.zip : c
-ghi.zip : xx.zip : b2
-ghi.zip : c
+def.zip/c
+ghi.zip/xx.zip/b2
+ghi.zip/c
 EOM
     is_deeply getOutputTree('.'), [], "Directory tree ok" ;
 

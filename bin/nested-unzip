@@ -21,6 +21,9 @@ my $verbose = 0; # TODO
 my $destDir = './'; # TODO
 my $junkPaths = 0; # TODO
 
+my @zipExtensions = qw(zip jar war) ;
+my $zipExtensionsRE = '(?:' . join('|', map { quotemeta }  @zipExtensions) . ')';
+
 GetOptions ('1'         => \$one,
             'l'         => \$list,
             'p'         => \$pipe,
@@ -37,12 +40,7 @@ usage()
 my $zipfile = shift ;
 my @want = @ARGV;
 my %want = map { $_ => 1 } @want;
-# my $wantRE = join '|', map { toRegex($_) } @want;
 my $wantGlobRE  ;
-
-# print join "\n", globToRegex($_) for @want; exit;
-# $wantGlobRE = '^(?:' . join( '|', map { glob_to_regex_string($_) } @want) . ')$'
-#     if @want;
 
 $wantGlobRE = '^(?:' . join( '|', map { globToRegex($_) } @want) . ')$'
     if @want;
@@ -82,7 +80,9 @@ sub walk
 
         my $fullname = $matchZip ? join('/', @unzip_path, $name) : $name;
 
-        if ($name =~ /\.zip$/i)
+        if (isZipFile($unzip, $fullname)) # isZipFile is broken
+        # if ($name =~ / \. ${zipExtensionsRE} $ /ix)
+        # if ($name =~ /\.zip$/i)
         {
             my $newunzip = new IO::Uncompress::Unzip $unzip
                 or die "Cannot open '$name': $UnzipError\n";
@@ -124,7 +124,7 @@ sub walk
             {
                 # print "  " x (@unzip_path) . "$name\n" ;
 
-                print join(" : ", @unzip_path, $name) . "\n";
+                print join("/", @unzip_path, $name) . "\n";
             }
             else
             {
@@ -150,7 +150,26 @@ sub walk
     }
 }
 
+sub isZipFile
+{
+    my $fh = shift;
+    my $name = shift ;
 
+    use IO::Compress::Zip::Constants ;
+
+    my $buffer ;
+    $fh->read($buffer, 4);
+    $$magic = $buffer;
+    $fh->ungetc($buffer);
+
+    return 0
+        if length $buffer < 4 ;
+
+    my $sig = unpack("V", $buffer) ;
+    #print "isZipFile $name: " . length($buffer) . " " . ($sig == ZIP_LOCAL_HDR_SIG ? 1 : 0) . " $sig " . "\n";
+
+    return $sig == ZIP_LOCAL_HDR_SIG ;
+}
 
 sub globToRegex
 {
@@ -158,12 +177,10 @@ sub globToRegex
 
     my $inGlob = '';
 
-    # our ($noPreBS, $metachars, $matchMetaRE, %mapping, %wildCount);
     my $noPreBS = '(?<!\\\)' ; # no preceding backslash
     my $metachars = '.?';
     my $matchMetaRE = '[' . quotemeta($metachars) . ']';
     $matchMetaRE = "(?:\\*{1,2}|$matchMetaRE)";
-    # warn "MM [$matchMetaRE]\n";
 
     my %mapping = (
                 '*' => '[^/]*',
@@ -220,15 +237,17 @@ nested-unzip - uncompress zip files that also contain zip files
 =head1 DESCRIPTION
 
 This program is used to uncompress zip files that themselves contain other zip files.
-Those nested zip files can in turn also have zip files embedded.
+Those nested zip files can in turn embed more zip files.
 Zip files can be nested to any depth.
 
 To paraphrase the well-known poem "Siphonaptera"
 
-    Great zips have little zips upon their backs to bite 'em,
+    Nested zips have little zips upon their backs to bite 'em,
     And little zips have lesser zips, and so ad infinitum.
 
 Where possible, and it makes sense, the interface has been written to match the Linux unzip program.
+
+No temprary files are created when walking a nested tree of zip files.
 
 =head2 Default Behavior
 
