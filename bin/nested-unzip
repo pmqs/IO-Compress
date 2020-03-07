@@ -129,10 +129,10 @@ sub walk
             else
             {
                 # extract
-                use File::Path qw(make_path);
+                use File::Path ;
 
                 my $path = dirname $fullname;
-                make_path($path)
+                mkpath($path)
                     if length $path;
 
                 open my $fh, '>', $fullname
