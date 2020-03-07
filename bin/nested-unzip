@@ -8,33 +8,43 @@ use warnings;
 # TODO - need to include the minimum version of IO::Uncompress::Unzip that works with this script.
 use IO::Uncompress::Unzip qw($UnzipError) ;
 use Getopt::Long;
-# use Text::Glob qw(glob_to_regex_string);
 use File::Basename;
+
+sub progress;
 
 my $VERSION = '0.001';
 
 my %first  ;
-my $list = 0;
-my $one = 0;
-my $pipe = 0;
-my $verbose = 0; # TODO
-my $destDir = './'; # TODO
-my $junkPaths = 0; # TODO
+my $opt_List = 0;
+my $opt_One = 0;
+my $opt_Pipe = 0;
+my $opt_PipeWithName = 0;
+my $opt_Quiet = 0;
+my $opt_Overwrite  = 0;
+my $opt_NeverOverwrite = 0;
+my $opt_Verbose = 0; # TODO
+my $opt_DestDir = './'; # TODO
+my $opt_JunkPaths = 0; # TODO
 
 my @zipExtensions = qw(zip jar war) ;
 my $zipExtensionsRE = '(?:' . join('|', map { quotemeta }  @zipExtensions) . ')';
 
-GetOptions ('1'         => \$one,
-            'l'         => \$list,
-            'p'         => \$pipe,
-            'd=s'       => \$destDir,
-            'j'         => \$junkPaths,
-            'verbose'   => \$verbose,
+GetOptions (#'1'         => \$opt_One,
+            'l'         => \$opt_List,
+            'p'         =>  sub { $opt_Pipe = $opt_Quiet = 1 },
+            'c'         =>  sub { $opt_PipeWithName = $opt_Pipe = 1; $opt_Quiet = 0 },
+
+            #'d=s'       => \$opt_DestDir,
+            #'j'         => \$opt_JunkPaths,
+            'q'         => \$opt_Quiet,
+            'n'         => \$opt_NeverOverwrite,
+            'o'         => \$opt_Overwrite,
+            #'verbose'   => \$opt_Verbose,
             'version'   => sub { print "$VERSION\n"; exit 0 },
             'help'      => \&Usage,)
   or Usage();
 
-usage()
+Usage()
     if ! @ARGV;
 
 my $zipfile = shift ;
@@ -48,6 +58,7 @@ $wantGlobRE = '^(?:' . join( '|', map { globToRegex($_) } @want) . ')$'
 my $unzip = new IO::Uncompress::Unzip $zipfile
             or die "Cannot open '$zipfile': $UnzipError\n";
 
+progress "Archive: $zipfile";
 walk($unzip, []) ;
 
 sub nextStream
@@ -106,8 +117,12 @@ sub walk
 
         if ($matched)
         {
-            if ($pipe)
+            if ($opt_Pipe)
             {
+
+                progress "  extracting: " . join("/", @unzip_path, $name)
+                    if $opt_PipeWithName ;
+
                 my $buff;
                 my $status;
                 while (($status = $unzip->read($buff)) > 0)
@@ -115,11 +130,11 @@ sub walk
                     print $buff;
                 }
             }
-            elsif ($one)
+            elsif ($opt_One)
             {
                 print $name . "\n" ;
             }
-            elsif ($list)
+            elsif ($opt_List)
             {
                 # print "  " x (@unzip_path) . "$name\n" ;
 
@@ -127,22 +142,31 @@ sub walk
             }
             else
             {
-                # extract
+                # Extract
                 use File::Path ;
 
-                my $path = dirname $fullname;
-                mkpath($path)
-                    if length $path;
-
-                open my $fh, '>', $fullname
-                    or die "Cannot open '$fullname: $!\n" ;
-                binmode $fh;
-
-                my $buff;
-                my $status;
-                while (($status = $unzip->read($buff)) > 0)
+                my $newname;
+                if (chkReplace($fullname, \$newname))
                 {
-                    print $fh $buff;
+                    my $path = dirname $newname;
+
+                    progress "  extracting: $newname";
+                    if (! -d $path)
+                    {
+                        mkpath($path)
+                            if length $path;
+                    }
+
+                    open my $fh, '>', $newname
+                        or die "Cannot open '$newname: $!\n" ;
+                    binmode $fh;
+
+                    my $buff;
+                    my $status;
+                    while (($status = $unzip->read($buff)) > 0)
+                    {
+                        print $fh $buff;
+                    }
                 }
             }
         }
@@ -167,6 +191,12 @@ sub isZipFile
     #print "isZipFile $name: " . length($buffer) . " " . ($sig == ZIP_LOCAL_HDR_SIG ? 1 : 0) . " $sig " . "\n";
 
     return $sig == ZIP_LOCAL_HDR_SIG ;
+}
+
+sub progress
+{
+    return if $opt_Quiet;
+    print "$_\n" for @_ ;
 }
 
 sub globToRegex
@@ -211,7 +241,62 @@ sub globToRegex
     return $out;
 }
 
-sub usage
+sub chkReplace
+{
+    my $filename = shift ;
+    my $newFilename = shift ;
+
+    # default is not to rename
+    $$newFilename = $filename;
+
+    return 1 if $opt_Overwrite ;
+    return 0 if $opt_NeverOverwrite;
+
+    my $got = '';
+    while (1)
+    {
+        return 1
+            if ! -e $filename ;
+
+        while (1)
+        {
+            print "replace $filename? [y]es, [n]o, [A]ll, [N]one, [r]ename: ";
+            $got = <STDIN>;
+            chomp $got;
+
+            last
+                if $got !~ /[ynANr]/ ;
+
+            print "error: invaid response [$got]\n";
+        }
+
+        return 1 if $got eq 'y';
+        return 0 if $got eq 'n';
+
+        if ($got eq 'A')
+        {
+            $opt_Overwrite = 1 ;
+            return 1 ;
+        }
+
+        if ($got eq 'N')
+        {
+            $opt_NeverOverwrite = 1 ;
+            return 1 ;
+        }
+
+        if ($got eq 'r')
+        {
+            print "new name: ";
+
+            $filename = <STDIN>;
+            chomp $filename;
+            $$newFilename = $filename;
+        }
+    }
+}
+
+sub Usage
 {
     die <<EOM;
 Usage: nested-unzip [OPTIONS] file.zip [list]
@@ -219,6 +304,9 @@ Usage: nested-unzip [OPTIONS] file.zip [list]
 Unzip a zip file that itself contains zip files, nested to any level.
 
 OPTIONS
+
+ -c Extract file to stdout, no messages
+ -p Extract file to stdout, prefix with name as extracting
 
 EOM
 }
@@ -258,6 +346,14 @@ The nested zip files themselves are not extracted unless option xxx is enabled.
 =head2 OPTIONS
 
 =over 5
+
+=item -c
+
+Write the contents to stdout. Prefix with name as extracting.
+
+=item -p
+
+Write the contents to stdout.
 
 =item  -version
 

@@ -26,7 +26,7 @@ BEGIN
     $extra = 1
         if eval { require Test::NoWarnings ;  import Test::NoWarnings; 1 };
 
-    plan tests => 17 + $extra ;
+    plan tests => 37 + $extra ;
 }
 
 
@@ -123,6 +123,8 @@ sub runNestedUnzip
 sub createNestedZip
 {
     my $tree = shift;
+    my $fullname = shift ;
+
     my @tree = @$tree;
 
     die "first entry cannot be a ref"
@@ -135,12 +137,12 @@ sub createNestedZip
     {
         my $name = $entry;
         my @entries;
-        my $payload = "This is $name";
+        my $payload = "This is $fullname/$entry\n";
 
         if (ref $entry && ref $entry eq 'ARRAY')
         {
             ($name, @entries) = @$entry;
-            $payload = createNestedZip([ @entries ]) ;
+            $payload = createNestedZip([ @entries ], "$fullname/$name") ;
         }
 
         if (! $zip)
@@ -166,7 +168,7 @@ sub createTestZip
     my $filename = shift ;
     my $tree = shift ;
 
-    writeFile($filename, createNestedZip($tree));
+    writeFile($filename, createNestedZip($tree, ''));
 }
 
 sub getOutputTree
@@ -204,7 +206,23 @@ if (1)
 
     my $lexd = new PushLexDir();
 
-    runNestedUnzip("-l $zipfile", <<'EOM');
+    runNestedUnzip("-l $zipfile", <<"EOM");
+Archive: $zipfile
+abc
+def.zip/a
+def.zip/b
+def.zip/c
+ghi.zip/a
+ghi.zip/xx.zip/b1
+ghi.zip/xx.zip/b2
+ghi.zip/c
+def
+EOM
+
+    is_deeply getOutputTree('.'), [], "Directory tree ok" ;
+
+    # -l and -q
+    runNestedUnzip("-l -q $zipfile", <<"EOM");
 abc
 def.zip/a
 def.zip/b
@@ -278,7 +296,8 @@ if (1)
 
     my $lexd = new PushLexDir();
 
-    runNestedUnzip("-l $zipfile a?c **/c **b2", <<'EOM');
+    runNestedUnzip("-l $zipfile a?c **/c **b2", <<"EOM");
+Archive: $zipfile
 abc
 def.zip/c
 ghi.zip/xx.zip/b2
@@ -300,4 +319,89 @@ EOM
     my $got = getOutputTree('.') ;
     is_deeply $got, $expected, "Directory tree ok"
         or diag "Got [ @$got ]";
+}
+
+if (1)
+{
+    title "Pipe tests";
+
+    my $zipdir ;
+    my $lex = new LexDir $zipdir;
+    my $zipfile = "$HERE/$zipdir/zip1.zip";
+
+    createTestZip($zipfile,
+        [
+           'abc',
+           [ 'def.zip' => 'a', 'b', 'c' ],
+           [ 'ghi.zip' => 'a', [ 'xx.zip' => 'b1', 'b2'], 'c' ],
+           'def',
+         ]);
+
+    my $lexd = new PushLexDir();
+
+    runNestedUnzip("-l $zipfile a?c **/c **b2", <<"EOM");
+Archive: $zipfile
+abc
+def.zip/c
+ghi.zip/xx.zip/b2
+ghi.zip/c
+EOM
+    is_deeply getOutputTree('.'), [], "Directory tree empty" ;
+
+    my $expected =  join '',  map { "This is /" . $_ . "\n" } qw(
+        abc
+        def.zip/c
+        ghi.zip/xx.zip/b2
+        ghi.zip/c
+        )  ;
+
+    runNestedUnzip("$zipfile -p a?c **/c **b2", $expected);
+}
+
+
+if (1)
+{
+    title "Pipe tests";
+
+    my $zipdir ;
+    my $lex = new LexDir $zipdir;
+    my $zipfile = "$HERE/$zipdir/zip1.zip";
+
+    createTestZip($zipfile,
+        [
+           'abc',
+           [ 'def.zip' => 'a', 'b', 'c' ],
+           [ 'ghi.zip' => 'a', [ 'xx.zip' => 'b1', 'b2'], 'c' ],
+           'def',
+         ]);
+
+    my $lexd = new PushLexDir();
+
+    runNestedUnzip("-l $zipfile a?c **/c **b2", <<"EOM");
+Archive: $zipfile
+abc
+def.zip/c
+ghi.zip/xx.zip/b2
+ghi.zip/c
+EOM
+    is_deeply getOutputTree('.'), [], "Directory tree empty" ;
+
+    my $expected =  join '',  map { "This is /" . $_ . "\n" } qw(
+        abc
+        def.zip/c
+        ghi.zip/xx.zip/b2
+        ghi.zip/c
+        )  ;
+
+    runNestedUnzip("$zipfile -c a?c **/c **b2", <<"EOM");
+Archive: $zipfile
+  extracting: abc
+This is /abc
+  extracting: def.zip/c
+This is /def.zip/c
+  extracting: ghi.zip/xx.zip/b2
+This is /ghi.zip/xx.zip/b2
+  extracting: ghi.zip/c
+This is /ghi.zip/c
+EOM
 }
