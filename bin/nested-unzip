@@ -82,7 +82,6 @@ sub walk
 
         if (isZipFile($unzip, $fullname)) # isZipFile is broken
         # if ($name =~ / \. ${zipExtensionsRE} $ /ix)
-        # if ($name =~ /\.zip$/i)
         {
             my $newunzip = new IO::Uncompress::Unzip $unzip
                 or die "Cannot open '$name': $UnzipError\n";
@@ -159,7 +158,6 @@ sub isZipFile
 
     my $buffer ;
     $fh->read($buffer, 4);
-    $$magic = $buffer;
     $fh->ungetc($buffer);
 
     return 0
