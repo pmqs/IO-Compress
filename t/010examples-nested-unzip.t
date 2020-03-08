@@ -26,7 +26,7 @@ BEGIN
     $extra = 1
         if eval { require Test::NoWarnings ;  import Test::NoWarnings; 1 };
 
-    plan tests => 37 + $extra ;
+    plan tests => 45 + $extra ;
 }
 
 
@@ -155,7 +155,8 @@ sub createNestedZip
             $zip->newStream(Name => $name);
         }
 
-        $zip->print($payload);
+        $zip->print($payload)
+            if $name !~ m#/$# ;
     }
 
     $zip->close();
@@ -178,7 +179,8 @@ sub getOutputTree
     use File::Find;
 
     my @found;
-    find( sub { push @found, $File::Find::name
+    find( sub { my $isDir = -d ? " [DIR]" : "";
+                push @found, "${File::Find::name}$isDir"
                     if ! /^\.\.?$/  # ignore . & .. directories
               },
           $base) ;
@@ -257,20 +259,20 @@ EOM
 
     runNestedUnzip("$zipfile");
 
-    my $expected = [ sort map { "./" . $_ } qw(
+    my $expected = [ sort map { "./" . $_ }  map { s/^\s*//; $_ } split "\n", <<EOM ];
         abc
         def
-        def.zip
+        def.zip [DIR]
         def.zip/a
         def.zip/b
         def.zip/c
-        ghi.zip
+        ghi.zip [DIR]
         ghi.zip/a
         ghi.zip/c
-        ghi.zip/xx.zip
+        ghi.zip/xx.zip [DIR]
         ghi.zip/xx.zip/b1
         ghi.zip/xx.zip/b2
-        ) ] ;
+EOM
 
     my $got = getOutputTree('.') ;
 
@@ -307,15 +309,16 @@ EOM
 
     runNestedUnzip("$zipfile a?c **/c **b2");
 
-    my $expected = [ sort map { "./" . $_ } qw(
+    my $expected = [ sort map { "./" . $_ }  map { s/^\s*//; $_ } split "\n", <<EOM ];
         abc
-        def.zip
+        def.zip [DIR]
         def.zip/c
-        ghi.zip
+        ghi.zip [DIR]
         ghi.zip/c
-        ghi.zip/xx.zip
+        ghi.zip/xx.zip [DIR]
         ghi.zip/xx.zip/b2
-        ) ] ;
+EOM
+
     my $got = getOutputTree('.') ;
     is_deeply $got, $expected, "Directory tree ok"
         or diag "Got [ @$got ]";
@@ -404,4 +407,88 @@ This is /ghi.zip/xx.zip/b2
   extracting: ghi.zip/c
 This is /ghi.zip/c
 EOM
+}
+
+{
+    title "Extract: Badly formed names: default to drop '..' & strip leading '/'";
+
+    my $zipdir ;
+    my $lex = new LexDir $zipdir;
+    my $zipfile = "$HERE/$zipdir/zip1.zip";
+
+    # Create a zip with badly formed members
+    my @create = (
+            # name                ,
+            "fred1"               ,
+            "d1/../fred2"         ,
+            "d2/////d3/d4/fred3"  ,
+            "./dir2/../d4/"       ,
+            "d3/"                 ,
+     ) ;
+
+    createTestZip($zipfile, [@create]);
+
+    my $lexd = new PushLexDir();
+
+    runNestedUnzip("$zipfile");
+
+    my $expected = [ sort  map { s/^\s*//; $_ } split "\n", <<EOM ];
+            ./d1 [DIR]
+            ./d1/fred2
+            ./d2 [DIR]
+            ./d2/d3 [DIR]
+            ./d2/d3/d4 [DIR]
+            ./d2/d3/d4/fred3
+            ./d3 [DIR]
+            ./dir2 [DIR]
+            ./dir2/d4 [DIR]
+            ./fred1
+EOM
+
+    my $got = getOutputTree('.') ;
+    is_deeply $got, $expected, "Directory tree ok"
+        or diag "Got [ @$got ]";
+}
+
+
+{
+    title "Extract with 'unsafe-path:' : Badly formed names: Allow '..' & strip leading '/'";
+
+    my $zipdir ;
+    my $lex = new LexDir $zipdir;
+    my $zipfile = "$HERE/$zipdir/zip1.zip";
+
+    # Create a zip with badly formed members
+    my @create = (
+            "fred1"              ,
+            "d1/./fred2"         ,
+            "d2/////d3/d4/fred3" ,
+            "./dir2/../d4/"      ,
+            "d3/"                ,
+     ) ;
+
+    createTestZip($zipfile, [@create]);
+
+    my $lexd = new PushLexDir();
+
+    runNestedUnzip("$zipfile --unsafe-path");
+
+    my $expected = [ sort  map { s/^\s*//; $_ } split "\n", <<EOM ];
+            ./d1 [DIR]
+            ./d1/fred2
+            ./d2 [DIR]
+            ./d2/d3 [DIR]
+            ./d2/d3/d4 [DIR]
+            ./d2/d3/d4/fred3
+            ./d3 [DIR]
+            ./dir2 [DIR]
+            ./d4 [DIR]
+            ./fred1
+EOM
+
+    my $got = getOutputTree('.') ;
+    is_deeply $got, $expected, "Directory tree ok"
+        or diag "Got [ @$got ]";
+
+
 }

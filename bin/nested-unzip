@@ -25,23 +25,25 @@ my $opt_NeverOverwrite = 0;
 my $opt_Verbose = 0; # TODO
 my $opt_DestDir = './'; # TODO
 my $opt_JunkPaths = 0; # TODO
+my $opt_UnsafePath = 0 ;
 
 my @zipExtensions = qw(zip jar war) ;
 my $zipExtensionsRE = '(?:' . join('|', map { quotemeta }  @zipExtensions) . ')';
 
-GetOptions (#'1'         => \$opt_One,
-            'l'         => \$opt_List,
-            'p'         =>  sub { $opt_Pipe = $opt_Quiet = 1 },
-            'c'         =>  sub { $opt_PipeWithName = $opt_Pipe = 1; $opt_Quiet = 0 },
-
-            #'d=s'       => \$opt_DestDir,
-            #'j'         => \$opt_JunkPaths,
-            'q'         => \$opt_Quiet,
-            'n'         => \$opt_NeverOverwrite,
-            'o'         => \$opt_Overwrite,
-            #'verbose'   => \$opt_Verbose,
-            'version'   => sub { print "$VERSION\n"; exit 0 },
-            'help'      => \&Usage,)
+Getopt::Long::Configure ("bundling");
+GetOptions (#'1'             => \$opt_One,
+            'c'             =>  sub { $opt_PipeWithName = $opt_Pipe = 1; $opt_Quiet = 0 },
+            #'d=s'           => \$opt_DestDir,
+            #'j'             => \$opt_JunkPaths,
+            'l'             => \$opt_List,
+            'p'             =>  sub { $opt_Pipe = $opt_Quiet = 1 },
+            'n'             => \$opt_NeverOverwrite,
+            'o'             => \$opt_Overwrite,
+            'q'             => \$opt_Quiet,
+            'unsafe-path'   => \$opt_UnsafePath,
+            #'verbose'      => \$opt_Verbose,
+            'version'       => sub { print "$VERSION\n"; exit 0 },
+            'help'          => \&Usage,)
   or Usage();
 
 Usage()
@@ -145,6 +147,10 @@ sub walk
                 # Extract
                 use File::Path ;
 
+                my $isDir = $fullname =~ s#/+$##;
+                $fullname = canonicalPath($fullname)
+                    if ! $opt_UnsafePath;
+
                 my $newname;
                 if (chkReplace($fullname, \$newname))
                 {
@@ -157,15 +163,22 @@ sub walk
                             if length $path;
                     }
 
-                    open my $fh, '>', $newname
-                        or die "Cannot open '$newname: $!\n" ;
-                    binmode $fh;
-
-                    my $buff;
-                    my $status;
-                    while (($status = $unzip->read($buff)) > 0)
+                    if ($isDir)
                     {
-                        print $fh $buff;
+                        mkpath($newname)
+                    }
+                    else
+                    {
+                        open my $fh, '>', $newname
+                            or die "Cannot open '$newname: $!\n" ;
+                        binmode $fh;
+
+                        my $buff;
+                        my $status;
+                        while (($status = $unzip->read($buff)) > 0)
+                        {
+                            print $fh $buff;
+                        }
                     }
                 }
             }
@@ -296,6 +309,37 @@ sub chkReplace
     }
 }
 
+
+sub canonicalPath
+{
+    my $name = shift ;
+
+    # Not an absolute path
+    $name =~ s#^/+## ;
+
+    # Remove trailing slash
+    # $name =~ s#/+$## ;
+
+    $name =~ s#/+#/#g ;
+
+    # Drop any ".." and "." paths
+    # Use of ".." is unsafe
+    my @paths = split '/', $name ;
+    my @have =  grep { $_ ne '.' } @paths ;
+
+    @have =  grep {  $_ ne '..' } @paths
+        if ! $opt_UnsafePath;
+
+    return join '/', @have ;
+
+    # use Perl::OSType;
+    # my $type = Perl::OSType::os_type();
+    # if ( $type eq 'Unix' )
+    # {
+    # }
+    # # TODO Win32
+}
+
 sub Usage
 {
     die <<EOM;
@@ -324,7 +368,7 @@ nested-unzip - uncompress zip files that also contain zip files
 
 This program is used to uncompress zip files that themselves contain other zip files.
 Those nested zip files can in turn embed more zip files.
-Zip files can be nested to any depth.
+The program can cope with Zip files can be nested to any depth.
 
 To paraphrase the well-known poem "Siphonaptera"
 
@@ -333,15 +377,14 @@ To paraphrase the well-known poem "Siphonaptera"
 
 Where possible, and it makes sense, the interface has been written to match the Linux unzip program.
 
-No temprary files are created when walking a nested tree of zip files.
+The program works by reading the zip file in streaming mode,
+so no temprary files are created when walking a nested tree of zip files.
 
 =head2 Default Behavior
 
 The default behavior of the program is to uncompress all
-the nested zip files into a directory tree that mirrors the top-level zip file. The directories created for each of the nested
+the nested zip files into a directory tree that mirrors the zip file. The directories created for each of the nested
 zip files is named ...
-
-The nested zip files themselves are not extracted unless option xxx is enabled.
 
 =head2 OPTIONS
 
@@ -351,19 +394,28 @@ The nested zip files themselves are not extracted unless option xxx is enabled.
 
 Write the contents to stdout. Prefix with name as extracting.
 
+=item -l
+
+List the contents of the nested zip file.
+
 =item -p
 
 Write the contents to stdout.
 
-=item  -version
+=item  --unsafe-path
+
+Aloow extraction of unsafe path. Not recommended.
+=item  --version
 
 Display version number [$VERSION]
 
-=item -help
+=item --help
 
 Display help
 
 =back
+
+=head1 EXAMPLES
 
 =head1 LIMITATIONS
 
