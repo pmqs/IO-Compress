@@ -26,6 +26,7 @@ my $opt_Verbose = 0; # TODO
 my $opt_DestDir = './'; # TODO
 my $opt_JunkPaths = 0; # TODO
 my $opt_UnsafePath = 0 ;
+my $extracting = 1;
 
 my @zipExtensions = qw(zip jar war) ;
 my $zipExtensionsRE = '(?:' . join('|', map { quotemeta }  @zipExtensions) . ')';
@@ -40,11 +41,15 @@ GetOptions (#'1'             => \$opt_One,
             'n'             => \$opt_NeverOverwrite,
             'o'             => \$opt_Overwrite,
             'q'             => \$opt_Quiet,
+
+            'help'          => \&Usage,
             'unsafe-path'   => \$opt_UnsafePath,
             #'verbose'      => \$opt_Verbose,
             'version'       => sub { print "$VERSION\n"; exit 0 },
-            'help'          => \&Usage,)
+            )
   or Usage();
+
+$extracting = ! ($opt_List || $opt_One) ;
 
 Usage()
     if ! @ARGV;
@@ -98,7 +103,7 @@ sub walk
         {
             my $newunzip = new IO::Uncompress::Unzip $unzip
                 or die "Cannot open '$name': $UnzipError\n";
-            walk($newunzip, [@unzip_path, $name], 1);
+            walk($newunzip, [@unzip_path, $extracting ? "$name.nested" : $name], 1);
             next ;
         }
 
@@ -378,13 +383,13 @@ To paraphrase the well-known poem "Siphonaptera"
 Where possible, and it makes sense, the interface has been written to match the Linux unzip program.
 
 The program works by reading the zip file in streaming mode,
-so no temprary files are created when walking a nested tree of zip files.
+so no temporary files are created when walking a nested tree of zip files.
 
 =head2 Default Behavior
 
 The default behavior of the program is to uncompress all
 the nested zip files into a directory tree that mirrors the zip file. The directories created for each of the nested
-zip files is named ...
+zip files has the string ".nested" appended.
 
 =head2 OPTIONS
 

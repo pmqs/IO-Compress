@@ -262,16 +262,16 @@ EOM
     my $expected = [ sort map { "./" . $_ }  map { s/^\s*//; $_ } split "\n", <<EOM ];
         abc
         def
-        def.zip [DIR]
-        def.zip/a
-        def.zip/b
-        def.zip/c
-        ghi.zip [DIR]
-        ghi.zip/a
-        ghi.zip/c
-        ghi.zip/xx.zip [DIR]
-        ghi.zip/xx.zip/b1
-        ghi.zip/xx.zip/b2
+        def.zip.nested [DIR]
+        def.zip.nested/a
+        def.zip.nested/b
+        def.zip.nested/c
+        ghi.zip.nested [DIR]
+        ghi.zip.nested/a
+        ghi.zip.nested/c
+        ghi.zip.nested/xx.zip.nested [DIR]
+        ghi.zip.nested/xx.zip.nested/b1
+        ghi.zip.nested/xx.zip.nested/b2
 EOM
 
     my $got = getOutputTree('.') ;
@@ -311,12 +311,12 @@ EOM
 
     my $expected = [ sort map { "./" . $_ }  map { s/^\s*//; $_ } split "\n", <<EOM ];
         abc
-        def.zip [DIR]
-        def.zip/c
-        ghi.zip [DIR]
-        ghi.zip/c
-        ghi.zip/xx.zip [DIR]
-        ghi.zip/xx.zip/b2
+        def.zip.nested [DIR]
+        def.zip.nested/c
+        ghi.zip.nested [DIR]
+        ghi.zip.nested/c
+        ghi.zip.nested/xx.zip.nested [DIR]
+        ghi.zip.nested/xx.zip.nested/b2
 EOM
 
     my $got = getOutputTree('.') ;
@@ -400,11 +400,11 @@ EOM
 Archive: $zipfile
   extracting: abc
 This is /abc
-  extracting: def.zip/c
+  extracting: def.zip.nested/c
 This is /def.zip/c
-  extracting: ghi.zip/xx.zip/b2
+  extracting: ghi.zip.nested/xx.zip.nested/b2
 This is /ghi.zip/xx.zip/b2
-  extracting: ghi.zip/c
+  extracting: ghi.zip.nested/c
 This is /ghi.zip/c
 EOM
 }
