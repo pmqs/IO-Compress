@@ -179,7 +179,7 @@ sub getOutputTree
     use File::Find;
 
     my @found;
-    find( sub { my $isDir = -d ? " [DIR]" : "";
+    find( sub { my $isDir = -d $_ ? " [DIR]" : "";
                 push @found, "${File::Find::name}$isDir"
                     if ! /^\.\.?$/  # ignore . & .. directories
               },

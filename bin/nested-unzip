@@ -409,7 +409,8 @@ Write the contents to stdout.
 
 =item  --unsafe-path
 
-Aloow extraction of unsafe path. Not recommended.
+Allow extraction of unsafe path. Not recommended.
+
 =item  --version
 
 Display version number [$VERSION]
