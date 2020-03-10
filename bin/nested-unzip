@@ -26,6 +26,7 @@ my $opt_Verbose = 0; # TODO
 my $opt_DestDir = './'; # TODO
 my $opt_JunkPaths = 0; # TODO
 my $opt_UnsafePath = 0 ;
+my $opt_FixWindowsPath = 0;
 my $extracting = 1;
 
 my @zipExtensions = qw(zip jar war) ;
@@ -43,6 +44,7 @@ GetOptions (#'1'             => \$opt_One,
             'q'             => \$opt_Quiet,
 
             'help'          => \&Usage,
+            'fix-windows-path'  => \$opt_FixWindowsPath,
             'unsafe-path'   => \$opt_UnsafePath,
             #'verbose'      => \$opt_Verbose,
             'version'       => sub { print "$VERSION\n"; exit 0 },
@@ -151,6 +153,12 @@ sub walk
             {
                 # Extract
                 use File::Path ;
+
+                if ($opt_FixWindowsPath)
+                {
+                    $fullname =~ s/^[a-zA-Z]://;
+                    $fullname =~ s#\\#/#g ;
+                }
 
                 my $isDir = $fullname =~ s#/+$##;
                 $fullname = canonicalPath($fullname)
@@ -354,8 +362,10 @@ Unzip a zip file that itself contains zip files, nested to any level.
 
 OPTIONS
 
- -c Extract file to stdout, no messages
- -p Extract file to stdout, prefix with name as extracting
+ -c     Extract file to stdout, prefix with name as extracting
+ -p     Extract file to stdout
+
+ --fix-windows-path     Remove drive letter & change path separator from "\" to "/"
 
 EOM
 }
@@ -409,7 +419,35 @@ Write the contents to stdout.
 
 =item  --unsafe-path
 
-Allow extraction of unsafe path. Not recommended.
+Allow extraction of files that include unsafe paths. Not recommended.
+
+TODO - add something about what an unsafe path is.
+
+=item  --fix-windows-path
+
+When this option is enabled it will make the following changes to all filenames before writing
+to the filesystem
+
+=over 5
+
+=item *
+Remove any leading drive letter.
+
+=item *
+Convert all "\" characters to "/" .
+
+=back
+
+For example
+
+    Stored in Zip File  Output when "fix-windows-path" enabled
+    ------------------  ------------------------------------
+    c:\abc.txt          abc.txt
+    one\two\three.txt   one/two/three.txt
+
+
+See L<Zip files that contain Windows Paths> for more details.
+
 
 =item  --version
 
@@ -420,6 +458,69 @@ Display version number [$VERSION]
 Display help
 
 =back
+
+=head1 FAQ
+
+=head2 Zip files that contain Windows Paths
+
+Short answer - include the C<--fix-windows-path> option when running this program.
+
+Here is the longer answer.
+
+A well-known problem with some zip implementations on Windows is they
+will write a windows-native path into the zip file (e.g. "C:\abc\def\my.txt").
+
+This is a badly-formed zip file. The Zip specification,
+L<APPNOTE.TXT|https://pkware.cachefly.net/webdocs/casestudies/APPNOTE.TXT>,
+is very clear on how paths should be stored in a zip file.
+
+       4.4.17.1 The name of the file, with optional relative path.
+       The path stored MUST NOT contain a drive or
+       device letter, or a leading slash.  All slashes
+       MUST be forward slashes '/' as opposed to
+       backwards slashes '\' for compatibility with Amiga
+       and UNIX file systems etc.  If input came from stanard
+       input, there is no file name field.
+
+The problem comes when unzipping one of these badly-formed zip files.
+Consider the zip file "bad.zip", shown below, that contains a windows-native path.
+
+    $ unzip -l bad.zip
+    Archive:  bad.zip
+      Length      Date    Time    Name
+    ---------  ---------- -----   ----
+           27  03-10-2020 12:01   C:\abc\my.txt
+    ---------                     -------
+           27                     1 file
+
+If this zipfile is extracted on a Linux-like operating system using the standard
+unzip program, it will do the following
+
+    $ unzip bad.zip
+    Archive:  bad.zip
+      inflating: C:\abc\my.txt
+
+    $ ls -l *.txt
+    -rw-r--r-- 1 xxx yyy 27 Mar 10 12:01 C:\abc\my.txt
+
+Instead of creating
+a sub-directory "abc" and storing "my.txt" in that directory, it thinks
+that "C:\abc\my.txt" is the name of  file.
+
+The C<--fix-windows-path> option was designed to fix these paths.
+It will convert all filnames into Linux/Unix format before writing
+to the filesystem, by makes these changes
+
+=over 5
+
+=item *
+Remove any leading drive letter.
+
+=item *
+Convert all "\" characters to "/" .
+
+=back
+
 
 =head1 EXAMPLES
 

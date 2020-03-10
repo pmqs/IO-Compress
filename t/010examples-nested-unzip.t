@@ -26,7 +26,7 @@ BEGIN
     $extra = 1
         if eval { require Test::NoWarnings ;  import Test::NoWarnings; 1 };
 
-    plan tests => 45 + $extra ;
+    plan tests => 49 + $extra ;
 }
 
 
@@ -489,6 +489,46 @@ EOM
     my $got = getOutputTree('.') ;
     is_deeply $got, $expected, "Directory tree ok"
         or diag "Got [ @$got ]";
+}
 
 
+{
+    title "Dos/Windows paths using \ as path seperator";
+
+    my $zipdir ;
+    my $lex = new LexDir $zipdir;
+    my $zipfile = "$HERE/$zipdir/zip1.zip";
+
+    # Create a zip with badly formed members
+    my @create = map { my $a = $_ ; $a =~ s[/][\\]g ; $a } (
+            'c:/fred1'           ,
+            'd1/./fred2'         ,
+            'd2/////d3/d4/fred3' ,
+            './dir2/../d4/'      ,
+            'D:d3/'              ,
+     ) ;
+
+    createTestZip($zipfile, [@create]);
+    createTestZip("bad.zip", ['C:\abc\def\my.txt']);
+
+    my $lexd = new PushLexDir();
+
+    runNestedUnzip("$zipfile --fix-windows-path");
+
+    my $expected = [ sort  map { s/^\s*//; $_ } split "\n", <<EOM ];
+            ./d1 [DIR]
+            ./d1/fred2
+            ./d2 [DIR]
+            ./d2/d3 [DIR]
+            ./d2/d3/d4 [DIR]
+            ./d2/d3/d4/fred3
+            ./d3 [DIR]
+            ./dir2 [DIR]
+            ./dir2/d4 [DIR]
+            ./fred1
+EOM
+
+    my $got = getOutputTree('.') ;
+    is_deeply $got, $expected, "Directory tree ok"
+        or diag "Got [ @$got ]";
 }
