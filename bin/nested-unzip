@@ -46,7 +46,7 @@ GetOptions (#'1'             => \$opt_One,
             'W|wild-no-span' => \$opt_Wild_No_Span,
             'help'          => \&Usage,
             'fix-windows-path'  => \$opt_FixWindowsPath,
-            'unsafe-path'   => \$opt_UnsafePath,
+            'do-double-dots'   => \$opt_UnsafePath,
             #'verbose'      => \$opt_Verbose,
             'version'       => sub { print "$VERSION\n"; exit 0 },
             )
@@ -189,8 +189,6 @@ sub walk
             }
             elsif ($opt_List)
             {
-                # print "  " x (@unzip_path) . "$name\n" ;
-
                 print join("/", @unzip_path, $name) . "\n";
             }
 
@@ -433,7 +431,7 @@ Write the contents to stdout.
 
 Changes the behavior of the wildcard
 
-=item  --unsafe-path
+=item  --do-double-dots
 
 Allow extraction of files that include unsafe paths. Not recommended.
 

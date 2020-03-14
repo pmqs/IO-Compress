@@ -600,7 +600,7 @@ EOM
 
 
 {
-    title "Extract with 'unsafe-path:' : Badly formed names: Allow '..' & strip leading '/'";
+    title "Extract with 'do-double-dots:' : Badly formed names: Allow '..' & strip leading '/'";
 
     my $zipdir ;
     my $lex = new LexDir $zipdir;
@@ -619,7 +619,7 @@ EOM
 
     my $lexd = new PushLexDir();
 
-    runNestedUnzip("$zipfile --unsafe-path");
+    runNestedUnzip("$zipfile --do-double-dots");
 
     my $expected = [ sort  map { s/^\s*//; $_ } split "\n", <<EOM ];
             ./d1 [DIR]
