@@ -621,7 +621,17 @@ EOM
 
     runNestedUnzip("$zipfile --do-double-dots");
 
-    my $expected = [ sort  map { s/^\s*//; $_ } split "\n", <<EOM ];
+    my $expected = [ sort  map { s/^\s*//; $_ } split "\n", $^O eq 'MSWin32' ? <<EOM1 : <<EOM2];
+            ./d1 [DIR]
+            ./d1/fred2
+            ./d2 [DIR]
+            ./d2/d3 [DIR]
+            ./d2/d3/d4 [DIR]
+            ./d2/d3/d4/fred3
+            ./d3 [DIR]
+            ./d4 [DIR]
+            ./fred1
+EOM1
             ./d1 [DIR]
             ./d1/fred2
             ./d2 [DIR]
@@ -632,7 +642,7 @@ EOM
             ./dir2 [DIR]
             ./d4 [DIR]
             ./fred1
-EOM
+EOM2
 
     my $got = getOutputTree('.') ;
     is_deeply $got, $expected, "Directory tree ok"
