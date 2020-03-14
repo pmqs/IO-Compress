@@ -415,6 +415,7 @@ OPTIONS
 
  --fix-windows-path     Remove drive letter & change path separator from "\" to "/"
  --hide-nested-zip      Don't include the nested zip filename in any output
+ --version              Display version number ($VERSION)
 
 EOM
 }
