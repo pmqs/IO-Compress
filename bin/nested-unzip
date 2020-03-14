@@ -28,16 +28,20 @@ my $opt_JunkPaths = 0; # TODO
 my $opt_UnsafePath = 0 ;
 my $opt_FixWindowsPath = 0;
 my $opt_Wild_No_Span = 0;
+my $opt_HideNestedZip = 0;
+
 my $extracting = 1;
 
 my @zipExtensions = qw(zip jar war) ;
 my $zipExtensionsRE = '(?:' . join('|', map { quotemeta }  @zipExtensions) . ')';
 
 Getopt::Long::Configure ("bundling");
-GetOptions (#'1'                => \$opt_One,
+GetOptions (
+            # unzip equivalent options
+            #'1'                => \$opt_One,
             'c|to-stdout'       =>  sub { $opt_PipeWithName = $opt_Pipe = 1; $opt_Quiet = 0 },
             #'d|extract-dir=s'  => \$opt_DestDir,
-            'j|junk-dirs=i{0}'  => \$opt_JunkPaths,
+            #'j|junk-dirs=i{0}' => \$opt_JunkPaths,
             'l|list'            => \$opt_List,
             'p|pipe-to-stdout'  =>  sub { $opt_Pipe = $opt_Quiet = 1 },
             'n|never-overwrite' => \$opt_NeverOverwrite,
@@ -45,9 +49,12 @@ GetOptions (#'1'                => \$opt_One,
             'q|quiet'           => \$opt_Quiet,
             'W|wild-no-span'    => \$opt_Wild_No_Span,
             'h|help'            => \&Usage,
-            'fix-windows-path'  => \$opt_FixWindowsPath,
             'do-double-dots'    => \$opt_UnsafePath,
-            #'v|verbose'      => \$opt_Verbose,
+            #'v|verbose'        => \$opt_Verbose,
+
+            # specific to this program
+            'fix-windows-path'  => \$opt_FixWindowsPath,
+            'hide-nested-zip'   => \$opt_HideNestedZip,
             'version'           => sub { print "$VERSION\n"; exit 0 },
             )
   or Usage();
@@ -116,6 +123,9 @@ sub walk
             # no matches specified, so want everything
             $matched = 1 ;
         }
+
+        $matched = 0
+            if $isZip && $opt_HideNestedZip ;
 
         if ($matched)
         {
@@ -198,9 +208,29 @@ sub walk
         {
             my $newunzip = new IO::Uncompress::Unzip $unzip
                 or die "Cannot open '$name': $UnzipError\n";
-            walk($newunzip, [@unzip_path, $extracting ? "$name.nested" : $name], 1);
+            # walk($newunzip, [@unzip_path, $extracting ? "$name.nested" : $name], 1);
+
+            walk($newunzip, nestedName(\@unzip_path, $name), 1);
+
         }
     }
+}
+
+sub nestedName
+{
+    my $path = shift;
+    my $name = shift ;
+
+    # take a copy of the path
+    my @path = @$path;
+    if (! $opt_HideNestedZip)
+    {
+        $name = "$name.nested"
+            if $extracting;
+        push @path, $name ;
+    }
+
+    return \@path;
 }
 
 sub isZipFile
@@ -374,6 +404,7 @@ OPTIONS
         Allows matching at specific directory levels
 
  --fix-windows-path     Remove drive letter & change path separator from "\" to "/"
+ --hide-nested-zip      Don't include the nested zip filename in any output
 
 EOM
 }
@@ -443,6 +474,27 @@ Normally this program will remove all ".." path components before extracting to 
 This option disables that feature. Use with caution.
 
 Note that the path actually created is platform dependent.
+
+=item --hide-nested-zip
+
+When extracting or list the contents of a zip file that contains nested zip file, the name of
+the nested zip file is included. This option make it appear that the contents of the nested zip
+are in th edirectory where the nested zip lives.
+
+For example, if a zip comntains the following
+
+    a/b.zip/c1
+    s/c2
+
+Normally this will be extracted as
+
+    a/b.zip.nested/c1
+    s/c2
+
+With this option the output becomes
+
+    a/c1
+    s/c2
 
 =item  --fix-windows-path
 

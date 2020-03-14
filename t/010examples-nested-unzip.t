@@ -26,7 +26,7 @@ BEGIN
     $extra = 1
         if eval { require Test::NoWarnings ;  import Test::NoWarnings; 1 };
 
-    plan tests => 104 + $extra ;
+    plan tests => 108 + $extra ;
 }
 
 
@@ -387,6 +387,40 @@ EOM
 
 }
 
+{
+    diag "hide-nested-zip";
+
+
+    my $zipdir ;
+    my $lex = new LexDir $zipdir;
+    my $zipfile = "$HERE/$zipdir/zip1.zip";
+
+    createTestZip($zipfile,
+        [
+           'abc',
+           [ 'def.zip' => 'def-a', 'def-b', 'def-c' ],
+           [ 'ghi.zip' => 'ghi-a', ['ghi-b/xx.zip' => 'xx-b1', 'xx-b2'], 'ghi-b/d', 'ghi-c' ],
+           'def',
+         ]);
+
+    my $lexd = new PushLexDir();
+
+    runNestedUnzip("-lq --hide-nested-zip $zipfile", <<"EOM");
+abc
+def-a
+def-b
+def-c
+ghi-a
+xx-b1
+xx-b2
+ghi-b/d
+ghi-c
+def
+EOM
+
+    is_deeply getOutputTree('.'), [], "Directory tree ok" ;
+
+}
 {
     title "Extract";
 
