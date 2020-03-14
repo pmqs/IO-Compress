@@ -9,6 +9,7 @@ use warnings;
 use IO::Uncompress::Unzip qw($UnzipError) ;
 use Getopt::Long;
 use File::Basename;
+use File::Path ;
 
 sub progress;
 
@@ -23,7 +24,7 @@ my $opt_Quiet = 0;
 my $opt_Overwrite  = 0;
 my $opt_NeverOverwrite = 0;
 my $opt_Verbose = 0; # TODO
-my $opt_DestDir = './'; # TODO
+my $opt_DestDir ;
 my $opt_JunkPaths = 0; # TODO
 my $opt_UnsafePath = 0 ;
 my $opt_FixWindowsPath = 0;
@@ -40,7 +41,7 @@ GetOptions (
             # unzip equivalent options
             #'1'                => \$opt_One,
             'c|to-stdout'       =>  sub { $opt_PipeWithName = $opt_Pipe = 1; $opt_Quiet = 0 },
-            #'d|extract-dir=s'  => \$opt_DestDir,
+            'd|extract-dir=s'   => \$opt_DestDir,
             #'j|junk-dirs=i{0}' => \$opt_JunkPaths,
             'l|list'            => \$opt_List,
             'p|pipe-to-stdout'  =>  sub { $opt_Pipe = $opt_Quiet = 1 },
@@ -59,10 +60,11 @@ GetOptions (
             )
   or Usage();
 
-$extracting = ! ($opt_List || $opt_One) ;
 
 Usage()
     if ! @ARGV;
+
+$extracting = ! ($opt_List || $opt_One) ;
 
 my $zipfile = shift ;
 my @want = @ARGV;
@@ -74,6 +76,15 @@ $wantGlobRE = '^(?:' . join( '|', map { globToRegex($_) } @want) . ')$'
 
 my $unzip = new IO::Uncompress::Unzip $zipfile
             or die "Cannot open '$zipfile': $UnzipError\n";
+
+if (defined $opt_DestDir)
+{
+    mkpath $opt_DestDir
+        or die "Cannot create '$opt_DestDir': $!\n";
+
+    chdir $opt_DestDir
+        or die "Cannot cddir to '$opt_DestDir': $!\n"
+}
 
 progress "Archive: $zipfile";
 walk($unzip, []) ;
@@ -147,7 +158,6 @@ sub walk
                 else
                 {
                     # Extract to filesystem
-                    use File::Path ;
 
                     if ($opt_FixWindowsPath)
                     {
@@ -397,10 +407,11 @@ Unzip a zip file that itself contains zip files, nested to any level.
 
 OPTIONS
 
- -c     Extract file to stdout, prefix with name as extracting
- -p     Extract file to stdout (no filename prefix)
- -W     Modify pattern matching so ? and * do not match
-        the directory separator /.
+ -c       Extract file to stdout, prefix with name as extracting
+ -d dest  Extract files into "dest"
+ -p       Extract file to stdout (no filename prefix)
+ -W       Modify pattern matching so ? and * do not match
+          the directory separator /.
 
  --fix-windows-path     Remove drive letter & change path separator from "\" to "/"
  --hide-nested-zip      Don't include the nested zip filename in any output
@@ -448,6 +459,15 @@ zip files has the string ".nested" appended.
 =item --to-stdout
 
 Write the contents to stdout. Prefix with name as extracting.
+
+=item -d dest_dir
+
+=item -extract-dir dest_dir
+
+Specifies  a  destination  directory  for  extracted  files.  By
+default, files are extracted (and subdirectories created) in the
+current  directory.   With  C<-d dest_dir>, extraction is done into
+the specified directory, instead.
 
 =item -l
 

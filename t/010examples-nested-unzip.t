@@ -26,7 +26,7 @@ BEGIN
     $extra = 1
         if eval { require Test::NoWarnings ;  import Test::NoWarnings; 1 };
 
-    plan tests => 108 + $extra ;
+    plan tests => 112 + $extra ;
 }
 
 
@@ -421,6 +421,7 @@ EOM
     is_deeply getOutputTree('.'), [], "Directory tree ok" ;
 
 }
+
 {
     title "Extract";
 
@@ -457,6 +458,51 @@ EOM
 EOM
 
     my $got = getOutputTree('.') ;
+
+    is_deeply $got, $expected, "Directory tree ok"
+        or diag "Got [ @$got ]";
+}
+
+
+{
+    title "Extract with --extract-dir";
+
+    my $zipdir ;
+    my $lex = new LexDir $zipdir;
+    # my $zipfile = "$HERE/$zipdir/zip1.zip";
+    my $zipfile = "$HERE/zip1.zip";
+
+    my $extractDir ;
+    my $lex2 = new LexDir $extractDir;
+
+    createTestZip($zipfile,
+        [
+           'abc',
+           [ 'def.zip' => 'a', 'b', 'c' ],
+           [ 'ghi.zip' => 'a', [ 'xx.zip' => 'b1', 'b2'], 'c' ],
+           'def',
+         ]);
+
+    my $lexd = new PushLexDir();
+
+    runNestedUnzip("$zipfile --extract-dir=$extractDir ");
+
+    my $expected = [ sort map { "$extractDir/" . $_ }  map { s/^\s*//; $_ } split "\n", <<EOM ];
+        abc
+        def
+        def.zip.nested [DIR]
+        def.zip.nested/a
+        def.zip.nested/b
+        def.zip.nested/c
+        ghi.zip.nested [DIR]
+        ghi.zip.nested/a
+        ghi.zip.nested/c
+        ghi.zip.nested/xx.zip.nested [DIR]
+        ghi.zip.nested/xx.zip.nested/b1
+        ghi.zip.nested/xx.zip.nested/b2
+EOM
+
+    my $got = getOutputTree($extractDir) ;
 
     is_deeply $got, $expected, "Directory tree ok"
         or diag "Got [ @$got ]";
