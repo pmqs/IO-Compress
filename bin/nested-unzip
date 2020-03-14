@@ -27,6 +27,7 @@ my $opt_DestDir = './'; # TODO
 my $opt_JunkPaths = 0; # TODO
 my $opt_UnsafePath = 0 ;
 my $opt_FixWindowsPath = 0;
+my $opt_Wild_No_Span = 0;
 my $extracting = 1;
 
 my @zipExtensions = qw(zip jar war) ;
@@ -42,7 +43,7 @@ GetOptions (#'1'             => \$opt_One,
             'n'             => \$opt_NeverOverwrite,
             'o'             => \$opt_Overwrite,
             'q'             => \$opt_Quiet,
-
+            'W|wild-no-span' => \$opt_Wild_No_Span,
             'help'          => \&Usage,
             'fix-windows-path'  => \$opt_FixWindowsPath,
             'unsafe-path'   => \$opt_UnsafePath,
@@ -100,16 +101,10 @@ sub walk
 
         my $fullname = $matchZip ? join('/', @unzip_path, $name) : $name;
 
-        if (isZipFile($unzip, $fullname)) # isZipFile is broken
-        # if ($name =~ / \. ${zipExtensionsRE} $ /ix)
-        {
-            my $newunzip = new IO::Uncompress::Unzip $unzip
-                or die "Cannot open '$name': $UnzipError\n";
-            walk($newunzip, [@unzip_path, $extracting ? "$name.nested" : $name], 1);
-            next ;
-        }
+        my $isZip = isZipFile($unzip, $fullname) ;
 
         my $matched = 0;
+
         if ($wantGlobRE)
         {
             # warn "Matching against [$fullname]\n";
@@ -118,28 +113,77 @@ sub walk
         }
         else
         {
-            $matched  = 1 ;
+            # no matches specified, so want everything
+            $matched = 1 ;
         }
-
-        # my $matched = ! @want || $want{$name} || $matchZip ;
-        my $matchZipNext = $matchZip || ( $matched && $name =~ /\.zip$/i );
 
         if ($matched)
         {
-            if ($opt_Pipe)
+
+            if ($extracting && ! $isZip)
             {
-
-                progress "  extracting: " . join("/", @unzip_path, $name)
-                    if $opt_PipeWithName ;
-
-                my $buff;
-                my $status;
-                while (($status = $unzip->read($buff)) > 0)
+                if ($opt_Pipe)
                 {
-                    print $buff;
+                    progress "  extracting: " . join("/", @unzip_path, $name)
+                        if $opt_PipeWithName ;
+
+                    my $buff;
+                    my $status;
+                    while (($status = $unzip->read($buff)) > 0)
+                    {
+                        print $buff;
+                    }
+                }
+                else
+                {
+                    # Extract to filesystem
+                    use File::Path ;
+
+                    if ($opt_FixWindowsPath)
+                    {
+                        $fullname =~ s/^[a-zA-Z]://;
+                        $fullname =~ s#\\#/#g ;
+                    }
+
+                    my $isDir = $fullname =~ s#/+$##;
+                    $fullname = canonicalPath($fullname)
+                        if ! $opt_UnsafePath;
+
+                    my $newname;
+                    if (chkReplace($fullname, \$newname))
+                    {
+                        my $path = dirname $newname;
+
+                        progress "  extracting: $newname";
+                        if (! -d $path)
+                        {
+                            mkpath($path)
+                                if length $path;
+                        }
+
+                        if ($isDir)
+                        {
+                            mkpath($newname)
+                        }
+                        else
+                        {
+                            open my $fh, '>', $newname
+                                or die "Cannot open '$newname: $!\n" ;
+                            binmode $fh;
+
+                            my $buff;
+                            my $status;
+                            while (($status = $unzip->read($buff)) > 0)
+                            {
+                                print $fh $buff;
+                            }
+                        }
+                    }
                 }
             }
-            elsif ($opt_One)
+
+            # Listing options
+            if ($opt_One)
             {
                 print $name . "\n" ;
             }
@@ -149,52 +193,14 @@ sub walk
 
                 print join("/", @unzip_path, $name) . "\n";
             }
-            else
-            {
-                # Extract
-                use File::Path ;
 
-                if ($opt_FixWindowsPath)
-                {
-                    $fullname =~ s/^[a-zA-Z]://;
-                    $fullname =~ s#\\#/#g ;
-                }
+        }
 
-                my $isDir = $fullname =~ s#/+$##;
-                $fullname = canonicalPath($fullname)
-                    if ! $opt_UnsafePath;
-
-                my $newname;
-                if (chkReplace($fullname, \$newname))
-                {
-                    my $path = dirname $newname;
-
-                    progress "  extracting: $newname";
-                    if (! -d $path)
-                    {
-                        mkpath($path)
-                            if length $path;
-                    }
-
-                    if ($isDir)
-                    {
-                        mkpath($newname)
-                    }
-                    else
-                    {
-                        open my $fh, '>', $newname
-                            or die "Cannot open '$newname: $!\n" ;
-                        binmode $fh;
-
-                        my $buff;
-                        my $status;
-                        while (($status = $unzip->read($buff)) > 0)
-                        {
-                            print $fh $buff;
-                        }
-                    }
-                }
-            }
+        if ($isZip)
+        {
+            my $newunzip = new IO::Uncompress::Unzip $unzip
+                or die "Cannot open '$name': $UnzipError\n";
+            walk($newunzip, [@unzip_path, $extracting ? "$name.nested" : $name], 1);
         }
     }
 }
@@ -237,10 +243,11 @@ sub globToRegex
     $matchMetaRE = "(?:\\*{1,2}|$matchMetaRE)";
 
     my %mapping = (
-                '*' => '[^/]*',
-                '?' => '[^/]',
-                '.' => '\.',
-                '**' => '.*',
+                # wildcard  Wild-no-span  default
+                '*'  => { 1 => '[^/]*',  0 => '.*' },
+                '?'  => { 1 => '[^/]',   0 => '.'  },
+                '.'  => { 1 => '\.',     0 => '\.' },
+                '**' => { 1 => '.*',     0 => '.*' },
                 # '[' => '([',
                 # '(' => '(',
                 # ')' => ')',
@@ -258,7 +265,7 @@ sub globToRegex
     while ($string =~ s/(.*?)$noPreBS($matchMetaRE)//)
     {
         $out .= quotemeta($1) ;
-        $out .= $mapping{$2}
+        $out .= $mapping{$2}{$opt_Wild_No_Span}
             if defined $mapping{$2};
     }
 
@@ -364,6 +371,9 @@ OPTIONS
 
  -c     Extract file to stdout, prefix with name as extracting
  -p     Extract file to stdout
+ -W     Modify pattern matching so ? and * do not match
+        directory separator /, but ** does.
+        Allows matching at specific directory levels
 
  --fix-windows-path     Remove drive letter & change path separator from "\" to "/"
 
@@ -416,6 +426,12 @@ List the contents of the nested zip file.
 =item -p
 
 Write the contents to stdout.
+
+=item -W
+
+=item --wild-no-span
+
+Changes the behavior of the wildcard
 
 =item  --unsafe-path
 

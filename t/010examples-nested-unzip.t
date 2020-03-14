@@ -26,7 +26,7 @@ BEGIN
     $extra = 1
         if eval { require Test::NoWarnings ;  import Test::NoWarnings; 1 };
 
-    plan tests => 49 + $extra ;
+    plan tests => 104 + $extra ;
 }
 
 
@@ -108,7 +108,7 @@ sub check
 
     1 while unlink $stderr;
 
-    return $stdout;
+    return ($aok, $stdout);
 }
 
 sub runNestedUnzip
@@ -116,7 +116,14 @@ sub runNestedUnzip
     my $command = shift;
     my $expected = shift ;
 
-    return check "$Perl $nestedUnzip $command", $expected;
+    my ($aok, $got) = check "$Perl $nestedUnzip $command", $expected;
+
+    if (! $aok) {
+        my ($file, $line) = (caller)[1,2];
+        diag "Test called from $file, line $line";
+    }
+
+    return $got ;
 }
 
 
@@ -127,8 +134,8 @@ sub createNestedZip
 
     my @tree = @$tree;
 
-    die "first entry cannot be a ref"
-        if ref $tree[0] ;
+    # die "first entry cannot be a ref"
+    #     if ref $tree[0] ;
 
     my $out ;
     my $zip ;
@@ -188,9 +195,10 @@ sub getOutputTree
     return  [ sort @found ] ;
 }
 
+
 if (1)
 {
-    title "List";
+    title "List default wildcard and wild-no-span";
 
     # chdir $HERE;
 
@@ -202,7 +210,7 @@ if (1)
         [
            'abc',
            [ 'def.zip' => 'a', 'b', 'c' ],
-           [ 'ghi.zip' => 'a', ['xx.zip' => 'b1', 'b2'], 'c' ],
+           [ 'ghi.zip' => 'a', ['b/xx.zip' => 'b1', 'b2'], 'b/d', 'c' ],
            'def',
          ]);
 
@@ -211,12 +219,53 @@ if (1)
     runNestedUnzip("-l $zipfile", <<"EOM");
 Archive: $zipfile
 abc
+def.zip
 def.zip/a
 def.zip/b
 def.zip/c
+ghi.zip
 ghi.zip/a
-ghi.zip/xx.zip/b1
-ghi.zip/xx.zip/b2
+ghi.zip/b/xx.zip
+ghi.zip/b/xx.zip/b1
+ghi.zip/b/xx.zip/b2
+ghi.zip/b/d
+ghi.zip/c
+def
+EOM
+
+    is_deeply getOutputTree('.'), [], "Directory tree ok" ;
+
+    runNestedUnzip("-lW $zipfile", <<"EOM");
+Archive: $zipfile
+abc
+def.zip
+def.zip/a
+def.zip/b
+def.zip/c
+ghi.zip
+ghi.zip/a
+ghi.zip/b/xx.zip
+ghi.zip/b/xx.zip/b1
+ghi.zip/b/xx.zip/b2
+ghi.zip/b/d
+ghi.zip/c
+def
+EOM
+    is_deeply getOutputTree('.'), [], "Directory tree ok" ;
+
+    # -l and -q
+    runNestedUnzip("-l -q $zipfile", <<"EOM");
+abc
+def.zip
+def.zip/a
+def.zip/b
+def.zip/c
+ghi.zip
+ghi.zip/a
+ghi.zip/b/xx.zip
+ghi.zip/b/xx.zip/b1
+ghi.zip/b/xx.zip/b2
+ghi.zip/b/d
 ghi.zip/c
 def
 EOM
@@ -224,28 +273,127 @@ EOM
     is_deeply getOutputTree('.'), [], "Directory tree ok" ;
 
     # -l and -q
-    runNestedUnzip("-l -q $zipfile", <<"EOM");
+    runNestedUnzip("-l -q -W $zipfile", <<"EOM");
 abc
+def.zip
 def.zip/a
 def.zip/b
 def.zip/c
+ghi.zip
 ghi.zip/a
-ghi.zip/xx.zip/b1
-ghi.zip/xx.zip/b2
+ghi.zip/b/xx.zip
+ghi.zip/b/xx.zip/b1
+ghi.zip/b/xx.zip/b2
+ghi.zip/b/d
 ghi.zip/c
 def
 EOM
 
-    is_deeply getOutputTree('.'), [], "Directory tree ok" ;
-}
+    # Match the zip files themselves
+    runNestedUnzip("-lq $zipfile **.zip", <<"EOM");
+def.zip
+ghi.zip
+ghi.zip/b/xx.zip
+EOM
 
+    # Match the zip files themselves
+    runNestedUnzip("-lqW $zipfile **.zip", <<"EOM");
+def.zip
+ghi.zip
+ghi.zip/b/xx.zip
+EOM
+
+    # Match the zip files themselves
+    runNestedUnzip("-lq $zipfile *.zip", <<"EOM");
+def.zip
+ghi.zip
+ghi.zip/b/xx.zip
+EOM
+
+    # Match the zip files themselves
+    runNestedUnzip("-lqW $zipfile *.zip", <<"EOM");
+def.zip
+ghi.zip
+EOM
+
+    # Match a single nested zip
+    runNestedUnzip("-lq $zipfile **/*.zip", <<"EOM");
+ghi.zip/b/xx.zip
+EOM
+
+    # Match a single nested zip
+    runNestedUnzip("-lqW $zipfile **/*.zip", <<"EOM");
+ghi.zip/b/xx.zip
+EOM
+
+    # contents of a single zip
+    runNestedUnzip("-lq $zipfile **/*.zip/**", <<"EOM");
+ghi.zip/b/xx.zip/b1
+ghi.zip/b/xx.zip/b2
+EOM
+
+    # contents of a single zip
+    runNestedUnzip("-lqW $zipfile **/*.zip/**", <<"EOM");
+ghi.zip/b/xx.zip/b1
+ghi.zip/b/xx.zip/b2
+EOM
+
+    # zip and one level deeper
+    runNestedUnzip("-lq $zipfile g*.zip/* ", <<"EOM");
+ghi.zip/a
+ghi.zip/b/xx.zip
+ghi.zip/b/xx.zip/b1
+ghi.zip/b/xx.zip/b2
+ghi.zip/b/d
+ghi.zip/c
+EOM
+
+    # zip and one level deeper
+    runNestedUnzip("-lqW $zipfile g*.zip/* ", <<"EOM");
+ghi.zip/a
+ghi.zip/c
+EOM
+
+    #
+    runNestedUnzip("-lq $zipfile g*.zip/**", <<"EOM");
+ghi.zip/a
+ghi.zip/b/xx.zip
+ghi.zip/b/xx.zip/b1
+ghi.zip/b/xx.zip/b2
+ghi.zip/b/d
+ghi.zip/c
+EOM
+
+    #
+    runNestedUnzip("-lq $zipfile g*.zip/*/b2", <<"EOM");
+ghi.zip/b/xx.zip/b2
+EOM
+
+    runNestedUnzip("-lqW $zipfile g*.zip/*/b2", <<"EOM");
+EOM
+
+    runNestedUnzip("-lq $zipfile g*.zip/**/b2", <<"EOM");
+ghi.zip/b/xx.zip/b2
+EOM
+
+    runNestedUnzip("-lq $zipfile g*.zip/**/b2", <<"EOM");
+ghi.zip/b/xx.zip/b2
+EOM
+
+    #
+    runNestedUnzip("-lq $zipfile g*.zip/*/b2", <<"EOM");
+ghi.zip/b/xx.zip/b2
+EOM
+
+}
 
 {
     title "Extract";
 
     my $zipdir ;
     my $lex = new LexDir $zipdir;
-    my $zipfile = "$HERE/$zipdir/zip1.zip";
+    # my $zipfile = "$HERE/$zipdir/zip1.zip";
+    my $zipfile = "$HERE/zip1.zip";
 
     createTestZip($zipfile,
         [
@@ -307,7 +455,7 @@ ghi.zip/c
 EOM
     is_deeply getOutputTree('.'), [], "Directory tree ok" ;
 
-    runNestedUnzip("$zipfile a?c **/c **b2");
+    runNestedUnzip("$zipfile a?c **/c **b2 **xx.zip");
 
     my $expected = [ sort map { "./" . $_ }  map { s/^\s*//; $_ } split "\n", <<EOM ];
         abc
