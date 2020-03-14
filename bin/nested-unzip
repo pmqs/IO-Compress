@@ -34,21 +34,21 @@ my @zipExtensions = qw(zip jar war) ;
 my $zipExtensionsRE = '(?:' . join('|', map { quotemeta }  @zipExtensions) . ')';
 
 Getopt::Long::Configure ("bundling");
-GetOptions (#'1'             => \$opt_One,
-            'c'             =>  sub { $opt_PipeWithName = $opt_Pipe = 1; $opt_Quiet = 0 },
-            #'d=s'           => \$opt_DestDir,
-            #'j'             => \$opt_JunkPaths,
-            'l'             => \$opt_List,
-            'p'             =>  sub { $opt_Pipe = $opt_Quiet = 1 },
-            'n'             => \$opt_NeverOverwrite,
-            'o'             => \$opt_Overwrite,
-            'q'             => \$opt_Quiet,
-            'W|wild-no-span' => \$opt_Wild_No_Span,
-            'help'          => \&Usage,
+GetOptions (#'1'                => \$opt_One,
+            'c|to-stdout'       =>  sub { $opt_PipeWithName = $opt_Pipe = 1; $opt_Quiet = 0 },
+            #'d|extract-dir=s'  => \$opt_DestDir,
+            'j|junk-dirs=i{0}'  => \$opt_JunkPaths,
+            'l|list'            => \$opt_List,
+            'p|pipe-to-stdout'  =>  sub { $opt_Pipe = $opt_Quiet = 1 },
+            'n|never-overwrite' => \$opt_NeverOverwrite,
+            'o|overwrite'       => \$opt_Overwrite,
+            'q|quiet'           => \$opt_Quiet,
+            'W|wild-no-span'    => \$opt_Wild_No_Span,
+            'h|help'            => \&Usage,
             'fix-windows-path'  => \$opt_FixWindowsPath,
-            'do-double-dots'   => \$opt_UnsafePath,
-            #'verbose'      => \$opt_Verbose,
-            'version'       => sub { print "$VERSION\n"; exit 0 },
+            'do-double-dots'    => \$opt_UnsafePath,
+            #'v|verbose'      => \$opt_Verbose,
+            'version'           => sub { print "$VERSION\n"; exit 0 },
             )
   or Usage();
 
@@ -368,7 +368,7 @@ Unzip a zip file that itself contains zip files, nested to any level.
 OPTIONS
 
  -c     Extract file to stdout, prefix with name as extracting
- -p     Extract file to stdout
+ -p     Extract file to stdout (no filename prefix)
  -W     Modify pattern matching so ? and * do not match
         directory separator /, but ** does.
         Allows matching at specific directory levels
@@ -415,13 +415,19 @@ zip files has the string ".nested" appended.
 
 =item -c
 
+=item --to-stdout
+
 Write the contents to stdout. Prefix with name as extracting.
 
 =item -l
 
+=item --list
+
 List the contents of the nested zip file.
 
 =item -p
+
+=item --pipe-to-stdout
 
 Write the contents to stdout.
 
@@ -544,8 +550,7 @@ Convert all "\" characters to "/" .
 =head1 SUPPORT
 
 General feedback/questions/bug reports should be sent to
-L<https://github.com/pmqs/IO-Compress/issues> (preferred) or
-L<https://rt.cpan.org/Public/Dist/Display.html?Name=IO-Compress>.
+L<https://github.com/pmqs/IO-Compress/issues>.
 
 =head1 AUTHOR
 
