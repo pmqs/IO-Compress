@@ -400,8 +400,7 @@ OPTIONS
  -c     Extract file to stdout, prefix with name as extracting
  -p     Extract file to stdout (no filename prefix)
  -W     Modify pattern matching so ? and * do not match
-        directory separator /, but ** does.
-        Allows matching at specific directory levels
+        the directory separator /.
 
  --fix-windows-path     Remove drive letter & change path separator from "\" to "/"
  --hide-nested-zip      Don't include the nested zip filename in any output
@@ -422,7 +421,7 @@ nested-unzip - uncompress zip files that also contain zip files
 
 This program is used to uncompress zip files that themselves contain other zip files.
 Those nested zip files can in turn embed more zip files.
-The program can cope with Zip files can be nested to any depth.
+The program can cope with Zip files nested to any depth.
 
 To paraphrase the well-known poem "Siphonaptera"
 
