@@ -433,9 +433,10 @@ Changes the behavior of the wildcard
 
 =item  --do-double-dots
 
-Allow extraction of files that include unsafe paths. Not recommended.
+Normally this program will remove all ".." path components before extracting to the filesystem.
+This option disables that feature. Use with caution.
 
-TODO - add something about what an unsafe path is.
+Note that the path actually created is platform dependent.
 
 =item  --fix-windows-path
 
