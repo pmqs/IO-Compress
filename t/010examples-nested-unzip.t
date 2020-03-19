@@ -644,7 +644,7 @@ if(1)
 
     my $lexd = new PushLexDir();
 
-    runNestedUnzip("-l --zip-wildcard '**.zip' $zipfile ", <<"EOM");
+    runNestedUnzip("-l --zip-wildcard **.zip $zipfile ", <<"EOM");
 Archive: $zipfile
 abc
 def.zip
@@ -656,7 +656,7 @@ def
 EOM
     is_deeply getOutputTree('.'), [], "Directory tree ok" ;
 
-    runNestedUnzip(" --zip-wildcard '**.zip' $zipfile  ");
+    runNestedUnzip(" --zip-wildcard **.zip $zipfile  ");
 
     chdir($extractDir);
     my $got = getOutputTreeAndData('.') ;
@@ -748,7 +748,7 @@ EOM
     is_deeply getOutputTree('.'), [], "Directory tree empty" ;
 
 
-    runNestedUnzip("$zipfile -c 'a?c' **/c **b2", <<"EOM");
+    runNestedUnzip("$zipfile -c a?c **/c **b2", <<"EOM");
 Archive: $zipfile
   extracting: abc
 This is /abc
