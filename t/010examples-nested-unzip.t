@@ -14,6 +14,7 @@ use Cwd;
 use Test::More ;
 use CompTestUtils;
 use IO::Compress::Zip 'zip' ;
+use Data::Dumper ;
 # use IO::Uncompress::Unzip 'unzip' ;
 
 BEGIN
@@ -26,7 +27,7 @@ BEGIN
     $extra = 1
         if eval { require Test::NoWarnings ;  import Test::NoWarnings; 1 };
 
-    plan tests => 112 + $extra ;
+    plan tests => 122 + $extra ;
 }
 
 
@@ -47,6 +48,7 @@ $binDir .= $ENV{PERL_CORE} ? "../ext/IO-Compress/bin/"
 
 my $nestedUnzip = "$binDir/nested-unzip";
 
+my $ChkSums = {};
 
 {
     package PushLexDir;
@@ -131,6 +133,7 @@ sub createNestedZip
 {
     my $tree = shift;
     my $fullname = shift ;
+    my $payloads = shift;
 
     my @tree = @$tree;
 
@@ -145,25 +148,29 @@ sub createNestedZip
         my $name = $entry;
         my @entries;
         my $payload = "This is $fullname/$entry\n";
+        my $method = 8;
 
         if (ref $entry && ref $entry eq 'ARRAY')
         {
             ($name, @entries) = @$entry;
-            $payload = createNestedZip([ @entries ], "$fullname/$name") ;
+            $payload = createNestedZip([ @entries ], "$fullname/$name", $payloads) ;
+            $method = 0;
         }
 
-        if (! $zip)
+        if (! defined $zip)
         {
-            $zip = new IO::Compress::Zip \$out, Name => $name
+            $zip = new IO::Compress::Zip \$out, Name => $name, Stream => 0, Method => $method,
                 or die "Cannot create zip file $name': $!\n";
         }
         else
         {
-            $zip->newStream(Name => $name);
+            $zip->newStream(Name => $name, Method => $method);
         }
 
-        $zip->print($payload)
-            if $name !~ m#/$# ;
+        $zip->print($payload);
+            # if $name !~ m#/$# ;
+
+        $payloads->{"$fullname/$name"} = $payload;
     }
 
     $zip->close();
@@ -175,26 +182,80 @@ sub createTestZip
 {
     my $filename = shift ;
     my $tree = shift ;
+    my $payloads = shift ;
 
-    writeFile($filename, createNestedZip($tree, ''));
+    writeFile($filename, createNestedZip($tree, '', $payloads));
 }
 
 sub getOutputTree
 {
     my $base = shift ;
+    my $payloads = shift;
 
     use File::Find;
 
+    my %payloads ;
     my @found;
     find( sub { my $isDir = -d $_ ? " [DIR]" : "";
-                push @found, "${File::Find::name}$isDir"
-                    if ! /^\.\.?$/  # ignore . & .. directories
+                return if /^\.\.?$/ ;  # ignore . & .. directories
+
+                push @found, "${File::Find::name}$isDir" ;
+
+                # system "pwd; ls -l";
+                if (1 || $payloads)
+                {
+                    if ($isDir)
+                    {
+                        $payloads->{ ${File::Find::name} } = "DIRECTORY";
+                    }
+                    else
+                    {
+                        $payloads->{ ${File::Find::name} } = readFile($_);
+                    }
+                }
+
               },
           $base) ;
 
     return  [ sort @found ] ;
 }
 
+sub getOutputTreeAndData
+{
+    my $base = shift ;
+
+    use File::Find;
+
+    my %payloads ;
+    my @found;
+    find( sub { my $isDir = -d $_ ? " [DIR]" : "";
+                return if /^\.\.?$/ ;  # ignore . & .. directories
+
+                push @found, "${File::Find::name}$isDir" ;
+
+                # system "pwd; ls -l";
+
+                if ($isDir)
+                {
+                    $payloads{ ${File::Find::name} } = "DIRECTORY";
+                }
+                else
+                {
+                    my $payload = readFile($_);
+                    $payload = "ZIPFILE" if $payload =~ /^PK/;
+                    $payloads{ ${File::Find::name} } = $payload;
+                }
+
+
+              },
+          $base) ;
+
+    return  \%payloads
+}
+
+sub nameAndPayloadFil { my $k = shift ; my $n = shift || $k ; my $v = "This is /$n\n" ; $v =~ s/\.zip.nested/.zip/g ; return "./$k", $v }
+sub nameAndPayloadDir { my $k = shift ; return "./$k", 'DIRECTORY' }
+sub nameAndPayloadZip { my $k = shift ; return "./$k", 'ZIPFILE' }
 
 if (1)
 {
@@ -387,6 +448,7 @@ EOM
 
 }
 
+if (1)
 {
     diag "hide-nested-zip";
 
@@ -422,6 +484,7 @@ EOM
 
 }
 
+if (1)
 {
     title "Extract";
 
@@ -429,6 +492,7 @@ EOM
     my $lex = new LexDir $zipdir;
     # my $zipfile = "$HERE/$zipdir/zip1.zip";
     my $zipfile = "$HERE/zip1.zip";
+    my $payloads = {};
 
     createTestZip($zipfile,
         [
@@ -436,34 +500,38 @@ EOM
            [ 'def.zip' => 'a', 'b', 'c' ],
            [ 'ghi.zip' => 'a', [ 'xx.zip' => 'b1', 'b2'], 'c' ],
            'def',
-         ]);
+         ],
+         $payloads);
+
+    # print "PAYLOADS IN -- " . Dumper($payloads) . "\n";
 
     my $lexd = new PushLexDir();
 
     runNestedUnzip("$zipfile");
 
-    my $expected = [ sort map { "./" . $_ }  map { s/^\s*//; $_ } split "\n", <<EOM ];
-        abc
-        def
-        def.zip.nested [DIR]
-        def.zip.nested/a
-        def.zip.nested/b
-        def.zip.nested/c
-        ghi.zip.nested [DIR]
-        ghi.zip.nested/a
-        ghi.zip.nested/c
-        ghi.zip.nested/xx.zip.nested [DIR]
-        ghi.zip.nested/xx.zip.nested/b1
-        ghi.zip.nested/xx.zip.nested/b2
-EOM
 
-    my $got = getOutputTree('.') ;
+    my $got = getOutputTreeAndData('.') ;
 
-    is_deeply $got, $expected, "Directory tree ok"
+    my $expectedPayloads = {
+        nameAndPayloadFil('abc'),
+        nameAndPayloadFil('def'),
+        nameAndPayloadDir('def.zip.nested'),
+        nameAndPayloadFil('def.zip.nested/a'),
+        nameAndPayloadFil('def.zip.nested/b'),
+        nameAndPayloadFil('def.zip.nested/c'),
+        nameAndPayloadDir('ghi.zip.nested'),
+        nameAndPayloadFil('ghi.zip.nested/a'),
+        nameAndPayloadFil('ghi.zip.nested/c'),
+        nameAndPayloadDir('ghi.zip.nested/xx.zip.nested'),
+        nameAndPayloadFil('ghi.zip.nested/xx.zip.nested/b1'),
+        nameAndPayloadFil('ghi.zip.nested/xx.zip.nested/b2'),
+    };
+
+    is_deeply $got, $expectedPayloads, "Directory tree ok"
         or diag "Got [ @$got ]";
 }
 
-
+if (1)
 {
     title "Extract with --extract-dir";
 
@@ -487,25 +555,26 @@ EOM
 
     runNestedUnzip("$zipfile --extract-dir=$extractDir ");
 
-    my $expected = [ sort map { "$extractDir/" . $_ }  map { s/^\s*//; $_ } split "\n", <<EOM ];
-        abc
-        def
-        def.zip.nested [DIR]
-        def.zip.nested/a
-        def.zip.nested/b
-        def.zip.nested/c
-        ghi.zip.nested [DIR]
-        ghi.zip.nested/a
-        ghi.zip.nested/c
-        ghi.zip.nested/xx.zip.nested [DIR]
-        ghi.zip.nested/xx.zip.nested/b1
-        ghi.zip.nested/xx.zip.nested/b2
-EOM
+    chdir($extractDir);
+    my $got = getOutputTreeAndData('.') ;
 
-    my $got = getOutputTree($extractDir) ;
+    my $expectedPayloads = {
+        nameAndPayloadFil('abc'),
+        nameAndPayloadFil('def'),
+        nameAndPayloadDir('def.zip.nested'),
+        nameAndPayloadFil('def.zip.nested/a'),
+        nameAndPayloadFil('def.zip.nested/b'),
+        nameAndPayloadFil('def.zip.nested/c'),
+        nameAndPayloadDir('ghi.zip.nested'),
+        nameAndPayloadFil('ghi.zip.nested/a'),
+        nameAndPayloadFil('ghi.zip.nested/c'),
+        nameAndPayloadDir('ghi.zip.nested/xx.zip.nested'),
+        nameAndPayloadFil('ghi.zip.nested/xx.zip.nested/b1'),
+        nameAndPayloadFil('ghi.zip.nested/xx.zip.nested/b2'),
+    };
 
-    is_deeply $got, $expected, "Directory tree ok"
-        or diag "Got [ @$got ]";
+    is_deeply $got, $expectedPayloads, "Directory tree ok"
+        or diag "Got [ " . join (" ", keys (%$got)) . " ]";
 }
 
 if (1)
@@ -537,21 +606,76 @@ EOM
 
     runNestedUnzip("$zipfile a?c **/c **b2 **xx.zip");
 
-    my $expected = [ sort map { "./" . $_ }  map { s/^\s*//; $_ } split "\n", <<EOM ];
-        abc
-        def.zip.nested [DIR]
-        def.zip.nested/c
-        ghi.zip.nested [DIR]
-        ghi.zip.nested/c
-        ghi.zip.nested/xx.zip.nested [DIR]
-        ghi.zip.nested/xx.zip.nested/b2
-EOM
 
-    my $got = getOutputTree('.') ;
-    is_deeply $got, $expected, "Directory tree ok"
+    my $got = getOutputTreeAndData('.') ;
+
+    my $expectedPayloads = {
+        nameAndPayloadFil('abc'),
+        nameAndPayloadDir('def.zip.nested'),
+        nameAndPayloadFil('def.zip.nested/c'),
+        nameAndPayloadDir('ghi.zip.nested'),
+        nameAndPayloadFil('ghi.zip.nested/c'),
+        nameAndPayloadDir('ghi.zip.nested/xx.zip.nested'),
+        nameAndPayloadFil('ghi.zip.nested/xx.zip.nested/b2'),
+    };
+
+    is_deeply $got, $expectedPayloads, "Directory tree ok"
         or diag "Got [ @$got ]";
 }
 
+if(1)
+{
+    title "zip-wildcard";
+
+    my $zipdir ;
+    my $lex = new LexDir $zipdir;
+    my $zipfile = "$HERE/$zipdir/zip1.zip";
+
+    my $extractDir ;
+    my $lex2 = new LexDir $extractDir;
+
+    createTestZip($zipfile,
+        [
+           'abc',
+           [ 'def.zip' => 'a', 'b', 'c' ],
+           [ 'ghi.xyz' => 'a', [ 'xx.zip' => 'b1', 'b2'], 'c' ],
+           'def',
+         ]);
+
+    my $lexd = new PushLexDir();
+
+    runNestedUnzip("-l --zip-wildcard '**.zip' $zipfile ", <<"EOM");
+Archive: $zipfile
+abc
+def.zip
+def.zip/a
+def.zip/b
+def.zip/c
+ghi.xyz
+def
+EOM
+    is_deeply getOutputTree('.'), [], "Directory tree ok" ;
+
+    runNestedUnzip(" --zip-wildcard '**.zip' $zipfile  ");
+
+    chdir($extractDir);
+    my $got = getOutputTreeAndData('.') ;
+
+    my $expectedPayloads = {
+        nameAndPayloadFil('abc'),
+        nameAndPayloadFil('def'),
+        nameAndPayloadDir('def.zip.nested'),
+        nameAndPayloadFil('def.zip.nested/a'),
+        nameAndPayloadFil('def.zip.nested/b'),
+        nameAndPayloadFil('def.zip.nested/c'),
+        nameAndPayloadZip('ghi.xyz'),
+
+    };
+
+    is_deeply $got, $expectedPayloads, "Directory tree ok"
+        or diag "Got [ " . join (" ", keys (%$got)) . " ]";
+}
+
 if (1)
 {
     title "Pipe tests";
@@ -586,7 +710,10 @@ EOM
         ghi.zip/c
         )  ;
 
+    $ChkSums = {};
     runNestedUnzip("$zipfile -p a?c **/c **b2", $expected);
+    is_deeply getOutputTree('.', $ChkSums), [], "Directory tree empty" ;
+
 }
 
 
@@ -598,13 +725,16 @@ if (1)
     my $lex = new LexDir $zipdir;
     my $zipfile = "$HERE/$zipdir/zip1.zip";
 
+    my $payloads = {};
+
     createTestZip($zipfile,
         [
            'abc',
            [ 'def.zip' => 'a', 'b', 'c' ],
            [ 'ghi.zip' => 'a', [ 'xx.zip' => 'b1', 'b2'], 'c' ],
            'def',
-         ]);
+         ],
+         $payloads);
 
     my $lexd = new PushLexDir();
 
@@ -617,14 +747,8 @@ ghi.zip/c
 EOM
     is_deeply getOutputTree('.'), [], "Directory tree empty" ;
 
-    my $expected =  join '',  map { "This is /" . $_ . "\n" } qw(
-        abc
-        def.zip/c
-        ghi.zip/xx.zip/b2
-        ghi.zip/c
-        )  ;
 
-    runNestedUnzip("$zipfile -c a?c **/c **b2", <<"EOM");
+    runNestedUnzip("$zipfile -c 'a?c' **/c **b2", <<"EOM");
 Archive: $zipfile
   extracting: abc
 This is /abc
@@ -635,6 +759,9 @@ This is /ghi.zip/xx.zip/b2
   extracting: ghi.zip.nested/c
 This is /ghi.zip/c
 EOM
+
+    is_deeply getOutputTree('.'), [], "Directory tree empty" ;
+
 }
 
 {
@@ -660,22 +787,24 @@ EOM
 
     runNestedUnzip("$zipfile");
 
-    my $expected = [ sort  map { s/^\s*//; $_ } split "\n", <<EOM ];
-            ./d1 [DIR]
-            ./d1/fred2
-            ./d2 [DIR]
-            ./d2/d3 [DIR]
-            ./d2/d3/d4 [DIR]
-            ./d2/d3/d4/fred3
-            ./d3 [DIR]
-            ./dir2 [DIR]
-            ./dir2/d4 [DIR]
-            ./fred1
-EOM
+    my $got = getOutputTreeAndData('.') ;
 
-    my $got = getOutputTree('.') ;
-    is_deeply $got, $expected, "Directory tree ok"
-        or diag "Got [ @$got ]";
+    my $expectedPayloads = {
+        nameAndPayloadDir('d1'),
+        nameAndPayloadFil('d1/fred2', "d1/../fred2"),
+        nameAndPayloadDir('d2'),
+        nameAndPayloadDir('d2/d3'),
+        nameAndPayloadDir('d2/d3/d4'),
+        nameAndPayloadFil('d2/d3/d4/fred3', "d2/////d3/d4/fred3"),
+        nameAndPayloadDir('d3'),
+        nameAndPayloadDir('dir2'),
+        nameAndPayloadDir('dir2/d4', "./dir2/../d4/"),
+        nameAndPayloadFil('fred1'),
+
+    };
+
+    is_deeply $got, $expectedPayloads, "Directory tree ok"
+        or diag "Got [ " . join (" ", keys (%$got)) . " ]";
 }
 
 
@@ -753,20 +882,23 @@ EOM2
 
     runNestedUnzip("$zipfile --fix-windows-path");
 
-    my $expected = [ sort  map { s/^\s*//; $_ } split "\n", <<EOM ];
-            ./d1 [DIR]
-            ./d1/fred2
-            ./d2 [DIR]
-            ./d2/d3 [DIR]
-            ./d2/d3/d4 [DIR]
-            ./d2/d3/d4/fred3
-            ./d3 [DIR]
-            ./dir2 [DIR]
-            ./dir2/d4 [DIR]
-            ./fred1
-EOM
+    my $got = getOutputTreeAndData('.') ;
 
-    my $got = getOutputTree('.') ;
-    is_deeply $got, $expected, "Directory tree ok"
-        or diag "Got [ @$got ]";
+    sub bks { my $a = shift ; $a =~ s[/][\\]g ; $a }
+    my $expectedPayloads = {
+        nameAndPayloadDir('d1'),
+        nameAndPayloadFil('d1/fred2', bks 'd1/./fred2'),
+        nameAndPayloadDir('d2'),
+        nameAndPayloadDir('d2/d3'),
+        nameAndPayloadDir('d2/d3/d4'),
+        nameAndPayloadFil('d2/d3/d4/fred3', bks 'd2/////d3/d4/fred3'),
+        nameAndPayloadDir('d3'),
+        nameAndPayloadDir('dir2'),
+        nameAndPayloadDir('dir2/d4', bks './dir2/../d4/'),
+        nameAndPayloadFil('fred1', bks 'c:/fred1'),
+
+    };
+
+    is_deeply $got, $expectedPayloads, "Directory tree ok"
+        or diag "Got [ " . join (" ", keys (%$got)) . " ]";
 }

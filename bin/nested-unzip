@@ -30,6 +30,7 @@ my $opt_UnsafePath = 0 ;
 my $opt_FixWindowsPath = 0;
 my $opt_Wild_No_Span = 0;
 my $opt_HideNestedZip = 0;
+my @opt_ZipWildcards;
 
 my $extracting = 1;
 
@@ -57,6 +58,7 @@ GetOptions (
             'fix-windows-path'  => \$opt_FixWindowsPath,
             'hide-nested-zip'   => \$opt_HideNestedZip,
             'version'           => sub { print "$VERSION\n"; exit 0 },
+            'zip-wildcard=s'    => \@opt_ZipWildcards,
             )
   or Usage();
 
@@ -80,14 +82,22 @@ my $unzip = new IO::Uncompress::Unzip $zipfile
 if (defined $opt_DestDir)
 {
     mkpath $opt_DestDir
-        or die "Cannot create '$opt_DestDir': $!\n";
+        or die "Cannot create directory '$opt_DestDir': $!\n";
 
     chdir $opt_DestDir
-        or die "Cannot cddir to '$opt_DestDir': $!\n"
+        or die "Cannot chdir to '$opt_DestDir': $!\n"
 }
+
+# Zip Wildcards
+push @opt_ZipWildcards, '**'
+    unless @opt_ZipWildcards;
+
+my $opt_ZipWildcards = '^(?:' . join( '|', map { globToRegex($_) } @opt_ZipWildcards) . ')$';
 
 progress "Archive: $zipfile";
 walk($unzip, []) ;
+
+exit 0;
 
 sub nextStream
 {
@@ -116,6 +126,7 @@ sub walk
     {
         my $hdrInfo = $unzip->getHeaderInfo();
         my $name = $hdrInfo->{Name};
+        my $extracted = 0;
 
         my $fullname = $matchZip ? join('/', @unzip_path, $name) : $name;
 
@@ -143,6 +154,7 @@ sub walk
 
             if ($extracting && ! $isZip)
             {
+                $extracted = 1;
                 if ($opt_Pipe)
                 {
                     progress "  extracting: " . join("/", @unzip_path, $name)
@@ -214,7 +226,7 @@ sub walk
 
         }
 
-        if ($isZip)
+        if ($isZip && ! $extracted)
         {
             my $newunzip = new IO::Uncompress::Unzip $unzip
                 or die "Cannot open '$name': $UnzipError\n";
@@ -248,9 +260,13 @@ sub isZipFile
     my $fh = shift;
     my $name = shift ;
 
-    use IO::Compress::Zip::Constants ;
+    use IO::Compress::Zip::Constants qw(ZIP_LOCAL_HDR_SIG);
+
+    return 0
+        unless $name =~ /$opt_ZipWildcards/;
 
     my $buffer ;
+    # *$fh->{Pending} = ''; # TODO - fix in Base.pm
     $fh->read($buffer, 4);
     $fh->ungetc($buffer);
 
@@ -258,7 +274,6 @@ sub isZipFile
         if length $buffer < 4 ;
 
     my $sig = unpack("V", $buffer) ;
-    #print "isZipFile $name: " . length($buffer) . " " . ($sig == ZIP_LOCAL_HDR_SIG ? 1 : 0) . " $sig " . "\n";
 
     return $sig == ZIP_LOCAL_HDR_SIG ;
 }
