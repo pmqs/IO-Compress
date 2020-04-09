@@ -446,25 +446,26 @@ nested-unzip - uncompress zip files that also contain zip files
 
 =head1 DESCRIPTION
 
-This program is used to uncompress zip files that themselves contain other zip files.
-Those nested zip files can in turn embed more zip files.
-The program can cope with Zip files nested to any depth.
+This program is used to uncompress zip files that themselves contain other
+zip files. Those nested zip files can in turn embed more zip files.  The
+program can cope with Zip files nested to any depth.
 
 To paraphrase the well-known poem "Siphonaptera"
 
     Nested zips have little zips upon their backs to bite 'em,
     And little zips have lesser zips, and so ad infinitum.
 
-Where possible, and it makes sense, the interface has been written to match the Linux unzip program.
+Where possible, and it makes sense, the interface has been written to match
+the Linux unzip program.
 
-The program works by reading the zip file in streaming mode,
-so no temporary files are created when walking a nested tree of zip files.
+The program works by reading the zip file in streaming mode, so no
+temporary files are created when walking a nested tree of zip files.
 
 =head2 Default Behavior
 
-The default behavior of the program is to uncompress all
-the nested zip files into a directory tree that mirrors the zip file. The directories created for each of the nested
-zip files has the string ".nested" appended.
+The default behavior of the program is to uncompress all the nested zip
+files into a directory tree that mirrors the zip file. The directories
+created for each of the nested zip files has the string ".nested" appended.
 
 =head2 OPTIONS
 
@@ -480,10 +481,10 @@ Write the contents to stdout. Prefix with name as extracting.
 
 =item -extract-dir dest_dir
 
-Specifies  a  destination  directory  for  extracted  files.  By
-default, files are extracted (and subdirectories created) in the
-current  directory.   With  C<-d dest_dir>, extraction is done into
-the specified directory, instead.
+Specifies  a  destination  directory  for  extracted  files. By default,
+files are extracted (and subdirectories created) in the current  directory.
+With  C<-d dest_dir>, extraction is done into the specified directory,
+instead.
 
 =item -l
 
@@ -505,16 +506,18 @@ Changes the behavior of the wildcard
 
 =item  --do-double-dots
 
-Normally this program will remove all ".." path components before extracting to the filesystem.
-This option disables that feature. Use with caution.
+Normally this program will remove all ".." path components before
+extracting to the filesystem.  This option disables that feature. Use with
+caution.
 
 Note that the path actually created is platform dependent.
 
 =item --hide-nested-zip
 
-When extracting or list the contents of a zip file that contains nested zip file, the name of
-the nested zip file is included. This option make it appear that the contents of the nested zip
-are in th edirectory where the nested zip lives.
+When extracting or list the contents of a zip file that contains nested zip
+file, the name of the nested zip file is included. This option make it
+appear that the contents of the nested zip are in th edirectory where the
+nested zip lives.
 
 For example, if a zip comntains the following
 
@@ -533,8 +536,8 @@ With this option the output becomes
 
 =item  --fix-windows-path
 
-When this option is enabled it will make the following changes to all filenames before writing
-to the filesystem
+When this option is enabled it will make the following changes to all
+filenames before writing to the filesystem
 
 =over 5
 
@@ -554,7 +557,7 @@ For example
     one\two\three.txt   one/two/three.txt
 
 
-See L<Zip files that contain Windows Paths> for more details.
+See L<Dealing with Zip files that contain Windows Paths> for more details.
 
 
 =item  --version
@@ -569,14 +572,15 @@ Display help
 
 =head1 FAQ
 
-=head2 Zip files that contain Windows Paths
+=head2 Dealing with Zip files that contain Windows Paths
 
-Short answer - include the C<--fix-windows-path> option when running this program.
+Short answer - include the C<--fix-windows-path> option when running this
+program.
 
 Here is the longer answer.
 
-A well-known problem with some zip implementations on Windows is they
-will write a windows-native path into the zip file (e.g. "C:\abc\def\my.txt").
+A well-known problem with some zip implementations on Windows is they will
+write a windows-native path into the zip file (e.g. "C:\abc\def\my.txt").
 
 This is a badly-formed zip file. The Zip specification,
 L<APPNOTE.TXT|https://pkware.cachefly.net/webdocs/casestudies/APPNOTE.TXT>,
@@ -591,7 +595,8 @@ is very clear on how paths should be stored in a zip file.
        input, there is no file name field.
 
 The problem comes when unzipping one of these badly-formed zip files.
-Consider the zip file "bad.zip", shown below, that contains a windows-native path.
+Consider the zip file "bad.zip", shown below, that contains a
+windows-native path.
 
     $ unzip -l bad.zip
     Archive:  bad.zip
@@ -601,8 +606,8 @@ Consider the zip file "bad.zip", shown below, that contains a windows-native pat
     ---------                     -------
            27                     1 file
 
-If this zipfile is extracted on a Linux-like operating system using the standard
-unzip program, it will do the following
+If this zipfile is extracted on a Linux-like operating system using the
+standard unzip program, it will do the following
 
     $ unzip bad.zip
     Archive:  bad.zip
@@ -611,13 +616,12 @@ unzip program, it will do the following
     $ ls -l *.txt
     -rw-r--r-- 1 xxx yyy 27 Mar 10 12:01 C:\abc\my.txt
 
-Instead of creating
-a sub-directory "abc" and storing "my.txt" in that directory, it thinks
-that "C:\abc\my.txt" is the name of  file.
+Instead of creating a sub-directory "abc" and storing "my.txt" in that
+directory, it thinks that "C:\abc\my.txt" is the name of  file.
 
-The C<--fix-windows-path> option was designed to fix these paths.
-It will convert all filnames into Linux/Unix format before writing
-to the filesystem, by makes these changes
+The C<--fix-windows-path> option was designed to fix these paths. It will
+convert all filnames into Linux/Unix format before writing to the
+filesystem, by makes these changes
 
 =over 5
 
