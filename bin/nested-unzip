@@ -574,8 +574,8 @@ Display help
 
 =head2 Dealing with Zip files that contain Windows Paths
 
-Short answer - include the C<--fix-windows-path> option when running this
-program.
+Short answer - fix the problem by including the C<--fix-windows-path>
+option when running this program.
 
 Here is the longer answer.
 
@@ -617,7 +617,8 @@ standard unzip program, it will do the following
     -rw-r--r-- 1 xxx yyy 27 Mar 10 12:01 C:\abc\my.txt
 
 Instead of creating a sub-directory "abc" and storing "my.txt" in that
-directory, it thinks that "C:\abc\my.txt" is the name of  file.
+directory, it thinks that the string "C:\abc\my.txt" is the name of the
+file.
 
 The C<--fix-windows-path> option was designed to fix these paths. It will
 convert all filnames into Linux/Unix format before writing to the
@@ -633,6 +634,8 @@ Convert all "\" characters to "/" .
 
 =back
 
+Although this option is primarily designed to be run on Unix/Linux derived
+systems, the option can be enabled when running on Windows as well
 
 =head1 EXAMPLES
 
