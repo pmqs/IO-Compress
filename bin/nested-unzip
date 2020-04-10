@@ -671,7 +671,7 @@ filesystem, by makes these changes
 Remove any leading drive letter.
 
 =item *
-Convert all C<\> characters to C</> .
+Convert all C<\> characters to C</>.
 
 =back
 
