@@ -689,7 +689,6 @@ Using C<nested-unzip> with C<--fix-windows-path> to unzip C<bad.zip> we get
     $ ls -l abc/def/my.txt
     -rw-rw-r-- 1 xxx yyy 27 Mar 10 12:01 abc/def/my.txt
 
-
 Although this option is primarily designed to be run on Unix/Linux derived
 systems, the option can be enabled when running on Windows as well.
 
