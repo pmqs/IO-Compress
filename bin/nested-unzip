@@ -31,6 +31,7 @@ my $opt_FixWindowsPath = 0;
 my $opt_Wild_No_Span = 0;
 my $opt_HideNestedZip = 0;
 my @opt_ZipWildcards;
+my @opt_ZipWildcards_Default = qw( **.zip) ;
 
 my $extracting = 1;
 
@@ -89,7 +90,7 @@ if (defined $opt_DestDir)
 }
 
 # Zip Wildcards
-push @opt_ZipWildcards, '**'
+push @opt_ZipWildcards, '**.zip'
     unless @opt_ZipWildcards;
 
 my $opt_ZipWildcards = '^(?:' . join( '|', map { globToRegex($_) } @opt_ZipWildcards) . ')$';
@@ -435,7 +436,9 @@ OPTIONS
  --do-double-dots       Allow ".."
  --fix-windows-path     Remove drive letter & change path separator from "\" to "/"
  --hide-nested-zip      Don't include the nested zip filename in any output
- --version              Display version number ($VERSION)
+ --version              Display version number ($VERSION) and exit
+ --zip-wildcard w       Use Wildcard "w" when matching zip archives.
+                        Default is @opt_ZipWildcards_Default
 
 EOM
 }
@@ -574,6 +577,27 @@ See L<Dealing with Zip files that contain Windows Paths> for more details.
 =item  --version
 
 Display version number [$VERSION]
+
+=item --zip-wildcard
+
+By default the program will only check members of an archive that match the
+wildcard C<**.zip> to see if they are zip archives.  There are other common
+uses if the zip container format that this program can check. Examples
+include Java C<.jar> and C<.war> files, Office files C<.docx>, C<.xlsx> etc.
+the list goes on.  Use this option to speficy the the wildcards used when
+
+
+For example, to only extract the contents of  Java jar/war files
+
+    --zip-wildcard '**.jar' --zip-wildcard '**.war'
+
+If you safely use the wildcard C<**> the program will check every memober
+of the archive to see if it is a valid zip container. If it is, it will
+extract it.
+
+This option can be specified multiple times.
+
+Defalut value is C<**.zip>.
 
 =item --help
 

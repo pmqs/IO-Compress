@@ -253,7 +253,7 @@ sub getOutputTreeAndData
     return  \%payloads
 }
 
-sub nameAndPayloadFil { my $k = shift ; my $n = shift || $k ; my $v = "This is /$n\n" ; $v =~ s/\.zip.nested/.zip/g ; return "./$k", $v }
+sub nameAndPayloadFil { my $k = shift ; my $n = shift || $k ; my $v = "This is /$n\n" ; $v =~ s/\.(\S+?).nested/.$1/g ; return "./$k", $v }
 sub nameAndPayloadDir { my $k = shift ; return "./$k", 'DIRECTORY' }
 sub nameAndPayloadZip { my $k = shift ; return "./$k", 'ZIPFILE' }
 
@@ -644,31 +644,31 @@ if(1)
 
     my $lexd = new PushLexDir();
 
-    runNestedUnzip("-l --zip-wildcard **.zip $zipfile ", <<"EOM");
+    runNestedUnzip("-l --zip-wildcard '**.xyz' $zipfile ", <<"EOM");
 Archive: $zipfile
 abc
 def.zip
-def.zip/a
-def.zip/b
-def.zip/c
 ghi.xyz
+ghi.xyz/a
+ghi.xyz/xx.zip
+ghi.xyz/c
 def
 EOM
     is_deeply getOutputTree('.'), [], "Directory tree ok" ;
 
-    runNestedUnzip(" --zip-wildcard **.zip $zipfile  ");
+    runNestedUnzip(" --zip-wildcard '**.xyz' $zipfile  ");
 
     chdir($extractDir);
     my $got = getOutputTreeAndData('.') ;
 
     my $expectedPayloads = {
         nameAndPayloadFil('abc'),
+        nameAndPayloadZip('def.zip'),
+        nameAndPayloadDir('ghi.xyz.nested'),
+        nameAndPayloadFil('ghi.xyz.nested/a'),
+        nameAndPayloadZip('ghi.xyz.nested/xx.zip'),
+        nameAndPayloadFil('ghi.xyz.nested/c'),
         nameAndPayloadFil('def'),
-        nameAndPayloadDir('def.zip.nested'),
-        nameAndPayloadFil('def.zip.nested/a'),
-        nameAndPayloadFil('def.zip.nested/b'),
-        nameAndPayloadFil('def.zip.nested/c'),
-        nameAndPayloadZip('ghi.xyz'),
 
     };
 
