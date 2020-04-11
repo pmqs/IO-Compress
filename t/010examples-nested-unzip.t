@@ -664,7 +664,7 @@ if(1)
 
     my $lexd = new PushLexDir();
 
-    runNestedUnzip("-l --zip-wildcard '**.xyz' $zipfile ", <<"EOM");
+    runNestedUnzip(qq[-l --zip-wildcard "**.xyz" $zipfile ], <<"EOM");
 Archive: $zipfile
 abc
 def.zip
