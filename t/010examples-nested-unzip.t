@@ -676,7 +676,7 @@ def
 EOM
     is_deeply getOutputTree('.'), [], "Directory tree ok" ;
 
-    runNestedUnzip(" --zip-wildcard "**.xyz" $zipfile  ");
+    runNestedUnzip(qq[ --zip-wildcard "**.xyz" $zipfile  ]);
 
     chdir($extractDir);
     my $got = getOutputTreeAndData('.') ;
