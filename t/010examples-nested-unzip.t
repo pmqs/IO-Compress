@@ -27,7 +27,7 @@ BEGIN
     $extra = 1
         if eval { require Test::NoWarnings ;  import Test::NoWarnings; 1 };
 
-    plan tests => 122 + $extra ;
+    plan tests => 132 + $extra ;
 }
 
 
@@ -256,6 +256,26 @@ sub getOutputTreeAndData
 sub nameAndPayloadFil { my $k = shift ; my $n = shift || $k ; my $v = "This is /$n\n" ; $v =~ s/\.(\S+?).nested/.$1/g ; return "./$k", $v }
 sub nameAndPayloadDir { my $k = shift ; return "./$k", 'DIRECTORY' }
 sub nameAndPayloadZip { my $k = shift ; return "./$k", 'ZIPFILE' }
+
+sub dosToUnixTime
+{
+	my $dt = shift;
+
+	my $year = ( ( $dt >> 25 ) & 0x7f ) + 80;
+	my $mon  = ( ( $dt >> 21 ) & 0x0f ) - 1;
+	my $mday = ( ( $dt >> 16 ) & 0x1f );
+
+	my $hour = ( ( $dt >> 11 ) & 0x1f );
+	my $min  = ( ( $dt >> 5 ) & 0x3f );
+	my $sec  = ( ( $dt << 1 ) & 0x3e );
+
+
+    use POSIX 'mktime';
+
+    my $time_t = mktime( $sec, $min, $hour, $mday, $mon, $year, 0, 0, -1 );
+    return 0 if ! defined $time_t;
+	return $time_t;
+}
 
 if (1)
 {
@@ -901,4 +921,78 @@ EOM2
 
     is_deeply $got, $expectedPayloads, "Directory tree ok"
         or diag "Got [ " . join (" ", keys (%$got)) . " ]";
+}
+
+sub getFileTimes
+{
+    my $filename = shift ;
+    my ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,
+        $atime,$mtime,$ctime,$blksize,$blocks)
+        = stat("hello.txt");
+
+    return $atime,$mtime,$ctime ;
+}
+
+{
+    title "file timestamps -- default DOS";
+
+    my $lexd = new PushLexDir();
+
+    my $filesDir = "$HERE/t/files/";
+    my $zipfile = $filesDir . "time-dos.zip";
+
+    # 0000 LOCAL HEADER #1       04034B50
+    # 0004 Extract Zip Spec      0A '1.0'
+    # 0005 Extract OS            00 'MS-DOS'
+    # 0006 General Purpose Flag  0000
+    # 0008 Compression Method    0000 'Stored'
+    # 000A Last Mod Time         508B652E 'Sat Apr 11 12:41:28 2020'
+
+    my $expectedTime = dosToUnixTime(0x508B652E);
+
+    runNestedUnzip($zipfile);
+
+    my ($atime,$mtime,$ctime) = getFileTimes("hello.txt");
+
+    is $atime, $expectedTime, "  atime OK";
+    is $mtime, $expectedTime, "  mtime OK";
+}
+
+{
+    title "file timestamps -- extended";
+
+    my $lexd = new PushLexDir();
+
+    my $filesDir = "$HERE/t/files/";
+    my $zipfile = $filesDir . "time-ut.zip";
+
+    # 0000 LOCAL HEADER #1       04034B50
+    # 0004 Extract Zip Spec      0A '1.0'
+    # 0005 Extract OS            00 'MS-DOS'
+    # 0006 General Purpose Flag  0000
+    # 0008 Compression Method    0000 'Stored'
+    # 000A Last Mod Time         508B652E 'Sat Apr 11 12:41:28 2020'
+    # 000E CRC                   363A3020
+    # 0012 Compressed Length     00000006
+    # 0016 Uncompressed Length   00000006
+    # 001A Filename Length       0009
+    # 001C Extra Length          001C
+    # 001E Filename              'hello.txt'
+    # 0027 Extra ID #0001        5455 'UT: Extended Timestamp'
+    # 0029   Length              0009
+    # 002B   Flags               '03 mod access'
+    # 002C   Mod Time            5E91ACE7 'Sat Apr 11 12:41:27 2020'
+    # 0030   Access Time         5E91ACFA 'Sat Apr 11 12:41:46 2020'
+    # 0034 Extra ID #0002        7875 'ux: Unix Extra Type 3'
+
+
+    my $expectedATime = 0x5E91ACFA;
+    my $expectedMTime = 0x5E91ACE7;
+
+    runNestedUnzip($zipfile);
+
+    my ($atime,$mtime,$ctime) = getFileTimes("hello.txt");
+
+    is $atime, $expectedATime, "  atime OK";
+    is $mtime, $expectedMTime, "  mtime OK";
 }

@@ -127,6 +127,8 @@ sub walk
     {
         my $hdrInfo = $unzip->getHeaderInfo();
         my $name = $hdrInfo->{Name};
+        my $dosTime = $hdrInfo->{Time};
+        my $extraFields = $hdrInfo->{ExtraField};
         my $extracted = 0;
 
         my $fullname = $matchZip ? join('/', @unzip_path, $name) : $name;
@@ -210,7 +212,11 @@ sub walk
                             {
                                 print $fh $buff;
                             }
+
+                            close $fh;
                         }
+
+                        SetTimestamp($newname, $dosTime, $extraFields) ;
                     }
                 }
             }
@@ -284,6 +290,129 @@ sub progress
     return if $opt_Quiet;
     print "$_\n" for @_ ;
 }
+
+sub SetTimestamp
+{
+    my $filename = shift ;
+    my $dosTime = shift ;
+    my $extraFields = shift ;
+
+    my $atime ;
+    my $mtime ;
+    my $ctime ;
+
+
+
+    my $extraSet;
+
+    if ($extraFields)
+    {
+        # TODO - UX timestamps
+
+        my %extra = map { $_->[0] => $_->[1] } @$extraFields;
+
+        if ($extra{UT})
+        {
+            ($atime, $mtime, $ctime) = decode_UT($extra{UT}) ;
+            ++ $extraSet;
+        }
+    }
+
+    if (! $extraSet)
+    {
+        # default to the DOS time
+        $atime = $mtime = $ctime = $dosTime;
+    }
+
+    utime $atime, $mtime, $filename;
+}
+
+sub decode_UT
+{
+    my $ut = shift ;
+
+    my ($atime, $mtime, $ctime) ;
+
+    my $flags = unpack "C", substr($ut, 0, 1);
+    $ut = substr($ut, 1);
+
+    if ($flags & 1)
+    {
+        $mtime = unpack "V", substr($ut, 0, 4);
+        $ut = substr($ut, 4);
+    }
+
+    if ($flags & 2)
+    {
+        $atime = unpack "V", substr($ut, 0, 4);
+        $ut = substr($ut, 4);
+    }
+
+    if ($flags & 4)
+    {
+        $ctime = unpack "V", substr($ut, 0, 4);
+        $ut = substr($ut, 4);
+    }
+
+    return $atime, $mtime, $ctime  ;
+
+}
+
+# sub decode_UX
+# {
+#     my $len = shift;
+#     my $context = shift;
+#     my $inCentralHdr = $context->{InCentralDir} ;
+
+#     return if $len == 0 ;
+
+#     my ($data, $time) = read_V();
+#     out2 $data, "Access Time",    Value_V($time) . " " . getTime($time) ;
+
+#     ($data, $time) = read_V();
+#     out2 $data, "Mod Time",    Value_V($time) . " " . getTime($time) ;
+
+#     if (! $inCentralHdr ) {
+#         out_v "  UID" ;
+#         out_v "  GID";
+#     }
+# }
+
+# sub decode_NTFS_Filetimes
+# {
+#     my $len = shift;
+#     my $context = shift;
+
+#     out_V "  Reserved";
+#     out_v "  Tag1";
+#     out_v "  Size1" ;
+
+#     my ($m, $s1) = read_U64;
+#     out $m, "  Mtime", Ntfs2Unix($m, $s1);
+
+#     my ($c, $s2) = read_U64;
+#     out $c, "  Ctime", Ntfs2Unix($m, $s2);
+
+#     my ($a, $s3) = read_U64;
+#     out $m, "  Atime", Ntfs2Unix($m, $s3);
+# }
+
+# sub Ntfs2Unix
+# {
+#     my $v = shift;
+#     my $u64 = shift;
+
+#     # NTFS offset is 19DB1DED53E8000
+
+#     my $hex = Value_U64($u64) ;
+#     my $NTFS_OFFSET = new U64 0x19DB1DE, 0xD53E8000 ;
+#     $u64->subtract($NTFS_OFFSET);
+#     my $elapse = $u64->get64bit();
+#     my $ns = ($elapse % 10000000) * 100;
+#     $elapse = int ($elapse/10000000);
+#     return "$hex '" . localtime($elapse) .
+#            " " . sprintf("%0dns'", $ns);
+# }
 
 sub globToRegex
 {
