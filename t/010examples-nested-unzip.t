@@ -27,7 +27,7 @@ BEGIN
     $extra = 1
         if eval { require Test::NoWarnings ;  import Test::NoWarnings; 1 };
 
-    plan tests => 137 + $extra ;
+    plan tests => 142 + $extra ;
 }
 
 
@@ -1033,6 +1033,50 @@ sub getFileTimes
     runNestedUnzip($zipfile);
 
     my ($atime,$mtime,$ctime) = getFileTimes("a");
+
+    is $atime, $expectedATime, "  atime OK";
+    is $mtime, $expectedMTime, "  mtime OK";
+}
+
+{
+    title "file timestamps -- extended (NTFS)";
+
+    my $lexd = new PushLexDir();
+
+    my $filesDir = "$HERE/t/files/";
+    my $zipfile = $filesDir . "time-ntfs.zip";
+
+    # 0DA6 LOCAL HEADER #D       04034B50
+    # 0DAA Extract Zip Spec      0A '1.0'
+    # 0DAB Extract OS            00 'MS-DOS'
+    # 0DAC General Purpose Flag  0000
+    # 0DAE Compression Method    0000 'Stored'
+    # 0DB0 Last Mod Time         50477166 'Fri Feb  7 14:11:12 2020'
+    # 0DB4 CRC                   F7A71113
+    # 0DB8 Compressed Length     000006FC
+    # 0DBC Uncompressed Length   000006FC
+    # 0DC0 Filename Length       0008
+    # 0DC2 Extra Length          0024
+    # 0DC4 Filename              'meta.xml'
+    # 0DCC Extra ID #0001        000A 'NTFS FileTimes'
+    # 0DCE   Length              0020
+    # 0DD0   Reserved            00000000
+    # 0DD4   Tag1                0001
+    # 0DD6   Size1               0018
+    # 0DD8   Mtime               01D5DDEA5C6C8800 'Fri Feb  7 19:11:12
+    #                            2020 0ns'
+    # 0DE0   Ctime               01D5DDEA5C6C8800 'Fri Feb  7 19:11:12
+    #                            2020 0ns'
+    # 0DE8   Atime               01D5E12C35F9213F 'Tue Feb 11 22:40:07
+    #                            2020 762771100ns'
+
+    my $expectedATime = 1581460807;
+    my $expectedMTime = 1581102672;
+
+    runNestedUnzip($zipfile);
+
+    my ($atime,$mtime,$ctime) = getFileTimes("meta.xml");
+    # system("ls -l");
 
     is $atime, $expectedATime, "  atime OK";
     is $mtime, $expectedMTime, "  mtime OK";

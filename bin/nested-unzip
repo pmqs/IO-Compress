@@ -305,7 +305,7 @@ sub SetTimestamp
 
     my $extraSet;
 
-    if ($extraFields)
+    if (@$extraFields)
     {
         # TODO - UX timestamps
 
@@ -316,9 +316,15 @@ sub SetTimestamp
             ($atime, $mtime, $ctime) = decode_UT($extra{UT}) ;
             ++ $extraSet;
         }
-        elsif ($extra{UX})
+        elsif ($extra{UX}) # AKA Unix1
         {
             ($atime, $mtime, undef, undef) = decode_UX($extra{UX});
+            ++ $extraSet;
+        }
+
+        if ($extra{"\x0A\x00"})
+        {
+            ($atime, $mtime, $ctime) = decode_NTFS_Filetimes($extra{"\x0A\x00"}) ;
             ++ $extraSet;
         }
     }
@@ -381,41 +387,43 @@ sub decode_UX
     return $AcTime, $ModTime, $UID, $GID ;
 }
 
-# sub decode_NTFS_Filetimes
-# {
-#     my $len = shift;
-#     my $context = shift;
+sub Value_VV64
+{
+    my $buffer = shift;
 
-#     out_V "  Reserved";
-#     out_v "  Tag1";
-#     out_v "  Size1" ;
+    # This needs perl 5.10
+    # return unpack "Q<", $buffer;
 
-#     my ($m, $s1) = read_U64;
-#     out $m, "  Mtime", Ntfs2Unix($m, $s1);
+    my ($lo, $hi) = unpack ("V V" , $buffer);
+    no warnings 'uninitialized';
+    return $hi * (0xFFFFFFFF+1) + $lo;
+}
 
-#     my ($c, $s2) = read_U64;
-#     out $c, "  Ctime", Ntfs2Unix($m, $s2);
+sub decode_NTFS_Filetimes
+{
+    my $ntfs = shift ;
 
-#     my ($a, $s3) = read_U64;
-#     out $m, "  Atime", Ntfs2Unix($m, $s3);
-# }
+    my $MTimeNTFS = Value_VV64(substr($ntfs, 8, 8));
+    my ($mtime, $mtime_ns) = Ntfs2Unix($MTimeNTFS);
 
-# sub Ntfs2Unix
-# {
-#     my $v = shift;
-#     my $u64 = shift;
+    my $CTimeNTFS = Value_VV64(substr($ntfs, 16, 8));
+    my ($ctime, $ctime_ns) = Ntfs2Unix($CTimeNTFS);
 
-#     # NTFS offset is 19DB1DED53E8000
+    my $ATimeNTFS = Value_VV64(substr($ntfs, 24, 8));
+    my ($atime, $atime_ns) = Ntfs2Unix($ATimeNTFS);
 
-#     my $hex = Value_U64($u64) ;
-#     my $NTFS_OFFSET = new U64 0x19DB1DE, 0xD53E8000 ;
-#     $u64->subtract($NTFS_OFFSET);
-#     my $elapse = $u64->get64bit();
-#     my $ns = ($elapse % 10000000) * 100;
-#     $elapse = int ($elapse/10000000);
-#     return "$hex '" . localtime($elapse) .
-#            " " . sprintf("%0dns'", $ns);
-# }
+    return $atime, $mtime, $ctime  ;
+}
+
+sub Ntfs2Unix
+{
+    my $value = shift;
+
+    my $seconds = int($value / 10000000 ) - 11644473600 ;
+    my $ns = ($value % 10000000) * 100;
+
+    return $seconds, $ns;
+}
 
 sub globToRegex
 {
