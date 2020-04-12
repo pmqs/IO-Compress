@@ -316,6 +316,11 @@ sub SetTimestamp
             ($atime, $mtime, $ctime) = decode_UT($extra{UT}) ;
             ++ $extraSet;
         }
+        elsif ($extra{UX})
+        {
+            ($atime, $mtime, undef, undef) = decode_UX($extra{UX});
+            ++ $extraSet;
+        }
     }
 
     if (! $extraSet)
@@ -324,7 +329,8 @@ sub SetTimestamp
         $atime = $mtime = $ctime = $dosTime;
     }
 
-    utime $atime, $mtime, $filename;
+    utime $atime, $mtime, $filename
+        || die "Couldn't utime '$filename': $!\n";
 }
 
 sub decode_UT
@@ -358,25 +364,22 @@ sub decode_UT
 
 }
 
-# sub decode_UX
-# {
-#     my $len = shift;
-#     my $context = shift;
-#     my $inCentralHdr = $context->{InCentralDir} ;
+sub decode_UX
+{
+    my $UX = shift;
 
-#     return if $len == 0 ;
+    my ($AcTime, $ModTime, $UID, $GID) ;
 
-#     my ($data, $time) = read_V();
-#     out2 $data, "Access Time",    Value_V($time) . " " . getTime($time) ;
+    ($AcTime, $ModTime) = unpack("VV", substr($UX, 0, 8));
+    substr($UX, 0, 8) = '';
 
-#     ($data, $time) = read_V();
-#     out2 $data, "Mod Time",    Value_V($time) . " " . getTime($time) ;
+    if (length $UX == 4)
+    {
+        ($UID, $GID) = unpack("vv", $UX);
+    }
 
-#     if (! $inCentralHdr ) {
-#         out_v "  UID" ;
-#         out_v "  GID";
-#     }
-# }
+    return $AcTime, $ModTime, $UID, $GID ;
+}
 
 # sub decode_NTFS_Filetimes
 # {

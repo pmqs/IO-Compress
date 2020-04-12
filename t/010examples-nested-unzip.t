@@ -27,7 +27,7 @@ BEGIN
     $extra = 1
         if eval { require Test::NoWarnings ;  import Test::NoWarnings; 1 };
 
-    plan tests => 132 + $extra ;
+    plan tests => 137 + $extra ;
 }
 
 
@@ -928,7 +928,7 @@ sub getFileTimes
     my $filename = shift ;
     my ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,
         $atime,$mtime,$ctime,$blksize,$blocks)
-        = stat("hello.txt");
+        = stat($filename);
 
     return $atime,$mtime,$ctime ;
 }
@@ -959,7 +959,7 @@ sub getFileTimes
 }
 
 {
-    title "file timestamps -- extended";
+    title "file timestamps -- extended (UT)";
 
     my $lexd = new PushLexDir();
 
@@ -992,6 +992,47 @@ sub getFileTimes
     runNestedUnzip($zipfile);
 
     my ($atime,$mtime,$ctime) = getFileTimes("hello.txt");
+
+    is $atime, $expectedATime, "  atime OK";
+    is $mtime, $expectedMTime, "  mtime OK";
+}
+
+{
+    title "file timestamps -- extended (UX)";
+
+    my $lexd = new PushLexDir();
+
+    my $filesDir = "$HERE/t/files/";
+    my $zipfile = $filesDir . "time-UX.zip";
+
+
+    # 0000 LOCAL HEADER #1       04034B50
+    # 0004 Extract Zip Spec      0A '1.0'
+    # 0005 Extract OS            00 'MS-DOS'
+    # 0006 General Purpose Flag  0000
+    # 0008 Compression Method    0000 'Stored'
+    # 000A Last Mod Time         30C5610B 'Sat Jun  5 12:08:22 2004'
+    # 000E CRC                   00000000
+    # 0012 Compressed Length     00000000
+    # 0016 Uncompressed Length   00000000
+    # 001A Filename Length       0001
+    # 001C Extra Length          0010
+    # 001E Filename              'a'
+    # 001F Extra ID #0001        5855 'UX: Info-ZIP Unix (original; also
+    #                            OS/2, NT, etc.)'
+    # 0021   Length              000C
+    # 0023   Access Time         41210249 'Mon Aug 16 19:51:53 2004'
+    # 0027   Mod Time            40C19B96 'Sat Jun  5 11:08:22 2004'
+    # 002B   UID                 01F5
+    # 002D   GID                 0014
+
+
+    my $expectedATime = 0x41210249;
+    my $expectedMTime = 0x40C19B96;
+
+    runNestedUnzip($zipfile);
+
+    my ($atime,$mtime,$ctime) = getFileTimes("a");
 
     is $atime, $expectedATime, "  atime OK";
     is $mtime, $expectedMTime, "  mtime OK";
