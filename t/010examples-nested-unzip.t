@@ -27,7 +27,7 @@ BEGIN
     $extra = 1
         if eval { require Test::NoWarnings ;  import Test::NoWarnings; 1 };
 
-    plan tests => 142 + $extra ;
+    plan tests => 151 + $extra ;
 }
 
 
@@ -694,6 +694,47 @@ EOM
 
     is_deeply $got, $expectedPayloads, "Directory tree ok"
         or diag "Got [ " . join (" ", keys (%$got)) . " ]";
+}
+
+
+if (1)
+{
+    title "Read Zip from stdin";
+
+    my $zipdir ;
+    my $lex = new LexDir $zipdir;
+    my $zipfile = "$HERE/$zipdir/zip1.zip";
+
+    createTestZip($zipfile,
+        [
+           'abc',
+           [ 'def.zip' => 'a', 'b', 'c' ],
+           [ 'ghi.zip' => 'a', [ 'xx.zip' => 'b1', 'b2'], 'c' ],
+           'def',
+         ]);
+
+    my $lexd = new PushLexDir();
+
+    runNestedUnzip("-l - a?c **/c **b2 <$zipfile", <<"EOM");
+Archive: -
+abc
+def.zip/c
+ghi.zip/xx.zip/b2
+ghi.zip/c
+EOM
+    is_deeply getOutputTree('.'), [], "Directory tree empty" ;
+
+    my $expected =  join '',  map { "This is /" . $_ . "\n" } qw(
+        abc
+        def.zip/c
+        ghi.zip/xx.zip/b2
+        ghi.zip/c
+        )  ;
+
+    $ChkSums = {};
+    runNestedUnzip("-p -  a?c **/c **b2 <$zipfile", $expected);
+    is_deeply getOutputTree('.', $ChkSums), [], "Directory tree empty" ;
+
 }
 
 if (1)

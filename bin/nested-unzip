@@ -591,6 +591,7 @@ nested-unzip - uncompress zip files that also contain zip files
 =head1 SYNOPSIS
 
     nested-unzip [opts] file.zip [list]
+    nexted-unzip [opts] -        [list] <file.zip
 
 =head1 DESCRIPTION
 
@@ -606,14 +607,16 @@ To paraphrase the well-known poem "Siphonaptera"
 Where possible, and it makes sense, the interface has been written to match
 the Linux unzip program.
 
-The program works by reading the zip file in streaming mode, so no
-temporary files are created when walking a nested tree of zip files.
+The program works by reading the zip file in I<streaming> mode, so no
+temporary files are created when walking a nested tree of zip files. This
+also means that you can pipe a zip file into the program using the special
+filename C<->.
 
 =head2 Default Behaviour
 
 The default behaviour of the program is to uncompress all the nested zip
 files into a directory tree that mirrors the zip file. The directories
-created for each of the nested zip files has the string ".nested" appended.
+created for each of the nested zip files has the string C<.nested> appended.
 
 For security reasons, all paths that contain C<..> will be removed before
 extraction. Use the C<--do-double-dots> option to override this behaviour.
