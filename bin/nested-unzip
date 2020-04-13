@@ -672,21 +672,21 @@ Note that the path created in the filesystem is platform dependent.
 =item --hide-nested-zip
 
 When extracting or listing the contents of a zip file that contains nested
-zip files, the name of the nested zip files are included. This option make
-it appear that the contents of the nested zip are in the directory where
-the nested zip lives.
+zip files, the names of the nested zip files are included as directories,
+with the suffix C<.nested> appended. This option make it appear that the
+contents of the nested zip are in the directory where the nested zip lives.
 
-For example, if a zip contains the following
+For example, if a zip archive contains the following
 
     a/b.zip/c1
     s/c2
 
-Normally this will be extracted as
+Normally this will be extracted ato a directory tree like this
 
     a/b.zip.nested/c1
     s/c2
 
-With this option the output becomes
+With this option enabled the output becomes
 
     a/c1
     s/c2
@@ -724,21 +724,21 @@ Display version number [$VERSION]
 =item --zip-wildcard
 
 By default the program will only check members of an archive that match the
-wildcard C<**.zip> to see if they are zip archives.  There are other common
-uses if the zip container format that this program can check. Examples
-include Java C<.jar> and C<.war> files, Office files C<.docx>, C<.xlsx> etc.
-the list goes on.  Use this option to speficy the the wildcards used when
+wildcard C<**.zip> to see if they are zip archives. There are other common
+uses of the zip container format that this program can check. Examples
+include Java C<.jar> and C<.war> files, Office files C<.docx>, C<.xlsx>
+etc.  The list goes on. Use this option to specify the the wildcards used
+to match zip files.
 
-
-For example, to only extract the contents of  Java jar/war files
+For example, to only extract the contents of  Java jar/war files use this
 
     --zip-wildcard '**.jar' --zip-wildcard '**.war'
 
-If you safely use the wildcard C<**> the program will check every memober
-of the archive to see if it is a valid zip container. If it is, it will
-extract it.
+If you use the wildcard C<**>, the program will check every member of the
+archive to see if it is a valid zip container. If it is, it will extract
+it.
 
-This option can be specified multiple times.
+The C<--zip-wildcard> option can be specified multiple times.
 
 Defalut value is C<**.zip>.
 
@@ -750,7 +750,8 @@ Display help
 
 =head2 Wildcard Matching
 
-By default the program uses the standard Linux-stype wildcard
+By default the program uses the standard Unix/Linux-style wildcard
+operators
 
    *  Match zero or more characters
    ?  Match exactly one character
@@ -764,12 +765,13 @@ For example
     */*.c       Matches "abc/foo.c" and "abc/def/foo.c"
     ??*/*       Matches "ab/foo.c",  "abc/foo" and "a/b/foo"
 
-If the C<-W>/C<--wild-no-span> option is present, the wildcard operators
-C<*> and C<?> are modified to I<not> match against that path separator
-C</>.  The C<**> sequence is not changed by the C<-W>/C<--wild-no-span>
-option. It can I<always> match against the path seperator C</>.
+If the C<-W> (or C<--wild-no-span>) option is present, the wildcard
+operators C<*> and C<?> are modified to I<not> match against that path
+separator C</>.  The C<**> sequence is not changed by the
+C<-W>/C<--wild-no-span> option. It can I<always> match against the path
+seperator C</>.
 
-For example
+For example, when C<-W> (or C<--wild-no-span>) is enabled
 
     Wildcard
     *.c         Matches "foo.c" but not "mydir/foo.c"
