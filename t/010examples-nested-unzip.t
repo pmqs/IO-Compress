@@ -27,7 +27,7 @@ BEGIN
     $extra = 1
         if eval { require Test::NoWarnings ;  import Test::NoWarnings; 1 };
 
-    plan tests => 151 + $extra ;
+    plan tests => 155 + $extra ;
 }
 
 
@@ -642,6 +642,49 @@ EOM
     is_deeply $got, $expectedPayloads, "Directory tree ok"
         or diag "Got [ @$got ]";
 }
+
+
+if (1)
+{
+    title "--exclude";
+
+    my $zipdir ;
+    my $lex = new LexDir $zipdir;
+    # my $zipfile = "$HERE/$zipdir/zip1.zip";
+    my $zipfile = "$HERE/zip1.zip";
+    my $payloads = {};
+
+    createTestZip($zipfile,
+        [
+           'abc',
+           [ 'def.zip' => 'a', 'b.c', 'c' ],
+           [ 'ghi.zip' => 'a', [ 'xx.zip' => 'b1.c', 'b2'], 'c.c' ],
+           'def.c',
+         ],
+         $payloads);
+
+    # print "PAYLOADS IN -- " . Dumper($payloads) . "\n";
+
+    my $lexd = new PushLexDir();
+
+    runNestedUnzip(qq[-x "*.c" --exclude "*/xx.zip/*" $zipfile]);
+
+
+    my $got = getOutputTreeAndData('.') ;
+
+    my $expectedPayloads = {
+        nameAndPayloadFil('abc'),
+        nameAndPayloadDir('def.zip.nested'),
+        nameAndPayloadFil('def.zip.nested/a'),
+        nameAndPayloadFil('def.zip.nested/c'),
+        nameAndPayloadDir('ghi.zip.nested'),
+        nameAndPayloadFil('ghi.zip.nested/a'),
+    };
+
+    is_deeply $got, $expectedPayloads, "Directory tree ok"
+        or diag "Got [ " . join (" ", sort keys (%$got)) . " ]";
+}
+
 
 if(1)
 {

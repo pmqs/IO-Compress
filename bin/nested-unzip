@@ -32,6 +32,7 @@ my $opt_Wild_No_Span = 0;
 my $opt_HideNestedZip = 0;
 my @opt_ZipWildcards;
 my @opt_ZipWildcards_Default = qw( **.zip) ;
+my @opt_Exclude;
 
 my $extracting = 1;
 
@@ -54,6 +55,7 @@ GetOptions (
             'h|help'            => \&Usage,
             'do-double-dots'    => \$opt_UnsafePath,
             #'v|verbose'        => \$opt_Verbose,
+            'x|exclude=s'       => \@opt_Exclude,
 
             # specific to this program
             'fix-windows-path'  => \$opt_FixWindowsPath,
@@ -94,9 +96,10 @@ push @opt_ZipWildcards, '**.zip'
     unless @opt_ZipWildcards;
 
 my $opt_ZipWildcards = '^(?:' . join( '|', map { globToRegex($_) } @opt_ZipWildcards) . ')$';
+my $opt_Exclude = '^(?:' . join( '|', map { globToRegex($_) } @opt_Exclude) . ')$';
 
 progress "Archive: $zipfile";
-walk($unzip, []) ;
+walk($unzip, [], []) ;
 
 exit 0;
 
@@ -120,6 +123,7 @@ sub nextStream
 sub walk
 {
     my $unzip  = shift ;
+    my @match_unzip_path = @{ shift() };
     my @unzip_path = @{ shift() };
     my $matchZip = shift ;
 
@@ -132,6 +136,7 @@ sub walk
         my $extracted = 0;
 
         my $fullname = $matchZip ? join('/', @unzip_path, $name) : $name;
+        my $match_fullname = $matchZip ? join('/', @match_unzip_path, $name) : $name;
 
         my $isZip = isZipFile($unzip, $fullname) ;
 
@@ -141,12 +146,18 @@ sub walk
         {
             # warn "Matching against [$fullname]\n";
             $matched = 1
-                if $fullname =~ /$wantGlobRE/ ;
+                if $match_fullname =~ /$wantGlobRE/ ;
         }
         else
         {
             # no matches specified, so want everything
             $matched = 1 ;
+        }
+
+        if ($matched && $opt_Exclude)
+        {
+            $matched = 0
+                if $match_fullname =~ /$opt_Exclude/;
         }
 
         $matched = 0
@@ -239,7 +250,7 @@ sub walk
                 or die "Cannot open '$name': $UnzipError\n";
             # walk($newunzip, [@unzip_path, $extracting ? "$name.nested" : $name], 1);
 
-            walk($newunzip, nestedName(\@unzip_path, $name), 1);
+            walk($newunzip, [@unzip_path, $name], nestedName(\@unzip_path, $name), 1);
 
         }
     }
@@ -572,6 +583,7 @@ OPTIONS
  -q       Quiet
  -W       Modify pattern matching so ? and * do not match
           the directory separator /.
+ -x wc    Exclude archive members that match wildcard "wc"
 
  --do-double-dots       Allow ".."
  --fix-windows-path     Remove drive letter & change path separator from "\" to "/"
@@ -660,6 +672,13 @@ Changes the behaviour of the wildcard matching so that the wildcard
 characters C<?> and C<*> do not match the directory separator character
 C</>.
 
+=item -x wc
+
+=item --exclude wc
+
+Don't extract/list members from the zip archive that match the wildcard C<wc>.
+
+This option can be used multiple times.
 
 =item  --do-double-dots
 
