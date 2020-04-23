@@ -27,7 +27,7 @@ BEGIN
     $extra = 1
         if eval { require Test::NoWarnings ;  import Test::NoWarnings; 1 };
 
-    plan tests => 155 + $extra ;
+    plan tests => 181 + $extra ;
 }
 
 
@@ -470,7 +470,7 @@ EOM
 
 if (1)
 {
-    diag "hide-nested-zip";
+    title "hide-nested-zip";
 
 
     my $zipdir ;
@@ -510,8 +510,7 @@ if (1)
 
     my $zipdir ;
     my $lex = new LexDir $zipdir;
-    # my $zipfile = "$HERE/$zipdir/zip1.zip";
-    my $zipfile = "$HERE/zip1.zip";
+    my $zipfile = "$HERE/$zipdir/zip1.zip";
     my $payloads = {};
 
     createTestZip($zipfile,
@@ -557,8 +556,7 @@ if (1)
 
     my $zipdir ;
     my $lex = new LexDir $zipdir;
-    # my $zipfile = "$HERE/$zipdir/zip1.zip";
-    my $zipfile = "$HERE/zip1.zip";
+    my $zipfile = "$HERE/$zipdir/zip1.zip";
 
     my $extractDir ;
     my $lex2 = new LexDir $extractDir;
@@ -650,8 +648,7 @@ if (1)
 
     my $zipdir ;
     my $lex = new LexDir $zipdir;
-    # my $zipfile = "$HERE/$zipdir/zip1.zip";
-    my $zipfile = "$HERE/zip1.zip";
+    my $zipfile = "$HERE/$zipdir/zip1.zip";
     my $payloads = {};
 
     createTestZip($zipfile,
@@ -738,6 +735,7 @@ EOM
     is_deeply $got, $expectedPayloads, "Directory tree ok"
         or diag "Got [ " . join (" ", keys (%$got)) . " ]";
 }
+
 
 
 if (1)
@@ -925,7 +923,7 @@ EOM
             "d1/./fred2"         ,
             "d2/////d3/d4/fred3" ,
             "./dir2/../d4/"      ,
-            "d3/"                ,
+            "d3////"                ,
      ) ;
 
     createTestZip($zipfile, [@create]);
@@ -980,7 +978,7 @@ EOM2
      ) ;
 
     createTestZip($zipfile, [@create]);
-    createTestZip("bad.zip", ['C:\abc\def\my.txt']);
+    # createTestZip("bad.zip", ['C:\abc\def\my.txt']);
 
     my $lexd = new PushLexDir();
 
@@ -1164,4 +1162,220 @@ sub getFileTimes
 
     is $atime, $expectedATime, "  atime OK";
     is $mtime, $expectedMTime, "  mtime OK";
+}
+
+
+if(1)
+{
+    title "Junk path ";
+
+    my $zipdir ;
+    my $lex = new LexDir $zipdir;
+    my $zipfile = "$HERE/$zipdir/zip1.zip";
+
+
+
+    createTestZip($zipfile,
+        [
+           'abc1',
+           [ 'def.zip' => 'a2', 'b2', 'c2' ],
+           [ 'ghi.zip' => 'xx.yy', [ 'xx.zip' => 'b3', 'c3', [ 'xx.zip' => 'x4', 'y4', 'z4'] ], 'd3' ],
+           'def1',
+         ]);
+
+    my $lexd = new PushLexDir();
+
+    runNestedUnzip(qq[ --1ist-as-extracted -j  $zipfile  ], <<"EOM");
+Archive: $zipfile
+abc1
+def.zip
+a2
+b2
+c2
+ghi.zip
+xx.yy
+xx.zip
+b3
+c3
+xx.zip
+x4
+y4
+z4
+d3
+def1
+EOM
+
+    is_deeply getOutputTree('.'), [], "Directory tree ok" ;
+
+    {
+        title "Junk - - default remove the lot";
+
+        my $extractDir ;
+        my $lex2 = new LexDir $extractDir;
+
+        chdir($extractDir);
+
+        runNestedUnzip(qq[ -j $zipfile ]);
+
+        my $got = getOutputTreeAndData('.') ;
+        my $expectedPayloads = {
+                nameAndPayloadFil('abc1'),
+                nameAndPayloadFil('a2', 'def.zip.nested/a2'),
+                nameAndPayloadFil('b2', 'def.zip.nested/b2'),
+                nameAndPayloadFil('c2', 'def.zip.nested/c2'),
+                nameAndPayloadFil('xx.yy', 'ghi.zip.nested/xx.yy'),
+                nameAndPayloadFil('b3', 'ghi.zip.nested/xx.zip.nested/b3'),
+                nameAndPayloadFil('c3', 'ghi.zip.nested/xx.zip.nested/c3'),
+                nameAndPayloadFil('x4', 'ghi.zip.nested/xx.zip.nested/xx.zip.nested/x4'),
+                nameAndPayloadFil('y4', 'ghi.zip.nested/xx.zip.nested/xx.zip.nested/y4'),
+                nameAndPayloadFil('z4', 'ghi.zip.nested/xx.zip.nested/xx.zip.nested/z4'),
+                nameAndPayloadFil('d3', 'ghi.zip.nested/d3'),
+                nameAndPayloadFil('def1')
+
+        };
+
+        is_deeply $got, $expectedPayloads, "Directory tree ok"
+            or diag "Got [ " . join (" ", keys (%$got)) . " ]";
+    }
+
+
+    {
+        title "Junk  -j1";
+
+        my $extractDir ;
+        my $lex2 = new LexDir $extractDir;
+
+        chdir($extractDir);
+
+        runNestedUnzip(qq[ -j 1 $zipfile ]);
+
+        my $got = getOutputTreeAndData('.') ;
+        my $expectedPayloads = {
+                nameAndPayloadFil('abc1'),
+                nameAndPayloadFil('a2', 'def.zip.nested/a2'),
+                nameAndPayloadFil('b2', 'def.zip.nested/b2'),
+                nameAndPayloadFil('c2', 'def.zip.nested/c2'),
+                nameAndPayloadFil('xx.yy', 'ghi.zip.nested/xx.yy'),
+                nameAndPayloadDir('xx.zip.nested'),
+                nameAndPayloadFil('xx.zip.nested/b3', 'ghi.zip.nested/xx.zip.nested/b3'),
+                nameAndPayloadFil('xx.zip.nested/c3', 'ghi.zip.nested/xx.zip.nested/c3'),
+                nameAndPayloadDir('xx.zip.nested/xx.zip.nested'),
+                nameAndPayloadFil('xx.zip.nested/xx.zip.nested/x4', 'ghi.zip.nested/xx.zip.nested/xx.zip.nested/x4'),
+                nameAndPayloadFil('xx.zip.nested/xx.zip.nested/y4', 'ghi.zip.nested/xx.zip.nested/xx.zip.nested/y4'),
+                nameAndPayloadFil('xx.zip.nested/xx.zip.nested/z4', 'ghi.zip.nested/xx.zip.nested/xx.zip.nested/z4'),
+                nameAndPayloadFil('d3', 'ghi.zip.nested/d3'),
+                nameAndPayloadFil('def1')
+
+        };
+
+
+        is_deeply $got, $expectedPayloads, "Directory tree ok"
+            or diag "Got [ " . join (" ", sort keys (%$got)) . " ]";
+    }
+
+
+    {
+        title "Junk  -j2";
+
+        my $extractDir ;
+        my $lex2 = new LexDir $extractDir;
+
+        chdir($extractDir);
+
+        runNestedUnzip(qq[ -j2 $zipfile ]);
+
+        my $got = getOutputTreeAndData('.') ;
+        my $expectedPayloads = {
+                nameAndPayloadFil('abc1'),
+                nameAndPayloadFil('a2', 'def.zip.nested/a2'),
+                nameAndPayloadFil('b2', 'def.zip.nested/b2'),
+                nameAndPayloadFil('c2', 'def.zip.nested/c2'),
+                nameAndPayloadFil('xx.yy', 'ghi.zip.nested/xx.yy'),
+                nameAndPayloadFil('b3', 'ghi.zip.nested/xx.zip.nested/b3'),
+                nameAndPayloadFil('c3', 'ghi.zip.nested/xx.zip.nested/c3'),
+                nameAndPayloadDir('xx.zip.nested'),
+                nameAndPayloadFil('xx.zip.nested/x4', 'ghi.zip.nested/xx.zip.nested/xx.zip.nested/x4'),
+                nameAndPayloadFil('xx.zip.nested/y4', 'ghi.zip.nested/xx.zip.nested/xx.zip.nested/y4'),
+                nameAndPayloadFil('xx.zip.nested/z4', 'ghi.zip.nested/xx.zip.nested/xx.zip.nested/z4'),
+                nameAndPayloadFil('d3', 'ghi.zip.nested/d3'),
+                nameAndPayloadFil('def1')
+
+        };
+
+
+        is_deeply $got, $expectedPayloads, "Directory tree ok"
+            or diag "Got [ " . join (" ", sort keys (%$got)) . " ]";
+    }
+
+
+    {
+        title "Junk  -j3";
+
+        my $extractDir ;
+        my $lex2 = new LexDir $extractDir;
+
+        chdir($extractDir);
+
+        runNestedUnzip(qq[ -j3 $zipfile ]);
+
+        my $got = getOutputTreeAndData('.') ;
+        my $expectedPayloads = {
+                nameAndPayloadFil('abc1'),
+                nameAndPayloadFil('a2', 'def.zip.nested/a2'),
+                nameAndPayloadFil('b2', 'def.zip.nested/b2'),
+                nameAndPayloadFil('c2', 'def.zip.nested/c2'),
+                nameAndPayloadFil('xx.yy', 'ghi.zip.nested/xx.yy'),
+                nameAndPayloadFil('b3', 'ghi.zip.nested/xx.zip.nested/b3'),
+                nameAndPayloadFil('c3', 'ghi.zip.nested/xx.zip.nested/c3'),
+                nameAndPayloadFil('x4', 'ghi.zip.nested/xx.zip.nested/xx.zip.nested/x4'),
+                nameAndPayloadFil('y4', 'ghi.zip.nested/xx.zip.nested/xx.zip.nested/y4'),
+                nameAndPayloadFil('z4', 'ghi.zip.nested/xx.zip.nested/xx.zip.nested/z4'),
+                nameAndPayloadFil('d3', 'ghi.zip.nested/d3'),
+                nameAndPayloadFil('def1')
+
+        };
+        #    'abc1',
+        #    [ 'def.zip' => 'a2', 'b2', 'c2' ],
+        #    [ 'ghi.zip' => 'xx.yy', [ 'xx.zip' => 'b3', 'c3', [ 'xx.zip' => 'x4', 'y4', 'z4'] ], 'd3' ],
+        #    'def1',
+
+        is_deeply $got, $expectedPayloads, "Directory tree ok"
+            or diag "Got [ " . join (" ", sort keys (%$got)) . " ]";
+    }
+
+
+    {
+        title "Junk  -j4";
+
+        my $extractDir ;
+        my $lex2 = new LexDir $extractDir;
+
+        chdir($extractDir);
+
+        runNestedUnzip(qq[ --junk-dirs 4 $zipfile ]);
+
+        my $got = getOutputTreeAndData('.') ;
+        my $expectedPayloads = {
+                nameAndPayloadFil('abc1'),
+                nameAndPayloadFil('a2', 'def.zip.nested/a2'),
+                nameAndPayloadFil('b2', 'def.zip.nested/b2'),
+                nameAndPayloadFil('c2', 'def.zip.nested/c2'),
+                nameAndPayloadFil('xx.yy', 'ghi.zip.nested/xx.yy'),
+                nameAndPayloadFil('b3', 'ghi.zip.nested/xx.zip.nested/b3'),
+                nameAndPayloadFil('c3', 'ghi.zip.nested/xx.zip.nested/c3'),
+                nameAndPayloadFil('x4', 'ghi.zip.nested/xx.zip.nested/xx.zip.nested/x4'),
+                nameAndPayloadFil('y4', 'ghi.zip.nested/xx.zip.nested/xx.zip.nested/y4'),
+                nameAndPayloadFil('z4', 'ghi.zip.nested/xx.zip.nested/xx.zip.nested/z4'),
+                nameAndPayloadFil('d3', 'ghi.zip.nested/d3'),
+                nameAndPayloadFil('def1')
+
+        };
+        #    'abc1',
+        #    [ 'def.zip' => 'a2', 'b2', 'c2' ],
+        #    [ 'ghi.zip' => 'xx.yy', [ 'xx.zip' => 'b3', 'c3', [ 'xx.zip' => 'x4', 'y4', 'z4'] ], 'd3' ],
+        #    'def1',
+
+        is_deeply $got, $expectedPayloads, "Directory tree ok"
+            or diag "Got [ " . join (" ", sort keys (%$got)) . " ]";
+    }
 }

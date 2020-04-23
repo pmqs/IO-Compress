@@ -17,7 +17,7 @@ my $VERSION = '0.001';
 
 my %first  ;
 my $opt_List = 0;
-my $opt_One = 0;
+my $opt_ListAsExtracted = 0;
 my $opt_Pipe = 0;
 my $opt_PipeWithName = 0;
 my $opt_Quiet = 0;
@@ -25,7 +25,7 @@ my $opt_Overwrite  = 0;
 my $opt_NeverOverwrite = 0;
 my $opt_Verbose = 0; # TODO
 my $opt_DestDir ;
-my $opt_JunkPaths = 0; # TODO
+my $opt_JunkPaths = 0;
 my $opt_UnsafePath = 0 ;
 my $opt_FixWindowsPath = 0;
 my $opt_Wild_No_Span = 0;
@@ -42,10 +42,10 @@ my $zipExtensionsRE = '(?:' . join('|', map { quotemeta }  @zipExtensions) . ')'
 Getopt::Long::Configure ("bundling");
 GetOptions (
             # unzip equivalent options
-            #'1'                => \$opt_One,
+            '1ist-as-extracted'                => \$opt_ListAsExtracted,
             'c|to-stdout'       =>  sub { $opt_PipeWithName = $opt_Pipe = 1; $opt_Quiet = 0 },
             'd|extract-dir=s'   => \$opt_DestDir,
-            #'j|junk-dirs=i{0}' => \$opt_JunkPaths,
+            'j|junk-dirs:99999' => \$opt_JunkPaths,
             'l|list'            => \$opt_List,
             'p|pipe-to-stdout'  =>  sub { $opt_Pipe = $opt_Quiet = 1 },
             'n|never-overwrite' => \$opt_NeverOverwrite,
@@ -69,7 +69,7 @@ GetOptions (
 Usage()
     if ! @ARGV;
 
-$extracting = ! ($opt_List || $opt_One) ;
+$extracting = ! ($opt_List || $opt_ListAsExtracted) ;
 
 my $zipfile = shift ;
 my @want = @ARGV;
@@ -166,12 +166,46 @@ sub walk
         if ($matched)
         {
 
+            # Filename & Path transformations
+
+            if ($opt_FixWindowsPath)
+            {
+                # Fix broken DOS filenames
+
+                # remove the drive letter
+                $fullname =~ s/^[a-zA-Z]://;
+
+                # transform \ to /
+                $fullname =~ s#\\#/#g ;
+            }
+
+            # Directory flagged by presence of trailing "/"
+            my $isDir = $fullname =~ s#/+$##;
+
+            # remove ".", ".." & any repeated "/"
+            $fullname = canonicalPath($fullname)
+                if ! $opt_UnsafePath;
+
+            if ($opt_JunkPaths && $fullname =~ m#/#)
+            {
+                # remove some or all of the path
+                my @path = split "/", $fullname;
+                my $filename = pop @path ;
+
+                splice @path, 0, $opt_JunkPaths ;
+
+                push @path, $filename ;
+                $fullname = join '/', @path ;
+            }
+
+            # Extract to filesystem or pipe options
             if ($extracting && ! $isZip)
             {
+
                 $extracted = 1;
                 if ($opt_Pipe)
                 {
-                    progress "  extracting: " . join("/", @unzip_path, $name)
+                    progress "  extracting: $fullname"
                         if $opt_PipeWithName ;
 
                     my $buff;
@@ -184,16 +218,6 @@ sub walk
                 else
                 {
                     # Extract to filesystem
-
-                    if ($opt_FixWindowsPath)
-                    {
-                        $fullname =~ s/^[a-zA-Z]://;
-                        $fullname =~ s#\\#/#g ;
-                    }
-
-                    my $isDir = $fullname =~ s#/+$##;
-                    $fullname = canonicalPath($fullname)
-                        if ! $opt_UnsafePath;
 
                     my $newname;
                     if (chkReplace($fullname, \$newname))
@@ -233,9 +257,9 @@ sub walk
             }
 
             # Listing options
-            if ($opt_One)
+            if ($opt_ListAsExtracted)
             {
-                print $name . "\n" ;
+                print $fullname . "\n" ;
             }
             elsif ($opt_List)
             {
@@ -487,8 +511,11 @@ sub chkReplace
     # default is not to rename
     $$newFilename = $filename;
 
-    return 1 if $opt_Overwrite ;
-    return 0 if $opt_NeverOverwrite;
+    if (-e $filename)
+    {
+        return 1 if $opt_Overwrite ;
+        return 0 if $opt_NeverOverwrite;
+    }
 
     my $got = '';
     while (1)
@@ -545,6 +572,7 @@ sub canonicalPath
     # Remove trailing slash
     # $name =~ s#/+$## ;
 
+    # Map repeated / to a singe /
     $name =~ s#/+#/#g ;
 
     # Drop any ".." and "." paths
@@ -552,6 +580,7 @@ sub canonicalPath
     my @paths = split '/', $name ;
     my @have =  grep { $_ ne '.' } @paths ;
 
+    # Only allow ".." to stay if opt_UnsafePath is enabled
     @have =  grep {  $_ ne '..' } @paths
         if ! $opt_UnsafePath;
 
@@ -577,6 +606,8 @@ OPTIONS
  -c       Extract file to stdout, prefix with name as extracting
  -d dest  Extract files into directory "dest".
  -h       Display help
+ -j [n]   remove the first "n" parts of the directory path.
+          No "n" means remove the complete path.
  -p       Extract file to stdout (no filename prefix)
  -n       Never overwrite existing files
  -o       Silently overwrite existing files
@@ -651,6 +682,20 @@ Specifies a destination directory for extracted files. By default, files
 are extracted (and subdirectories created) in the current  directory. When
 this option is specified, extraction is done into the target directory,
 C<dest_dir>. If the path C<dest_dir> does not exist, it will be created.
+
+=item -j [depth]
+
+=item --junk-dirs [depth]
+
+This option takes an optional integer value C<depth> that specifies the
+number of leading path components to strip from the member names in the zip
+archive. When C<depth> is not specified all leading path components are
+removed.
+
+For example, the zip member C<a/b/c/d/ef.txt> will normally be extracted
+without change as C<a/b/c/d/ef.txt>. With C<-j 2> this file will be
+extracted to C<c/d/ef.txt>.  Using C<-j> without a C<depth> will remove all
+leading path components and extract the file to C<de.txt>.
 
 =item -l
 
