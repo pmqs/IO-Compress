@@ -9,7 +9,7 @@ use warnings;
 
 # TODO - need to include the minimum version of IO::Uncompress::Unzip that works with this script.
 use IO::Uncompress::Unzip qw($UnzipError) ;
-use Getopt::Long;
+use Getopt::Long 2.27;
 use File::Basename;
 use File::Path ;
 
