@@ -2,6 +2,8 @@
 
 # TODO - if a nested  zip file is encrypted, next will bomb out with an unhelpful message
 
+use 5.6.0;
+
 use strict;
 use warnings;
 
@@ -79,6 +81,8 @@ my $wantGlobRE  ;
 $wantGlobRE = '^(?:' . join( '|', map { globToRegex($_) } @want) . ')$'
     if @want;
 
+chkInputZipFile($zipfile) ;
+
 my $unzip = new IO::Uncompress::Unzip $zipfile
             or die "Cannot open '$zipfile': $UnzipError\n";
 
@@ -102,6 +106,24 @@ progress "Archive: $zipfile";
 walk($unzip, [], []) ;
 
 exit 0;
+
+sub chkInputZipFile
+{
+    my $filename = shift;
+
+    # "-" means stdin
+    return
+        if $filename eq '-' ;
+
+    die "Input file '$filename' is a directory\n"
+        if -d $filename;
+
+    open my $fh, "<", $filename
+        or die "Cannot open '$filename': $!\n" ;
+
+    die "Cannot open '$filename': Not a Zip file\n"
+        if ! isZipFileSimple($fh);
+}
 
 sub nextStream
 {
@@ -304,13 +326,33 @@ sub isZipFile
 
     use IO::Compress::Zip::Constants qw(ZIP_LOCAL_HDR_SIG);
 
-    return 0
-        unless $name =~ /$opt_ZipWildcards/;
+    if (defined $name)
+    {
+        return 0
+            unless $name =~ /$opt_ZipWildcards/;
+    }
 
     my $buffer ;
     # *$fh->{Pending} = ''; # TODO - fix in Base.pm
     $fh->read($buffer, 4);
     $fh->ungetc($buffer);
+
+    return 0
+        if length $buffer < 4 ;
+
+    my $sig = unpack("V", $buffer) ;
+
+    return $sig == ZIP_LOCAL_HDR_SIG ;
+}
+
+sub isZipFileSimple
+{
+    my $fh = shift;
+
+    use IO::Compress::Zip::Constants qw(ZIP_LOCAL_HDR_SIG);
+
+    my $buffer ;
+    read($fh, $buffer, 4);
 
     return 0
         if length $buffer < 4 ;
