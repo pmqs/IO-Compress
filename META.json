@@ -36,6 +36,7 @@
          "requires" : {
             "Compress::Raw::Bzip2" : "2.093",
             "Compress::Raw::Zlib" : "2.093",
+            "Getopt::Long" : "2.27",
             "Scalar::Util" : "0"
          }
       }
