@@ -81,9 +81,9 @@ my $wantGlobRE  ;
 $wantGlobRE = '^(?:' . join( '|', map { globToRegex($_) } @want) . ')$'
     if @want;
 
-chkInputZipFile($zipfile) ;
+my ($fh, $prefix) = chkInputZipFile($zipfile) ;
 
-my $unzip = new IO::Uncompress::Unzip $zipfile
+my $unzip = new IO::Uncompress::Unzip $fh, Prime => $prefix
             or die "Cannot open '$zipfile': $UnzipError\n";
 
 if (defined $opt_DestDir)
@@ -111,18 +111,18 @@ sub chkInputZipFile
 {
     my $filename = shift;
 
-    # "-" means stdin
-    return
-        if $filename eq '-' ;
-
     die "Input file '$filename' is a directory\n"
         if -d $filename;
 
-    open my $fh, "<", $filename
+    open my $fh, "<$filename"
         or die "Cannot open '$filename': $!\n" ;
 
+    my $prefix  ;
+
     die "Cannot open '$filename': Not a Zip file\n"
-        if ! isZipFileSimple($fh);
+        if ! scanForZip($fh, \$prefix);
+
+    return $fh, $prefix ;
 }
 
 sub nextStream
@@ -345,9 +345,10 @@ sub isZipFile
     return $sig == ZIP_LOCAL_HDR_SIG ;
 }
 
-sub isZipFileSimple
+sub scanForZip
 {
     my $fh = shift;
+    my $prefix = shift ;
 
     use IO::Compress::Zip::Constants qw(ZIP_LOCAL_HDR_SIG);
 
@@ -358,6 +359,8 @@ sub isZipFileSimple
         if length $buffer < 4 ;
 
     my $sig = unpack("V", $buffer) ;
+
+    $$prefix = "PK\x03\x04" ;
 
     return $sig == ZIP_LOCAL_HDR_SIG ;
 }
