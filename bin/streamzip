@@ -73,8 +73,9 @@ sub lookupMethod
 sub Usage
 {
     print <<EOM;
-Usage: producer | streamzip [OPTIONS] | consumer
-       producer | streamzip [OPTIONS] -zipfile=output.zip
+Usage:
+  producer | streamzip [OPTIONS] | consumer
+  producer | streamzip [OPTIONS] -zipfile=output.zip
 
 Stream data from stdin, compress into a Zip container, and stream to stdout.
 
