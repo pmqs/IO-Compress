@@ -974,6 +974,24 @@ systems, the option can be enabled when running on Windows as well.
 
 =head1 LIMITATIONS
 
+=over 5
+
+=item *
+Symbolic Links are not supported
+
+If a Zip file contain any members that are symbolic links, they will be
+extracted as normal files. The contents will be the destination directory
+for the link.
+
+=item *
+Encrypted Zip files are not supported at this time.
+
+=item *
+The only Compression methods supported are Stored (0), Deflate (8), Bzip2
+(12) and LZMA (14).
+
+=back
+
 =head1 SUPPORT
 
 General feedback/questions/bug reports should be sent to
