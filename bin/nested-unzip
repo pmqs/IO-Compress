@@ -748,6 +748,25 @@ leading path components and extract the file to C<de.txt>.
 
 List the contents of the nested zip file.
 
+=item -n
+
+=item --never-overwrite
+
+When extracting, never overwrite any existing files.
+
+By default C<nested-unzip> will prompt before extracting a file if it
+already exists in the filesystem.
+
+=item -o
+
+=item --overwrite
+
+When extracting, always silently overwrite any existing files. Use with
+care.
+
+By default C<nested-unzip> will prompt before extracting a file if it
+already exists in the filesystem.
+
 =item -p
 
 =item --pipe-to-stdout
