@@ -980,8 +980,8 @@ systems, the option can be enabled when running on Windows as well.
 Symbolic Links are not supported
 
 If a Zip file contain any members that are symbolic links, they will be
-extracted as normal files. The contents will be the destination file for
-the link.
+extracted as normal files. The name of the destination for the link  will
+be stored in the extractedf ile.
 
 =item *
 Encrypted Zip files are not supported at this time.
