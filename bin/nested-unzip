@@ -703,8 +703,9 @@ filename C<->.
 =head2 Default Behaviour
 
 The default behaviour of the program is to uncompress all the nested zip
-files into a directory tree that mirrors the zip file. The directories
-created for each of the nested zip files has the string C<.nested> appended.
+files into a directory tree that mirrors the zip file. By default the
+directories created for each of the nested zip file has the string
+C<.nested> appended.
 
 For security reasons, all paths that contain C<..> will be removed before
 extraction. Use the C<--do-double-dots> option to override this behaviour.
