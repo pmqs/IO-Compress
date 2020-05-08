@@ -44,7 +44,7 @@ my $zipExtensionsRE = '(?:' . join('|', map { quotemeta }  @zipExtensions) . ')'
 Getopt::Long::Configure ("bundling");
 GetOptions (
             # unzip equivalent options
-            '1ist-as-extracted'                => \$opt_ListAsExtracted,
+            '1ist-as-extracted' => \$opt_ListAsExtracted,
             'c|to-stdout'       =>  sub { $opt_PipeWithName = $opt_Pipe = 1; $opt_Quiet = 0 },
             'd|extract-dir=s'   => \$opt_DestDir,
             'j|junk-dirs:99999' => \$opt_JunkPaths,
@@ -642,7 +642,8 @@ sub canonicalPath
 sub Usage
 {
     die <<EOM;
-Usage: nested-unzip [OPTIONS] file.zip [list]
+Usage: nested-unzip [OPTIONS] file.zip [file list]
+       nested-unzip [OPTIONS] -        [file list] <file.zip
 
 Unzip a zip file that itself contains zip files, nested to any level.
 
@@ -679,33 +680,39 @@ nested-unzip - uncompress zip files that also contain zip files
 =head1 SYNOPSIS
 
     nested-unzip [opts] file.zip [list]
-    nexted-unzip [opts] -        [list] <file.zip
+    nested-unzip [opts] -        [list] <file.zip
 
 =head1 DESCRIPTION
 
 This program is used to uncompress zip files that themselves contain other
-zip files. Those nested zip files can in turn embed more zip files.  The
+zip files. Those nested zip files can in turn embed more zip files. The
 program can cope with Zip files nested to any depth.
 
-To paraphrase the well-known poem "Siphonaptera"
+To paraphrase the well-known poem "I<Siphonaptera>"
 
     Nested zips have little zips upon their backs to bite 'em,
     And little zips have lesser zips, and so ad infinitum.
 
-Where possible, and it makes sense, the interface has been written to match
-the Linux unzip program.
+The program works by reading the outer zip file, and each of the nested zip
+files, in I<streaming> mode. This means that no temporary files are created
+when walking a tree of nested zip files. Similarly the program doesn't need
+to read complete zip file into memory.
 
-The program works by reading the zip file in I<streaming> mode, so no
-temporary files are created when walking a nested tree of zip files. This
-also means that you can pipe a zip file into the program using the special
-filename C<->.
+Working in I<streaming> mode also means that you can pipe a zip file into
+the program using the special filename C<->.
 
 =head2 Default Behaviour
 
+Where possible, and it makes sense, the interface has been written to match
+the Linux C<unzip> program.
+
 The default behaviour of the program is to uncompress all the nested zip
-files into a directory tree that mirrors the zip file. By default the
-directories created for each of the nested zip file has the string
-C<.nested> appended.
+files into a directory tree that mirrors the strucrure of the zip file.
+Think of each nested zip file as being like a sub-directory that is part of
+the directory tree from the enclosing zip.
+
+By default the directories created for each of the nested zip file has the
+string C<.nested> appended.
 
 For security reasons, all paths that contain C<..> will be removed before
 extraction. Use the C<--do-double-dots> option to override this behaviour.
@@ -848,7 +855,7 @@ See L<Dealing with Zip files that contain Windows Paths> for more details.
 
 =item  --version
 
-Display version number [$VERSION]
+Display th eprogram version number.
 
 =item --zip-wildcard
 
@@ -921,7 +928,7 @@ Here is the longer answer.
 A well-known problem with some zip implementations on Windows is they will
 write a windows-native path into the zip file (e.g. C<C:\abc\def\my.txt>).
 
-This is a badly-formed zip file. The Zip specification,
+This results in a badly-formed zip file. The Zip specification,
 L<APPNOTE.TXT|https://pkware.cachefly.net/webdocs/casestudies/APPNOTE.TXT>,
 is very clear on how paths should be stored in a zip file.
 
@@ -973,7 +980,7 @@ Convert all C<\> characters to C</>.
 
 =back
 
-Using C<nested-unzip> with C<--fix-windows-path> to unzip C<bad.zip> we get
+Using C<nested-unzip> with C<--fix-windows-path> to unzip C<bad.zip> we now get
 
     $ ./bin/nested-unzip --fix-windows-path bad.zip
     Archive: bad.zip
@@ -991,6 +998,21 @@ Although this option is primarily designed to be run on Unix/Linux derived
 systems, the option can be enabled when running on Windows as well.
 
 =head1 EXAMPLES
+
+=head2 Reading a file from a URL and unzipping it without a temporary file
+
+There are two parts to this. First you need to get the file downloaded and
+have the data written to STDOUT.  If you use C<curl> and don't specify an
+output file, it will write the data it gets from the URL to C<STDOUT>.
+
+Next, if you give C<nested-unzip> the special filename C<-> instead of a
+filename to unzip, it will read the zip file from C<STDIN>.
+
+Combining these two parts we can pipe the output from C<curl> directly into
+C<nested-unzip> and have it unzip the contents directly to the filesystem
+without creating any temporary file.
+
+    curl http://somewhere/abc.zip | nested-unzip -
 
 =head1 LIMITATIONS
 
