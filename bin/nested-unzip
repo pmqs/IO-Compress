@@ -28,6 +28,7 @@ my $opt_NeverOverwrite = 0;
 my $opt_Verbose = 0; # TODO
 my $opt_DestDir ;
 my $opt_JunkPaths = 0;
+my $opt_MatchZip = 0;
 my $opt_UnsafePath = 0 ;
 my $opt_FixWindowsPath = 0;
 my $opt_Wild_No_Span = 0;
@@ -62,6 +63,7 @@ GetOptions (
             # specific to this program
             'fix-windows-path'  => \$opt_FixWindowsPath,
             'hide-nested-zip'   => \$opt_HideNestedZip,
+            'match-zip'         => \$opt_MatchZip,
             'version'           => sub { print "$VERSION\n"; exit 0 },
             'zip-wildcard=s'    => \@opt_ZipWildcards,
             )
@@ -220,8 +222,10 @@ sub walk
                 $fullname = join '/', @path ;
             }
 
+            my $extractThisMember = $extracting && (! $isZip || $opt_MatchZip) ;
+
             # Extract to filesystem or pipe options
-            if ($extracting && ! $isZip)
+            if ($extractThisMember)
             {
 
                 $extracted = 1;
@@ -666,6 +670,7 @@ OPTIONS
  --fix-windows-path     Remove drive letter & change path separator from "\" to "/"
  --hide-nested-zip      Don't include the nested zip filename in any output
  --version              Display version number ($VERSION) and exit
+ --match-zip            Match against zip files
  --zip-wildcard w       Use Wildcard "w" when matching zip archives.
                         Default is @opt_ZipWildcards_Default
 
@@ -688,10 +693,15 @@ This program is used to uncompress zip files that themselves contain other
 zip files. Those nested zip files can in turn embed more zip files. The
 program can cope with Zip files nested to any depth.
 
-To paraphrase the well-known poem "I<Siphonaptera>"
+
+To paraphrase part of the poem "I<Siphonaptera>"
 
     Nested zips have little zips upon their backs to bite 'em,
     And little zips have lesser zips, and so ad infinitum.
+
+Where it makes sense, the interface has been written to match
+the L<Infozip|http://infozip.sourceforge.net> C<unzip> program that ships
+with most Linux distributions.
 
 The program works by reading the outer zip file, and each of the nested zip
 files, in I<streaming> mode. This means that no temporary files are created
@@ -701,10 +711,11 @@ to read complete zip file into memory.
 Working in I<streaming> mode also means that you can pipe a zip file into
 the program using the special filename C<->.
 
-=head2 Default Behaviour
+The term "I<zip file>" is used in the documentation as a catch-all for
+I<all> file formats that use a zip container.  Examples include Java
+C<.jar> and C<.war> files, Office files C<.docx>, C<.xlsx> etc.
 
-Where possible, and it makes sense, the interface has been written to match
-the Linux C<unzip> program.
+=head2 Default Behaviour
 
 The default behaviour of the program is to uncompress all the nested zip
 files into a directory tree that mirrors the strucrure of the zip file.
@@ -855,7 +866,18 @@ See L<Dealing with Zip files that contain Windows Paths> for more details.
 
 =item  --version
 
-Display th eprogram version number.
+Display the program version number.
+
+=item --match-zip
+
+By default this program will I<not> extract nested zip files. It will only
+extract their contents. There are times though when you want to extract a
+zip file intact.
+
+If this option is enabled and the wildcards could match against a zip file
+and part/all of its contents, only the zip file will be matched.
+
+TODO - needs more here.
 
 =item --zip-wildcard
 

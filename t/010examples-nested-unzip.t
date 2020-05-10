@@ -19,15 +19,15 @@ use Data::Dumper ;
 
 BEGIN
 {
-    plan(skip_all => "Examples needs Perl 5.005 or better - you have Perl $]" )
-        if $] < 5.005 ;
+    plan(skip_all => "Examples needs Perl 5.6.0 or better - you have Perl $]" )
+        if $] < 5.006 ;
 
     # use Test::NoWarnings, if available
     my $extra = 0 ;
     $extra = 1
         if eval { require Test::NoWarnings ;  import Test::NoWarnings; 1 };
 
-    plan tests => 181 + $extra ;
+    plan tests => 189 + $extra ;
 }
 
 
@@ -548,6 +548,85 @@ if (1)
 
     is_deeply $got, $expectedPayloads, "Directory tree ok"
         or diag "Got [ @$got ]";
+}
+
+
+if (1)
+{
+    title "match-zip";
+
+    my $zipdir ;
+    my $lex = new LexDir $zipdir;
+    my $zipfile = "$HERE/$zipdir/zip1.zip";
+    my $payloads = {};
+
+    createTestZip($zipfile,
+        [
+           'abc',
+           [ 'def.zip' => 'a', 'b', 'c' ],
+           [ 'ghi.zip' => 'a', [ 'xx.zip' => 'b1', ['jkl.zip' => 'd'] ], 'c' ],
+           'def',
+         ],
+         $payloads);
+
+    # print "PAYLOADS IN -- " . Dumper($payloads) . "\n";
+
+    my $lexd = new PushLexDir();
+
+    runNestedUnzip("--match-zip $zipfile */xx.zip def.zip");
+
+
+    my $got = getOutputTreeAndData('.') ;
+
+    my $expectedPayloads = {
+        nameAndPayloadZip('def.zip'),
+        nameAndPayloadDir('ghi.zip.nested'),
+        nameAndPayloadZip('ghi.zip.nested/xx.zip'),
+
+    };
+
+    is_deeply $got, $expectedPayloads, "Directory tree ok"
+        or diag "Got [ " . join (" ", keys (%$got)) . " ]";
+}
+
+
+if (1)
+{
+    title "match-zip - zip file contents";
+
+    my $zipdir ;
+    my $lex = new LexDir $zipdir;
+    my $zipfile = "$HERE/$zipdir/zip1.zip";
+    my $payloads = {};
+
+    createTestZip($zipfile,
+        [
+           'abc',
+           [ 'def.zip' => 'a', 'b', 'c' ],
+           [ 'ghi.zip' => 'a', [ 'xx.zip' => 'b1', ['jkl.zip' => 'd'] ], 'c1' ],
+           'def',
+         ],
+         $payloads);
+
+    # print "PAYLOADS IN -- " . Dumper($payloads) . "\n";
+
+    my $lexd = new PushLexDir();
+
+    runNestedUnzip("--match-zip $zipfile */xx.zip/* ");
+
+
+    my $got = getOutputTreeAndData('.') ;
+
+    my $expectedPayloads = {
+        nameAndPayloadDir('ghi.zip.nested'),
+        nameAndPayloadDir('ghi.zip.nested/xx.zip.nested'),
+        nameAndPayloadFil('ghi.zip.nested/xx.zip.nested/b1'),
+        nameAndPayloadZip('ghi.zip.nested/xx.zip.nested/jkl.zip'),
+
+    };
+
+    is_deeply $got, $expectedPayloads, "Directory tree ok"
+        or diag "Got [ " . join (" ", keys (%$got)) . " ]";
 }
 
 if (1)
