@@ -32,12 +32,12 @@ BEGIN
     plan tests => 210 + $extra ;
 }
 
-{
-    my $locale = getNativeLocale();
+my $locale = getNativeLocale();
 
+{
     diag "Locale Info" ;
     diag "  Derived Locale:\t'" . $locale->name . "'\n" ;
-    if ($^W eq 'win32')
+    if ($^O eq 'MSWin32')
     {
         my $chcp = `chcp`;
         $chcp =~ s/[\r\n]+$//;
@@ -1497,6 +1497,10 @@ SKIP:
 {
     title "Filename encoding cp850 -> utf8";
 
+    # Only run if OS locale is UTF-8
+    skip "Locale is not UTF-8", 7
+        unless $locale && $locale->name =~ /^utf-8/i ;
+
     my $filesDir = "$HERE/t/files/";
     my $zipfile = $filesDir . "valid-cp850.zip";
 
@@ -1513,11 +1517,6 @@ SKIP:
     ok $ok;
     is $stdout, $encodedName ."\n" ;
 
-    my $locale = getNativeLocale();
-
-    # Only run if OS locale is UTF-8
-    skip "Locale is not UTF-8", 3
-        unless $locale && $locale->name =~ /^utf-8/i ;
 
     runNestedUnzip(qq[ --input-filename-encoding cp850 $zipfile ]);
     my $got = getOutputTreeAndData('.') ;
@@ -1534,6 +1533,10 @@ SKIP:
 SKIP:
 {
     title "Filename encoding utf8 -> utf8";
+
+    # Only run if OS locale is UTF-8
+    skip "Locale is not UTF-8", 7
+        unless $locale && $locale->name =~ /^utf-8/i ;
 
     my $filesDir = "$HERE/t/files/";
     my $zipfile = $filesDir . "valid-utf8-efs.zip";
@@ -1553,14 +1556,6 @@ SKIP:
 
     ok $ok;
     is $stdout, $encodedName ."\n" ;
-
-    use Encode;
-
-    my $locale = getNativeLocale();
-
-    # Only run if OS locale is UTF-8
-    skip "Locale is not UTF-8", 3
-        unless $locale && $locale->name =~ /^utf-8/i ;
 
     runNestedUnzip(qq[ $zipfile ]);
     my $got = getOutputTreeAndData('.') ;
