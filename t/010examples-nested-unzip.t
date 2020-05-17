@@ -21,8 +21,8 @@ use charnames ':full';
 
 BEGIN
 {
-    plan(skip_all => "Examples needs Perl 5.6.0 or better - you have Perl $]" )
-        if $] < 5.006 ;
+    plan(skip_all => "Examples needs Perl 5.8.0 or better - you have Perl $]" )
+        if $] < 5.008 ;
 
     # use Test::NoWarnings, if available
     my $extra = 0 ;

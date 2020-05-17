@@ -2,7 +2,7 @@
 
 # TODO - if a nested  zip file is encrypted, next will bomb out with an unhelpful message
 
-use 5.6.0;
+use 5.8.0;
 
 use strict;
 use warnings;
