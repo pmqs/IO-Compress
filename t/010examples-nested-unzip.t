@@ -1575,7 +1575,7 @@ SKIP:
     my $locale = getNativeLocale();
 
     # Only run if OS locale is UTF-8
-    skip "Local is not UTF-8", 5
+    skip "Local is not UTF-8", 4
         unless $locale && $locale->name =~ /^utf-8/i ;
 
     my $filesDir = "$HERE/t/files/";
