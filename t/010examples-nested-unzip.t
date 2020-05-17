@@ -1568,10 +1568,9 @@ SKIP:
         or diag "Got [ " . join (" ", sort keys (%$got)) . " ]";
 }
 
-
+SKIP:
 {
     title "Filename encoding cp850 -> cp850";
-
 
     my $locale = getNativeLocale();
 
