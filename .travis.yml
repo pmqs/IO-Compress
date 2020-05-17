@@ -31,4 +31,4 @@ install:
   - cpan Compress::Raw::Bzip2
   - cpan Getopt::Long
   - cpan Encode
-  - charnames
+  - cpan charnames
