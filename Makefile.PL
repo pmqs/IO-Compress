@@ -28,6 +28,8 @@ WriteMakefile(
 		                    'Compress::Raw::Zlib'   => $::VERSION,
 		                    'Scalar::Util'  => 0,
                             'Getopt::Long'  => 2.27,
+                            'Encode'        => 0,
+                            'charnames'     => 0
 		                    $] >= 5.005 && $] < 5.006
                                 ? ('File::BSDGlob' => 0)
                                 : () }
