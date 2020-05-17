@@ -15,8 +15,7 @@ use Test::More ;
 use CompTestUtils;
 use IO::Compress::Zip 'zip' ;
 use Data::Dumper ;
-use Encode;
-use charnames ':full';
+
 # use IO::Uncompress::Unzip 'unzip' ;
 
 BEGIN
@@ -31,6 +30,9 @@ BEGIN
 
     plan tests => 210 + $extra ;
 }
+
+use Encode;
+use charnames ':full';
 
 my $locale = getNativeLocale();
 
