@@ -32,6 +32,24 @@ BEGIN
     plan tests => 210 + $extra ;
 }
 
+{
+    my $locale = getNativeLocale();
+
+    diag "Locale Info" ;
+    diag "  Derived Locale:\t'" . $locale->name . "'\n" ;
+    if ($^W eq 'win32')
+    {
+        my $chcp = `chcp`;
+        $chcp =~ s/[\r\n]+$//;
+        diag "  chcp output:\t'$chcp'\n";
+    }
+
+    for my $e (keys %ENV)
+    {
+        diag "  $e:\t'$ENV{$e}'\n"
+            if $e =~ /^(LC_|LANG)/;
+    }
+}
 
 my $Inc = join " ", map qq["-I$_"] => @INC;
 $Inc = '"-MExtUtils::testlib"'
