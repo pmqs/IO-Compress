@@ -16,6 +16,7 @@ use CompTestUtils;
 use IO::Compress::Zip 'zip' ;
 use Data::Dumper ;
 use Encode;
+use charnames ':full';
 # use IO::Uncompress::Unzip 'unzip' ;
 
 BEGIN
@@ -1493,8 +1494,6 @@ SKIP:
 
     ok $ok;
     is $stdout, $encodedName ."\n" ;
-
-    use Encode;
 
     my $locale = getNativeLocale();
 
