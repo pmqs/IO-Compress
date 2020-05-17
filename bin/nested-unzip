@@ -9,11 +9,15 @@ use warnings;
 
 # TODO - need to include the minimum version of IO::Uncompress::Unzip that works with this script.
 use IO::Uncompress::Unzip qw($UnzipError) ;
+use IO::Compress::Zip::Constants qw(ZIP_GP_FLAG_LANGUAGE_ENCODING );
 use Getopt::Long 2.27;
 use File::Basename;
 use File::Path ;
+use Encode ;
 
 sub progress;
+sub output;
+sub encodeFilename;
 
 my $VERSION = '0.001';
 
@@ -36,6 +40,13 @@ my $opt_HideNestedZip = 0;
 my @opt_ZipWildcards;
 my @opt_ZipWildcards_Default = qw( **.zip) ;
 my @opt_Exclude;
+
+# Filename Encoding options
+my $nativeLocaleEncoding = getNativeLocale();
+my $opt_FilenameEncodingFrom = $nativeLocaleEncoding;
+my $opt_FilenameEncodingTo = $nativeLocaleEncoding ;
+my $opt_Ignore_efs ;
+my $opt_Disable_Filename_Encoding;
 
 my $extracting = 1;
 
@@ -61,6 +72,13 @@ GetOptions (
             'x|exclude=s'       => \@opt_Exclude,
 
             # specific to this program
+
+            # filename encoding
+            'disable-filename-encoding'  => \$opt_Disable_Filename_Encoding,
+            'input-filename-encoding=s'  => \&parseEncodingOption,
+            'output-filename-encoding=s' => \&parseEncodingOption,
+            'ignore-zip-unicode-flag'    => \$opt_Ignore_efs,
+
             'fix-windows-path'  => \$opt_FixWindowsPath,
             'hide-nested-zip'   => \$opt_HideNestedZip,
             'match-zip'         => \$opt_MatchZip,
@@ -157,7 +175,14 @@ sub walk
         my $name = $hdrInfo->{Name};
         my $dosTime = $hdrInfo->{Time};
         my $extraFields = $hdrInfo->{ExtraField};
+        my $header = $hdrInfo->{Header} ;
+        my $gpFlag = gpFlag($header);
+        my $efs_flag = $gpFlag & ZIP_GP_FLAG_LANGUAGE_ENCODING ;
+
         my $extracted = 0;
+
+        # convert filename from encoding used in the file to internal Unicode representation
+        $name = decodeFilename($name, $efs_flag);
 
         my $fullname = $matchZip ? join('/', @unzip_path, $name) : $name;
         my $match_fullname = $matchZip ? join('/', @match_unzip_path, $name) : $name;
@@ -248,9 +273,12 @@ sub walk
                     my $newname;
                     if (chkReplace($fullname, \$newname))
                     {
+                        progress "  extracting: $newname";
+
+                        $newname = encodeFilename $newname ;
+
                         my $path = dirname $newname;
 
-                        progress "  extracting: $newname";
                         if (! -d $path)
                         {
                             mkpath($path)
@@ -285,11 +313,11 @@ sub walk
             # Listing options
             if ($opt_ListAsExtracted)
             {
-                print $fullname . "\n" ;
+                output $fullname . "\n" ;
             }
             elsif ($opt_List)
             {
-                print join("/", @unzip_path, $name) . "\n";
+                output(join("/", @unzip_path, $name) . "\n");
             }
 
         }
@@ -321,6 +349,86 @@ sub nestedName
     }
 
     return \@path;
+}
+
+sub getNativeLocale
+{
+    my $enc;
+
+    eval
+    {
+        require encoding ;
+        my $encoding = encoding::_get_locale_encoding() ;
+        $enc = Encode::find_encoding($encoding) ;
+    } ;
+
+    return $enc;
+}
+
+sub parseEncodingOption
+{
+    my $opt_name = shift;
+    my $opt_value = shift;
+
+    my $enc = Encode::find_encoding($opt_value) ;
+    die "Encoding '$opt_value' not found for option '$opt_name'\n"
+        unless ref $enc;
+
+    if ($opt_name eq 'input-filename-encoding')
+    {
+        $opt_FilenameEncodingFrom = $enc;
+    }
+    elsif ($opt_name eq 'output-filename-encoding')
+    {
+        $opt_FilenameEncodingTo = $enc;
+    }
+    else
+    {
+        die "Unknown option $opt_name"
+    }
+}
+
+sub decodeFilename
+{
+    my $name = shift ;
+    my $efs_flag = shift ;
+
+    return $name
+        if $opt_Disable_Filename_Encoding ;
+
+    # TODO - check for badly formed content
+    if ($efs_flag && ! $opt_Ignore_efs)
+    {
+        $name = Encode::decode('UTF-8', $name) ;
+    }
+    else
+    {
+        $name = $opt_FilenameEncodingFrom->decode($name);
+    }
+
+    return $name ;
+}
+
+sub encodeFilename
+{
+    return $_[0]
+        if $opt_Disable_Filename_Encoding;
+
+    return $opt_FilenameEncodingTo->encode($_[0]);
+}
+
+sub output
+{
+    if ($opt_Disable_Filename_Encoding)
+    {
+        print $_
+            for @_;
+    }
+    else
+    {
+        print $opt_FilenameEncodingTo->encode($_)
+            for @_;
+    }
 }
 
 sub isZipFile
@@ -372,7 +480,8 @@ sub scanForZip
 sub progress
 {
     return if $opt_Quiet;
-    print "$_\n" for @_ ;
+    # print "$_\n" for @_ ;
+    output "$_\n" for @_ ;
 }
 
 sub SetTimestamp
@@ -574,7 +683,9 @@ sub chkReplace
 
         while (1)
         {
-            print "replace $filename? [y]es, [n]o, [A]ll, [N]one, [r]ename: ";
+            # print "replace $filename? [y]es, [n]o, [A]ll, [N]one, [r]ename: ";
+            output "replace $filename? [y]es, [n]o, [A]ll, [N]one, [r]ename: ";
+
             $got = <STDIN>;
             chomp $got;
 
@@ -641,6 +752,13 @@ sub canonicalPath
     # {
     # }
     # # TODO Win32
+}
+
+sub gpFlag
+{
+    my $header = shift;
+    my $gpFlag = unpack ("v", substr($header, 6, 2));
+    return $gpFlag ;
 }
 
 sub Usage

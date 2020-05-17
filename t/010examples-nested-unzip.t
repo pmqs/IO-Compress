@@ -15,6 +15,7 @@ use Test::More ;
 use CompTestUtils;
 use IO::Compress::Zip 'zip' ;
 use Data::Dumper ;
+use Encode;
 # use IO::Uncompress::Unzip 'unzip' ;
 
 BEGIN
@@ -27,7 +28,7 @@ BEGIN
     $extra = 1
         if eval { require Test::NoWarnings ;  import Test::NoWarnings; 1 };
 
-    plan tests => 189 + $extra ;
+    plan tests => 210 + $extra ;
 }
 
 
@@ -1457,4 +1458,128 @@ EOM
         is_deeply $got, $expectedPayloads, "Directory tree ok"
             or diag "Got [ " . join (" ", sort keys (%$got)) . " ]";
     }
+}
+
+sub getNativeLocale
+{
+    my $enc;
+
+    eval
+    {
+        require encoding ;
+        my $encoding = encoding::_get_locale_encoding() ;
+        $enc = Encode::find_encoding($encoding) ;
+    } ;
+
+    return $enc;
+}
+
+SKIP:
+{
+    title "Filename encoding cp850 -> utf8";
+
+    my $filesDir = "$HERE/t/files/";
+    my $zipfile = $filesDir . "valid-cp850.zip";
+
+    my $extractDir ;
+    my $lex2 = new LexDir $extractDir;
+
+    chdir($extractDir);
+
+    my $name = "Caf\N{LATIN SMALL LETTER E WITH ACUTE} Society" ;
+    my $encodedName = Encode::encode('UTF-8', $name);
+
+    my ($ok, $stdout) = check("$Perl $nestedUnzip -lq --input-filename-encoding cp850 $zipfile" );
+
+    ok $ok;
+    is $stdout, $encodedName ."\n" ;
+
+    use Encode;
+
+    my $locale = getNativeLocale();
+
+    # Only run if OS locale is UTF-8
+    skip "Locale is not UTF-8", 3
+        unless $locale && $locale->name =~ /^utf-8/i ;
+
+    runNestedUnzip(qq[ --input-filename-encoding cp850 $zipfile ]);
+    my $got = getOutputTreeAndData('.') ;
+
+    my $expectedPayloads = {
+            nameAndPayloadFil($encodedName, " "),
+    };
+
+    is_deeply $got, $expectedPayloads, "Directory tree ok"
+        or diag "Got [ " . join (" ", sort keys (%$got)) . " ]";
+}
+
+
+SKIP:
+{
+    title "Filename encoding utf8 -> utf8";
+
+    my $filesDir = "$HERE/t/files/";
+    my $zipfile = $filesDir . "valid-utf8-efs.zip";
+
+    my $extractDir ;
+    my $lex2 = new LexDir $extractDir;
+
+    chdir($extractDir);
+
+    my $name =  "\N{GREEK SMALL LETTER ALPHA}".
+                "\N{GREEK SMALL LETTER BETA}".
+                "\N{GREEK SMALL LETTER GAMMA}".
+                "\N{GREEK SMALL LETTER DELTA}" ;
+    my $encodedName = Encode::encode('UTF-8', $name);
+
+    my ($ok, $stdout) = check("$Perl $nestedUnzip -lq $zipfile" );
+
+    ok $ok;
+    is $stdout, $encodedName ."\n" ;
+
+    use Encode;
+
+    my $locale = getNativeLocale();
+
+    # Only run if OS locale is UTF-8
+    skip "Locale is not UTF-8", 3
+        unless $locale && $locale->name =~ /^utf-8/i ;
+
+    runNestedUnzip(qq[ $zipfile ]);
+    my $got = getOutputTreeAndData('.') ;
+
+    my $expectedPayloads = {
+            nameAndPayloadFil($encodedName, " "),
+    };
+
+    is_deeply $got, $expectedPayloads, "Directory tree ok"
+        or diag "Got [ " . join (" ", sort keys (%$got)) . " ]";
+}
+
+
+{
+    title "Filename encoding cp850 -> cp850";
+
+
+    my $locale = getNativeLocale();
+
+    # Only run if OS locale is UTF-8
+    skip "Local is not UTF-8", 5
+        unless $locale && $locale->name =~ /^utf-8/i ;
+
+    my $filesDir = "$HERE/t/files/";
+    my $zipfile = $filesDir . "valid-cp850.zip";
+
+    my $extractDir ;
+    my $lex2 = new LexDir $extractDir;
+
+    chdir($extractDir);
+
+    my $name = "Caf\N{LATIN SMALL LETTER E WITH ACUTE} Society" ;
+    my $encodedName = Encode::encode('cp850', $name);
+
+    my ($ok, $stdout) = check("$Perl $nestedUnzip -lq --input-filename-encoding cp850 --output-filename-encoding cp850 $zipfile" );
+
+    ok $ok;
+    is $stdout, $encodedName ."\n" ;
 }
