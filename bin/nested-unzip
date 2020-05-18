@@ -408,7 +408,7 @@ sub decodeFilename
 
     # remove any BOM
     $name =~ s/^\x{FEFF}//;
-    
+
     return $name ;
 }
 
@@ -787,13 +787,16 @@ OPTIONS
           the directory separator /.
  -x wc    Exclude archive members that match wildcard "wc"
 
- --do-double-dots       Allow ".."
- --fix-windows-path     Remove drive letter & change path separator from "\" to "/"
- --hide-nested-zip      Don't include the nested zip filename in any output
- --version              Display version number ($VERSION) and exit
- --match-zip            Match against zip files
- --zip-wildcard w       Use Wildcard "w" when matching zip archives.
-                        Default is @opt_ZipWildcards_Default
+ --do-double-dots             Allow ".."
+ --disable-filename-encoding  Disable all filename encoding
+ --input-filename-encoding e  Assume zip filename has encoding e
+ --output-filename-encoding e Write filename with encoding e
+ --fix-windows-path           Remove drive letter & change path separator from "\" to "/"
+ --hide-nested-zip            Don't include the nested zip filename in any output
+ --version                    Display version number ($VERSION) and exit
+ --match-zip                  Match against zip files
+ --zip-wildcard w             Use Wildcard "w" when matching zip archives.
+                              Default is @opt_ZipWildcards_Default
 
 EOM
 }
@@ -839,7 +842,7 @@ C<.jar> and C<.war> files, Office files C<.docx>, C<.xlsx> etc.
 =head2 Default Behaviour
 
 The default behaviour of the program is to uncompress all the nested zip
-files into a directory tree that mirrors the strucrure of the zip file.
+files into a directory tree that mirrors the structure of the zip file.
 Think of each nested zip file as being like a sub-directory that is part of
 the directory tree from the enclosing zip.
 
@@ -867,6 +870,19 @@ Specifies a destination directory for extracted files. By default, files
 are extracted (and subdirectories created) in the current  directory. When
 this option is specified, extraction is done into the target directory,
 C<dest_dir>. If the path C<dest_dir> does not exist, it will be created.
+
+=item --disable-filename-encoding
+
+Disable all filename encoding.
+When reading the filename from the zip file, treat
+
+=item --input-filename-encoding e
+
+Assume zip filename has encoding e
+
+=item --output-filename-encoding e
+
+Write filename with encoding e
 
 =item -j [depth]
 
@@ -1060,6 +1076,10 @@ For example, when C<-W> (or C<--wild-no-span>) is enabled
 
 
 =head1 FAQ
+
+=item Filename Encoding
+
+When the Zip file format was created
 
 =head2 Dealing with Zip files that contain Windows Paths
 
