@@ -1506,10 +1506,7 @@ SKIP:
     my $filesDir = "$HERE/t/files/";
     my $zipfile = $filesDir . "valid-cp850.zip";
 
-    my $extractDir ;
-    my $lex2 = new LexDir $extractDir;
-
-    chdir($extractDir);
+    my $lexd = new PushLexDir();
 
     my $name = "Caf\N{LATIN SMALL LETTER E WITH ACUTE} Society" ;
     my $encodedName = Encode::encode('UTF-8', $name);
@@ -1531,7 +1528,6 @@ SKIP:
         or diag "Got [ " . join (" ", sort keys (%$got)) . " ]";
 }
 
-
 SKIP:
 {
     title "Filename encoding utf8 -> utf8";
@@ -1543,10 +1539,7 @@ SKIP:
     my $filesDir = "$HERE/t/files/";
     my $zipfile = $filesDir . "valid-utf8-efs.zip";
 
-    my $extractDir ;
-    my $lex2 = new LexDir $extractDir;
-
-    chdir($extractDir);
+    my $lexd = new PushLexDir();
 
     my $name =  "\N{GREEK SMALL LETTER ALPHA}".
                 "\N{GREEK SMALL LETTER BETA}".
@@ -1581,10 +1574,7 @@ SKIP:
     my $filesDir = "$HERE/t/files/";
     my $zipfile = $filesDir . "valid-utf8-bom-efs.zip";
 
-    my $extractDir ;
-    my $lex2 = new LexDir $extractDir;
-
-    chdir($extractDir);
+    my $lexd = new PushLexDir();
 
     my $name =  "\N{GREEK SMALL LETTER ALPHA}".
                 "\N{GREEK SMALL LETTER BETA}".
@@ -1621,10 +1611,7 @@ SKIP:
     my $filesDir = "$HERE/t/files/";
     my $zipfile = $filesDir . "valid-cp850.zip";
 
-    my $extractDir ;
-    my $lex2 = new LexDir $extractDir;
-
-    chdir($extractDir);
+    my $lexd = new PushLexDir();
 
     my $name = "Caf\N{LATIN SMALL LETTER E WITH ACUTE} Society" ;
     my $encodedName = Encode::encode('cp850', $name);
