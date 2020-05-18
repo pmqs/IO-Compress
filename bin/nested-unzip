@@ -406,6 +406,9 @@ sub decodeFilename
         $name = $opt_FilenameEncodingFrom->decode($name);
     }
 
+    # remove any BOM
+    $name =~ s/^\x{FEFF}//;
+    
     return $name ;
 }
 

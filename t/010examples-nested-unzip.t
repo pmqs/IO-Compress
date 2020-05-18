@@ -28,7 +28,7 @@ BEGIN
     $extra = 1
         if eval { require Test::NoWarnings ;  import Test::NoWarnings; 1 };
 
-    plan tests => 210 + $extra ;
+    plan tests => 218 + $extra ;
 }
 
 use Encode;
@@ -1542,6 +1542,44 @@ SKIP:
 
     my $filesDir = "$HERE/t/files/";
     my $zipfile = $filesDir . "valid-utf8-efs.zip";
+
+    my $extractDir ;
+    my $lex2 = new LexDir $extractDir;
+
+    chdir($extractDir);
+
+    my $name =  "\N{GREEK SMALL LETTER ALPHA}".
+                "\N{GREEK SMALL LETTER BETA}".
+                "\N{GREEK SMALL LETTER GAMMA}".
+                "\N{GREEK SMALL LETTER DELTA}" ;
+    my $encodedName = Encode::encode('UTF-8', $name);
+
+    my ($ok, $stdout) = check("$Perl $nestedUnzip -lq $zipfile" );
+
+    ok $ok;
+    is $stdout, $encodedName ."\n" ;
+
+    runNestedUnzip(qq[ $zipfile ]);
+    my $got = getOutputTreeAndData('.') ;
+
+    my $expectedPayloads = {
+            nameAndPayloadFil($encodedName, " "),
+    };
+
+    is_deeply $got, $expectedPayloads, "Directory tree ok"
+        or diag "Got [ " . join (" ", sort keys (%$got)) . " ]";
+}
+
+SKIP:
+{
+    title "Filename encoding utf8+BOM -> utf8";
+
+    # Only run if OS locale is UTF-8
+    skip "Locale is not UTF-8", 7
+        unless $locale && $locale->name =~ /^utf-8/i ;
+
+    my $filesDir = "$HERE/t/files/";
+    my $zipfile = $filesDir . "valid-utf8-bom-efs.zip";
 
     my $extractDir ;
     my $lex2 = new LexDir $extractDir;
