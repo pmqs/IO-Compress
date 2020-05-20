@@ -780,7 +780,7 @@ sub makePath
         print "Cannot create directory '$file': $message\n";
     }
 
-    die "\n"
+    exit 1
         if @$err ;
 
     die "Cannot create '$name' in directory '$path': Permission denied\n"
