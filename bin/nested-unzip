@@ -277,16 +277,16 @@ sub walk
                         $newname = encodeFilename $newname ;
 
                         my $path = dirname $newname;
+                        my $file = basename $newname;
 
-                        if (! -d $path)
+                        if (length $path)
                         {
-                            mkpath($path)
-                                if length $path;
+                            makePath($path, $file);
                         }
 
                         if ($isDir)
                         {
-                            mkpath($newname)
+                            makePath($newname)
                         }
                         else
                         {
@@ -300,6 +300,9 @@ sub walk
                             {
                                 print $fh $buff;
                             }
+
+                            die "Error reading '$fullname': $UnzipError\n"
+                                if $status < 0;
 
                             close $fh;
                         }
@@ -762,6 +765,26 @@ sub gpFlag
     my $header = shift;
     my $gpFlag = unpack ("v", substr($header, 6, 2));
     return $gpFlag ;
+}
+
+sub makePath
+{
+    my $path = shift ;
+    my $name = shift;
+
+    my $err;
+    mkpath($path, {error => \$err});
+
+    for my $diag (@$err) {
+        my ($file, $message) = each %$diag;
+        print "Cannot create directory '$file': $message\n";
+    }
+
+    die "\n"
+        if @$err ;
+
+    die "Cannot create '$name' in directory '$path': Permission denied\n"
+        if defined $name && ! -w $path ;
 }
 
 sub Usage
