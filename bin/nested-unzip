@@ -102,7 +102,7 @@ $wantGlobRE = '^(?:' . join( '|', map { globToRegex($_) } @want) . ')$'
 
 my ($fh, $prefix) = chkInputZipFile($zipfile) ;
 
-my $unzip = new IO::Uncompress::Unzip $fh, Prime => $prefix
+my $unzip = new IO::Uncompress::Unzip $fh, Prime => $prefix, Strict => 1
             or die "Cannot open '$zipfile': $UnzipError\n";
 
 if (defined $opt_DestDir)
@@ -326,7 +326,7 @@ sub walk
 
         if ($isZip && ! $extracted)
         {
-            my $newunzip = new IO::Uncompress::Unzip $unzip
+            my $newunzip = new IO::Uncompress::Unzip $unzip, Strict => 1
                 or die "Cannot open '$name': $UnzipError\n";
             # walk($newunzip, [@unzip_path, $extracting ? "$name.nested" : $name], 1);
 
