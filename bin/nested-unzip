@@ -14,6 +14,7 @@ use Getopt::Long 2.27;
 use File::Basename;
 use File::Path ;
 use Encode ;
+use Term::ReadLine;
 
 sub progress;
 sub output;
@@ -681,22 +682,18 @@ sub chkReplace
         return 0 if $opt_NeverOverwrite;
     }
 
+    my $term = Term::ReadLine->new("");
+
     my $got = '';
     while (1)
     {
         return 1
             if ! -e $filename ;
 
-        while (1)
+        while ( defined ($got = $term->readline("replace '$filename'? [y]es, [n]o, [A]ll, [N]one, [r]ename: ")) )
         {
-            # print "replace $filename? [y]es, [n]o, [A]ll, [N]one, [r]ename: ";
-            output "replace $filename? [y]es, [n]o, [A]ll, [N]one, [r]ename: ";
-
-            $got = <STDIN>;
-            chomp $got;
-
             last
-                if $got !~ /[ynANr]/ ;
+                if $got =~ /[ynANr]/ ;
 
             print "error: invaid response [$got]\n";
         }
@@ -718,11 +715,19 @@ sub chkReplace
 
         if ($got eq 'r')
         {
-            print "new name: ";
+            while (1)
+            {
+                $$newFilename = $filename = $term->readline("new name: ") ;
 
-            $filename = <STDIN>;
-            chomp $filename;
-            $$newFilename = $filename;
+                if (!defined $filename)
+                {
+                    die qq{(EOF or read error, treating as "[N]one" ...)\n};
+                    next;
+                }
+
+                last
+                    if defined $filename && $filename ne "";
+            }
         }
     }
 }

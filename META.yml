@@ -25,7 +25,8 @@ requires:
   Getopt::Long: '2.27',
   Scalar::Util: '0',
   Encode: '0',
-  charnames: '0'
+  charnames: '0',
+  Term::ReadLine: '0'
 resources:
   bugtracker: https://github.com/pmqs/IO-Compress/issues
   homepage: https://github.com/pmqs/IO-Compress
