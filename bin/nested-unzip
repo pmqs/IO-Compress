@@ -14,7 +14,7 @@ use Getopt::Long 2.27;
 use File::Basename;
 use File::Path ;
 use Encode ;
-BEGIN { $ENV{COLUMS} = 'dumb'}
+BEGIN { $ENV{TERM} = 'dumb'}
 use Term::ReadLine;
 
 sub progress;
