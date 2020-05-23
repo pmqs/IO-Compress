@@ -683,7 +683,9 @@ sub chkReplace
         return 0 if $opt_NeverOverwrite;
     }
 
-    my $term = Term::ReadLine->new("");
+    my $term1 = Term::ReadLine->new("1");
+    my $term2 = Term::ReadLine->new("2");
+
 
     my $got = '';
     while (1)
@@ -691,7 +693,7 @@ sub chkReplace
         return 1
             if ! -e $filename ;
 
-        while ( defined ($got = $term->readline("replace '$filename'? [y]es, [n]o, [A]ll, [N]one, [r]ename: ")) )
+        while ( defined ($got = $term1->readline("replace '$filename'? [y]es, [n]o, [A]ll, [N]one, [r]ename: ")) )
         {
             last
                 if $got =~ /[ynANr]/ ;
@@ -718,7 +720,7 @@ sub chkReplace
         {
             while (1)
             {
-                $$newFilename = $filename = $term->readline("new name: ") ;
+                $$newFilename = $filename = $term2->readline("new name: ") ;
 
                 if (!defined $filename)
                 {
