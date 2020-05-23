@@ -711,7 +711,7 @@ sub chkReplace
         if ($got eq 'N')
         {
             $opt_NeverOverwrite = 1 ;
-            return 1 ;
+            return 0 ;
         }
 
         if ($got eq 'r')
