@@ -271,7 +271,7 @@ sub walk
                     # Extract to filesystem
 
                     my $newname;
-                    if (chkReplace($fullname, \$newname))
+                    if (chkReplace($fullname, \$newname, $isDir))
                     {
                         progress "  extracting: $newname";
 
@@ -668,17 +668,37 @@ sub globToRegex
     return $out;
 }
 
+sub canReplace
+{
+    my $filename = shift;
+    my $isDir = shift;
+
+    my $newIsDir = -d $filename ;
+
+    return 1 if   $newIsDir and   $isDir ;
+    return 1 if ! $newIsDir and ! $isDir ;
+
+    die "Cannot replace directory '$filename' with file of same name\n"
+        if ! $newIsDir ;
+
+    die "Cannot replace file '$filename' with directory of same name\n"
+        if $newIsDir ;
+
+    return 1;
+}
+
 sub chkReplace
 {
     my $filename = shift ;
     my $newFilename = shift ;
+    my $isDir = shift;
 
     # default is not to rename
     $$newFilename = $filename;
 
     if (-e $filename)
     {
-        return 1 if $opt_Overwrite ;
+        return canReplace($filename, $isDir) if $opt_Overwrite ;
         return 0 if $opt_NeverOverwrite;
     }
 
@@ -705,13 +725,13 @@ sub chkReplace
             print $OUT "error: invaid response [$got]\n";
         }
 
-        return 1 if $got eq 'y';
+        return canReplace($filename, $isDir) if $got eq 'y';
         return 0 if $got eq 'n';
 
         if ($got eq 'A')
         {
             $opt_Overwrite = 1 ;
-            return 1 ;
+            return canReplace($filename, $isDir) ;
         }
 
         if ($got eq 'N')
@@ -732,6 +752,8 @@ sub chkReplace
                     next;
                 }
 
+                canReplace($filename, $isDir) ;
+                
                 last
                     if defined $filename && $filename ne "";
             }
