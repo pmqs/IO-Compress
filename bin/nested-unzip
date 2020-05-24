@@ -60,15 +60,7 @@ my $TERM ;
     $TERM = Term::ReadLine->new("terminal");
 }
 
-my $OUT;
-if (!-t STDOUT)
-{
-    open $OUT, ">&STDOUT";
-}
-else
-{
-    $OUT = $TERM->OUT();
-}
+my $TERM_OUT = $TERM->OUT();
 
 Getopt::Long::Configure ("bundling");
 GetOptions (
@@ -729,7 +721,7 @@ sub chkReplace
             last
                 if $got =~ /[ynANr]/ ;
 
-            warn "error: invaid response [$got]\n";
+            print $TERM_OUT "error: invaid response [$got]\n";
         }
 
         return canReplace($filename, $isDir) if $got eq 'y';
