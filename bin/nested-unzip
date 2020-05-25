@@ -244,10 +244,14 @@ sub walk
             $fullname = canonicalPath($fullname)
                 if ! $opt_UnsafePath;
 
-            if ($opt_JunkPaths && $fullname =~ m#/#)
+            if ($opt_JunkPaths)
             {
                 # remove some or all of the path
                 my @path = split "/", $fullname;
+
+                next
+                    if $isDir && @path <= $opt_JunkPaths;
+
                 my $filename = pop @path ;
 
                 splice @path, 0, $opt_JunkPaths ;
@@ -265,7 +269,7 @@ sub walk
                 $extracted = 1;
                 if ($opt_Pipe)
                 {
-                    progress "  extracting: $fullname"
+                    progress " extracting: $fullname"
                         if $opt_PipeWithName ;
 
                     my $buff;
@@ -282,7 +286,7 @@ sub walk
                     my $newname;
                     if (chkReplace($fullname, \$newname, $isDir))
                     {
-                        progress "  extracting: $newname";
+                        progress " extracting: $newname";
 
                         $newname = encodeFilename $newname ;
 
@@ -804,6 +808,9 @@ sub makePath
 {
     my $path = shift ;
     my $name = shift;
+
+    return
+        if -d $path;
 
     my $err;
     mkpath($path, {error => \$err});
