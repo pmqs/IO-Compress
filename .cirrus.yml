@@ -30,6 +30,6 @@ task:
     - echo|sudo cpan App::cpanminus
     - sudo /Users/anka/perl5/bin/cpanm --installdeps .        
   build_script:
-    - perl Makefile.PL
+    - sudo perl Makefile.PL
   test_script:    
-    - make test
+    - sudo make test
