@@ -27,8 +27,8 @@ task:
       # image: catalina-xcode-11.5      
   install_script:
     - perl -V    
-    - echo|cpan App::cpanminus
-    - /Users/anka/perl5/bin/cpanm --installdeps .        
+    - echo|sudo cpan App::cpanminus
+    - sudo cpanm --installdeps .        
   build_script:
     - perl Makefile.PL
   test_script:    
