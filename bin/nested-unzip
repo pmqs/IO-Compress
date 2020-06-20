@@ -24,7 +24,7 @@ my $VERSION = '0.001';
 
 my %first  ;
 my $opt_List = 0;
-my $opt_ListAsExtracted = 0;
+my $opt_ListAsExtract = 0;
 my $opt_Pipe = 0;
 my $opt_PipeWithName = 0;
 my $opt_Quiet = 0;
@@ -65,7 +65,7 @@ my $TERM_OUT = $TERM->OUT();
 Getopt::Long::Configure ("bundling");
 GetOptions (
             # unzip equivalent options
-            '1ist-as-extracted' => \$opt_ListAsExtracted,
+            'list-as-extract'   => \$opt_ListAsExtract,
             'c|to-stdout'       =>  sub { $opt_PipeWithName = $opt_Pipe = 1; $opt_Quiet = 0 },
             'd|extract-dir=s'   => \$opt_DestDir,
             'j|junk-dirs:99999' => \$opt_JunkPaths,
@@ -100,7 +100,11 @@ GetOptions (
 Usage()
     if ! @ARGV;
 
-$extracting = ! ($opt_List || $opt_ListAsExtracted) ;
+# Check for Mutually exclusive options
+die("Cannot specify both --list and --list-as-extract\n")
+    if $opt_List && $opt_ListAsExtract ;
+
+$extracting = ! ($opt_List || $opt_ListAsExtract) ;
 
 my $zipfile = shift ;
 my @want = @ARGV;
@@ -260,14 +264,19 @@ sub walk
                 $fullname = join '/', @path ;
             }
 
-            my $extractThisMember = $extracting && (! $isZip || $opt_MatchZip) ;
+            my $extractThisMember = ($extracting || $opt_ListAsExtract) && (! $isZip || $opt_MatchZip) ;
 
             # Extract to filesystem or pipe options
             if ($extractThisMember)
             {
 
                 $extracted = 1;
-                if ($opt_Pipe)
+
+                if ($opt_ListAsExtract)
+                {
+                    output $fullname . "\n" ;
+                }
+                elsif ($opt_Pipe)
                 {
                     progress " extracting: $fullname"
                         if $opt_PipeWithName ;
@@ -327,11 +336,8 @@ sub walk
             }
 
             # Listing options
-            if ($opt_ListAsExtracted)
-            {
-                output $fullname . "\n" ;
-            }
-            elsif ($opt_List)
+
+            if ($opt_List)
             {
                 output(join("/", @unzip_path, $name) . "\n");
             }

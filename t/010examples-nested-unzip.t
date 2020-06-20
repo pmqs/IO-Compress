@@ -1286,19 +1286,15 @@ if(1)
 
     my $lexd = new PushLexDir();
 
-    runNestedUnzip(qq[ --1ist-as-extracted -j  $zipfile  ], <<"EOM");
+    runNestedUnzip(qq[ --list-as-extract -j  $zipfile  ], <<"EOM");
 Archive: $zipfile
 abc1
-def.zip
 a2
 b2
 c2
-ghi.zip
 xx.yy
-xx.zip
 b3
 c3
-xx.zip
 x4
 y4
 z4
@@ -1500,7 +1496,7 @@ EOM
 
     my $lexd = new PushLexDir();
 
-    runNestedUnzip(qq[ --1ist-as-extracted -j  $zipfile  ], <<"EOM");
+    runNestedUnzip(qq[ --list-as-extract -j  $zipfile  ], <<"EOM");
 Archive: $zipfile
 jack
 fred1
@@ -1690,11 +1686,10 @@ EOM
 
     my $lexd = new PushLexDir();
 
-    runNestedUnzip(qq[ --1ist-as-extracted -j  $zipfile  ], <<"EOM");
+    runNestedUnzip(qq[ --list-as-extract -j  $zipfile  ], <<"EOM");
 Archive: $zipfile
 jack
 fred1
-able.zip
 file1.txt
 EOM
 
