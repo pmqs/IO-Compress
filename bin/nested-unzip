@@ -76,7 +76,7 @@ GetOptions (
             'q|quiet'           => \$opt_Quiet,
             'W|wild-no-span'    => \$opt_Wild_No_Span,
             'h|help'            => \&Usage,
-            'do-double-dots'    => \$opt_UnsafePath,
+            'allow-double-dots' => \$opt_UnsafePath,
             #'v|verbose'        => \$opt_Verbose,
             'x|exclude=s'       => \@opt_Exclude,
 
@@ -856,7 +856,7 @@ OPTIONS
           the directory separator /.
  -x wc    Exclude archive members that match wildcard "wc"
 
- --do-double-dots             Allow ".."
+ --allow-double-dots          Allow ".."
  --disable-filename-encoding  Disable all filename encoding
  --input-filename-encoding e  Assume zip filename has encoding e
  --output-filename-encoding e Write filename with encoding e
@@ -919,7 +919,7 @@ By default the directories created for each of the nested zip file has the
 string C<.nested> appended.
 
 For security reasons, all paths that contain C<..> will be removed before
-extraction. Use the C<--do-double-dots> option to override this behaviour.
+extraction. Use the C<--allow-double-dots> option to override this behaviour.
 
 =head2 OPTIONS
 
@@ -1014,7 +1014,7 @@ Don't extract/list members from the zip archive that match the wildcard C<wc>.
 
 This option can be used multiple times.
 
-=item  --do-double-dots
+=item  --allow-double-dots
 
 Normally this program will remove all C<..> path components before
 extracting to the filesystem. This option disables that feature. Use with

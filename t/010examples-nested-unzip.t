@@ -1012,7 +1012,7 @@ EOM
 
 
 {
-    title "Extract with 'do-double-dots:' : Badly formed names: Allow '..' & strip leading '/'";
+    title "Extract with 'allow-double-dots:' : Badly formed names: Allow '..' & strip leading '/'";
 
     my $zipdir ;
     my $lex = new LexDir $zipdir;
@@ -1031,7 +1031,7 @@ EOM
 
     my $lexd = new PushLexDir();
 
-    runNestedUnzip("$zipfile --do-double-dots");
+    runNestedUnzip("$zipfile --allow-double-dots");
 
     my $expected = [ sort  map { s/^\s*//; $_ } split "\n", $^O eq 'MSWin32' ? <<EOM1 : <<EOM2];
             ./d1 [DIR]
