@@ -19,25 +19,26 @@ use Compress::Raw::Zlib  2.096 ();
 BEGIN
 {
     eval { require IO::Compress::Adapter::Bzip2 ;
-           import  IO::Compress::Adapter::Bzip2 2.096 ;
+           IO::Compress::Adapter::Bzip2->import( 2.096 );
            require IO::Compress::Bzip2 ;
-           import  IO::Compress::Bzip2 2.096 ;
+           IO::Compress::Bzip2->import( 2.096 );
          } ;
 
-    eval { require IO::Compress::Adapter::Lzma ;
-           import  IO::Compress::Adapter::Lzma 2.096 ;
-           require IO::Compress::Lzma ;
-           import  IO::Compress::Lzma 2.096 ;
+    eval { require IO::Compress::Adapter::Lzma ; 
+           IO::Compress::Adapter::Lzma->import( 2.096 );
+           require IO::Compress::Lzma ; 
+           IO::Compress::Lzma->import( 2.096 );
          } ;
+
     eval { require IO::Compress::Adapter::Xz ;
-           import  IO::Compress::Adapter::Xz 2.096 ;
+           IO::Compress::Adapter::Xz->import( 2.096 );
            require IO::Compress::Xz ;
-           import  IO::Compress::Xz 2.096 ;
+           IO::Compress::Xz->import( 2.096 );
          } ;
     eval { require IO::Compress::Adapter::Zstd ;
-           import  IO::Compress::Adapter::Zstd 2.096 ;
+           IO::Compress::Adapter::Zstd->import( 2.096 );
            require IO::Compress::Zstd ;
-           import  IO::Compress::Zstd 2.096 ;
+           IO::Compress::Zstd->import( 2.096 );
          } ;
 }
 
@@ -177,7 +178,7 @@ sub mkComp
 
     if (! defined *$self->{ZipData}{SizesOffset}) {
         *$self->{ZipData}{SizesOffset} = 0;
-        *$self->{ZipData}{Offset} = new U64 ;
+        *$self->{ZipData}{Offset} = U64->new();
     }
 
     *$self->{ZipData}{AnyZip64} = 0
@@ -753,6 +754,7 @@ sub getExtraParams
 
 sub getInverseClass
 {
+    no warnings 'once';
     return ('IO::Uncompress::Unzip',
                 \$IO::Uncompress::Unzip::UnzipError);
 }
@@ -905,7 +907,7 @@ IO::Compress::Zip - Write zip files/buffers
     my $status = zip $input => $output [,OPTS]
         or die "zip failed: $ZipError\n";
 
-    my $z = new IO::Compress::Zip $output [,OPTS]
+    my $z = IO::Compress::Zip->new( $output [,OPTS] )
         or die "zip failed: $ZipError\n";
 
     $z->print($string);
@@ -1251,7 +1253,7 @@ compressed data to a buffer, C<$buffer>.
     use IO::Compress::Zip qw(zip $ZipError) ;
     use IO::File ;
 
-    my $input = new IO::File "<file1.txt"
+    my $input = IO::File->new( "<file1.txt" )
         or die "Cannot open 'file1.txt': $!\n" ;
     my $buffer ;
     zip $input => \$buffer
@@ -1292,7 +1294,7 @@ or more succinctly
 
 The format of the constructor for C<IO::Compress::Zip> is shown below
 
-    my $z = new IO::Compress::Zip $output [,OPTS]
+    my $z = IO::Compress::Zip->new( $output [,OPTS] )
         or die "IO::Compress::Zip failed: $ZipError\n";
 
 It returns an C<IO::Compress::Zip> object on success and undef on failure.
