@@ -17,6 +17,7 @@ perl:
   - "5.26"
   - "5.28"
   - "5.30"
+  - "5.32"
   - "blead"
 
 before_install:
@@ -30,4 +31,3 @@ install:
   - cpan Compress::Raw::Zlib
   - cpan Compress::Raw::Bzip2
   - cpan Getopt::Long
-  

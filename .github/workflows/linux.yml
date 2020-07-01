@@ -1,12 +1,6 @@
 name: Linux build
 
-on:
-  push:
-    branches:
-      - '*'
-    tags-ignore:
-      - '*'
-  pull_request:
+on: [push, pull_request]
 
 jobs:
   build:
@@ -16,6 +10,7 @@ jobs:
     strategy:
       matrix:
         perl:
+          - '5.32'
           - '5.30'
           - '5.28'
           - '5.26'
