@@ -22,8 +22,7 @@ no_index:
 requires:
   Compress::Raw::Bzip2: '2.094'
   Compress::Raw::Zlib: '2.094'
-  Getopt::Long: '2.27',
-  Scalar::Util: '0',
+  Scalar::Util: '0'
   Encode: '0'
 resources:
   bugtracker: https://github.com/pmqs/IO-Compress/issues
