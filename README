@@ -25,6 +25,8 @@ IO-Compress supports reading and writing of the following compressed data format
 There are a number of companion modules for IO-Compress that extend
 the suite of compression formats available.
 
+ * IO-Compress-Zstd
+   Adds support for zstd (Zstandard).
  * IO-Compress-Lzma
    Adds support for lzma, xz and lzip.
  * IO-Compress-Lzf

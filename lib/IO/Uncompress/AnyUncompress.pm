@@ -333,6 +333,8 @@ The formats supported are:
 
 =item zip
 
+=item zstd (Zstandard)
+
 =item bzip2
 
 =item lzop
@@ -1079,3 +1081,4 @@ Copyright (c) 2005-2020 Paul Marquess. All rights reserved.
 
 This program is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.
+
