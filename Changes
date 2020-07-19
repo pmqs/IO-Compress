@@ -1,6 +1,10 @@
 CHANGES
 -------
 
+  2.095 19 July 2020
+
+      * Ass Support for Zstandard in AnyUncompress
+
   2.094 13 July 2020
 
       * bin/zipdetails version 2
