@@ -18,7 +18,9 @@ $VERSION = '2.095';
     ZIP_CM_BZIP2
     ZIP_CM_LZMA
     ZIP_CM_PPMD
-    
+    ZIP_CM_XZ
+    ZIP_CM_ZSTD
+
     ZIP_LOCAL_HDR_SIG
     ZIP_DATA_HDR_SIG
     ZIP_CENTRAL_HDR_SIG
@@ -40,7 +42,7 @@ $VERSION = '2.095';
     ZIP_EXTRA_ID_INFO_ZIP_UNIX2
     ZIP_EXTRA_ID_INFO_ZIP_UNIXN
     ZIP_EXTRA_ID_INFO_ZIP_Upath
-    ZIP_EXTRA_ID_INFO_ZIP_Ucom        
+    ZIP_EXTRA_ID_INFO_ZIP_Ucom
     ZIP_EXTRA_ID_JAVA_EXE
 
     ZIP_OS_CODE_UNIX
@@ -55,7 +57,7 @@ $VERSION = '2.095';
     ZIP_A_HIDDEN
     ZIP_A_SYSTEM
     ZIP_A_LABEL
-    ZIP_A_DIR 
+    ZIP_A_DIR
     ZIP_A_ARCHIVE
     );
 
@@ -64,6 +66,8 @@ use constant ZIP_CM_STORE                      => 0 ;
 use constant ZIP_CM_DEFLATE                    => 8 ;
 use constant ZIP_CM_BZIP2                      => 12 ;
 use constant ZIP_CM_LZMA                       => 14 ; # Not Supported yet
+use constant ZIP_CM_ZSTD                       => 93 ; # Not Supported yet
+use constant ZIP_CM_XZ                         => 95 ; # Not Supported yet
 use constant ZIP_CM_PPMD                       => 98 ; # Not Supported yet
 
 # General Purpose Flag
@@ -116,10 +120,11 @@ use constant ZIP64_MIN_VERSION                 => 45;
             ZIP_CM_BZIP2()                     => 46,
             ZIP_CM_LZMA()                      => 63,
             ZIP_CM_PPMD()                      => 63,
+            ZIP_CM_ZSTD()                      => 63,
+            ZIP_CM_XZ()                        => 63,
             );
 
 
 1;
 
 __END__
-
