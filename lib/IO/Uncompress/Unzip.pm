@@ -1124,6 +1124,34 @@ zlib files/buffers.
 
 For writing zip files/buffers, see the companion module IO::Compress::Zip.
 
+The primary purpose of this module is to provide I<streaming> read access to
+zip files and buffers.
+
+At present the following compression methods are supported by IO::Uncompress::Unzip
+
+=over 5
+
+=item Store (0)
+
+=item Deflate (8)
+
+=item Bzip2 (12)
+
+To read Bzip2 content, the module C<IO::Uncompress::Bunzip2> must
+be installed.
+
+=item Lzma (14)
+
+To read LZMA content, the module C<IO::Uncompress::UnLzma> must
+be installed.
+
+=item Xz (95)
+
+To read Xz content, the module C<IO::Uncompress::UnXz> must
+be installed.
+
+=back
+
 =head1 Functional Interface
 
 A top-level function, C<unzip>, is provided to carry out
@@ -1922,3 +1950,4 @@ Copyright (c) 2005-2020 Paul Marquess. All rights reserved.
 
 This program is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.
+
