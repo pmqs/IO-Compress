@@ -29,6 +29,11 @@ BEGIN
            require IO::Compress::Lzma ;
            import  IO::Compress::Lzma 2.095 ;
          } ;
+    eval { require IO::Compress::Adapter::Xz ;
+           import  IO::Compress::Adapter::Xz 2.095 ;
+           require IO::Compress::Xz ;
+           import  IO::Compress::Xz 2.095 ;
+         } ;
 }
 
 
@@ -45,7 +50,7 @@ $ZipError = '';
 
 push @{ $EXPORT_TAGS{all} }, @EXPORT_OK ;
 
-$EXPORT_TAGS{zip_method} = [qw( ZIP_CM_STORE ZIP_CM_DEFLATE ZIP_CM_BZIP2 ZIP_CM_LZMA)];
+$EXPORT_TAGS{zip_method} = [qw( ZIP_CM_STORE ZIP_CM_DEFLATE ZIP_CM_BZIP2 ZIP_CM_LZMA ZIP_CM_XZ)];
 push @{ $EXPORT_TAGS{all} }, @{ $EXPORT_TAGS{zip_method} };
 
 Exporter::export_ok_tags('all');
@@ -80,6 +85,10 @@ sub isMethodAvailable
     return 1
         if $method == ZIP_CM_LZMA and
            defined $IO::Compress::Adapter::Lzma::VERSION;
+
+    return 1
+        if $method == ZIP_CM_XZ and
+           defined $IO::Compress::Adapter::Xz::VERSION;
 
     return 0;
 }
@@ -138,6 +147,13 @@ sub mkComp
     elsif (*$self->{ZipData}{Method} == ZIP_CM_LZMA) {
         ($obj, $errstr, $errno) = IO::Compress::Adapter::Lzma::mkRawZipCompObject($got->getValue('preset'),
                                                                                  $got->getValue('extreme'),
+                                                                                 );
+        *$self->{ZipData}{CRC32} = Compress::Raw::Zlib::crc32(undef);
+    }
+    elsif (*$self->{ZipData}{Method} == ZIP_CM_XZ) {
+        ($obj, $errstr, $errno) = IO::Compress::Adapter::Xz::mkCompObject($got->getValue('preset'),
+                                                                                 $got->getValue('extreme'),
+                                                                                 0
                                                                                  );
         *$self->{ZipData}{CRC32} = Compress::Raw::Zlib::crc32(undef);
     }

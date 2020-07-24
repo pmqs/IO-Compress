@@ -27,6 +27,8 @@ BEGIN
           import  IO::Uncompress::Adapter::Bunzip2 } ;
     eval{ require IO::Uncompress::Adapter::UnLzma ;
           import  IO::Uncompress::Adapter::UnLzma } ;
+    eval{ require IO::Uncompress::Adapter::UnXz ;
+          import  IO::Uncompress::Adapter::UnXz } ;
 }
 
 
@@ -51,6 +53,14 @@ Exporter::export_ok_tags('all');
         ZIP64_ARCHIVE_EXTRA_SIG,        \&skipArchiveExtra,
         ZIP64_DIGITAL_SIGNATURE_SIG,    \&skipDigitalSignature,
         );
+
+my %MethodNames = (
+        ZIP_CM_DEFLATE()    => 'Deflated',
+        ZIP_CM_BZIP2()      => 'Bzip2',
+        ZIP_CM_LZMA()       => 'Lzma',
+        ZIP_CM_STORE()      => 'Stored',
+        ZIP_CM_XZ()         => 'Xz',
+    );
 
 sub new
 {
@@ -670,6 +680,17 @@ sub _readZipHeader($)
 
         *$self->{Uncomp} = $obj;
     }
+    elsif ($compressedMethod == ZIP_CM_XZ)
+    {
+        return $self->HeaderError("Unsupported Compression format $compressedMethod")
+            if ! defined $IO::Uncompress::Adapter::UnXz::VERSION ;
+
+        *$self->{Type} = 'zip-xz';
+
+        my $obj = IO::Uncompress::Adapter::UnXz::mkUncompObject();
+
+        *$self->{Uncomp} = $obj;
+    }
     elsif ($compressedMethod == ZIP_CM_LZMA)
     {
         return $self->HeaderError("Unsupported Compression format $compressedMethod")
@@ -730,15 +751,7 @@ sub _readZipHeader($)
         'Stream'             => $streamingMode,
 
         'MethodID'           => $compressedMethod,
-        'MethodName'         => $compressedMethod == ZIP_CM_DEFLATE
-                                 ? "Deflated"
-                                 : $compressedMethod == ZIP_CM_BZIP2
-                                     ? "Bzip2"
-                                     : $compressedMethod == ZIP_CM_LZMA
-                                         ? "Lzma"
-                                         : $compressedMethod == ZIP_CM_STORE
-                                             ? "Stored"
-                                             : "Unknown" ,
+        'MethodName'         => $MethodNames{$compressedMethod} || 'Unknown',
 
 #        'TextFlag'      => $flag & GZIP_FLG_FTEXT ? 1 : 0,
 #        'HeaderCRCFlag' => $flag & GZIP_FLG_FHCRC ? 1 : 0,
@@ -1909,4 +1922,3 @@ Copyright (c) 2005-2020 Paul Marquess. All rights reserved.
 
 This program is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.
-
