@@ -4,40 +4,40 @@ use strict ;
 use warnings;
 use bytes;
 
-use IO::Compress::Base::Common  2.095 qw(:Status );
-use IO::Compress::RawDeflate 2.095 ();
-use IO::Compress::Adapter::Deflate 2.095 ;
-use IO::Compress::Adapter::Identity 2.095 ;
-use IO::Compress::Zlib::Extra 2.095 ;
-use IO::Compress::Zip::Constants 2.095 ;
+use IO::Compress::Base::Common  2.096 qw(:Status );
+use IO::Compress::RawDeflate 2.096 ();
+use IO::Compress::Adapter::Deflate 2.096 ;
+use IO::Compress::Adapter::Identity 2.096 ;
+use IO::Compress::Zlib::Extra 2.096 ;
+use IO::Compress::Zip::Constants 2.096 ;
 
 use File::Spec();
 use Config;
 
-use Compress::Raw::Zlib  2.095 ();
+use Compress::Raw::Zlib  2.096 ();
 
 BEGIN
 {
     eval { require IO::Compress::Adapter::Bzip2 ;
-           import  IO::Compress::Adapter::Bzip2 2.095 ;
+           import  IO::Compress::Adapter::Bzip2 2.096 ;
            require IO::Compress::Bzip2 ;
-           import  IO::Compress::Bzip2 2.095 ;
+           import  IO::Compress::Bzip2 2.096 ;
          } ;
 
     eval { require IO::Compress::Adapter::Lzma ;
-           import  IO::Compress::Adapter::Lzma 2.095 ;
+           import  IO::Compress::Adapter::Lzma 2.096 ;
            require IO::Compress::Lzma ;
-           import  IO::Compress::Lzma 2.095 ;
+           import  IO::Compress::Lzma 2.096 ;
          } ;
     eval { require IO::Compress::Adapter::Xz ;
-           import  IO::Compress::Adapter::Xz 2.095 ;
+           import  IO::Compress::Adapter::Xz 2.096 ;
            require IO::Compress::Xz ;
-           import  IO::Compress::Xz 2.095 ;
+           import  IO::Compress::Xz 2.096 ;
          } ;
     eval { require IO::Compress::Adapter::Zstd ;
-           import  IO::Compress::Adapter::Zstd 2.095 ;
+           import  IO::Compress::Adapter::Zstd 2.096 ;
            require IO::Compress::Zstd ;
-           import  IO::Compress::Zstd 2.095 ;
+           import  IO::Compress::Zstd 2.096 ;
          } ;
 }
 
@@ -46,7 +46,7 @@ require Exporter ;
 
 our ($VERSION, @ISA, @EXPORT_OK, %EXPORT_TAGS, %DEFLATE_CONSTANTS, $ZipError);
 
-$VERSION = '2.095';
+$VERSION = '2.096';
 $ZipError = '';
 
 @ISA = qw(IO::Compress::RawDeflate Exporter);
@@ -946,19 +946,35 @@ This module provides a Perl interface that allows writing zip
 compressed data to files or buffer.
 
 The primary purpose of this module is to provide streaming write access to
-zip files and buffers. It is not a general-purpose file archiver. If that
-is what you want, check out C<Archive::Zip> or C<Archive::Zip::SimpleZip>.
+zip files and buffers.
 
-At present the following compression methods are supported by IO::Compress::Zip,
-namely Store (no compression at all), Deflate, Bzip2 and LZMA.
-
-B<Note>
+At present the following compression methods are supported by IO::Compress::Zip
 
 =over 5
 
-=item * To use Bzip2 compression, the module C<IO::Compress::Bzip2> must be installed.
+=item Store (0)
 
-=item * To use LZMA compression, the module C<IO::Compress::Lzma> must be installed.
+=item Deflate (8)
+
+=item Bzip2 (12)
+
+To write Bzip2 content, the module C<IO::Uncompress::Bunzip2> must
+be installed.
+
+=item Lzma (14)
+
+To write LZMA content, the module C<IO::Uncompress::UnLzma> must
+be installed.
+
+=item Zstandard (93)
+
+To write Zstandard content, the module C<IO::Compress::Zstd> must
+be installed.
+
+=item Xz (95)
+
+To write Xz content, the module C<IO::Uncompress::UnXz> must
+be installed.
 
 =back
 
@@ -1583,7 +1599,7 @@ The default is 0.
 
 =back
 
-=head3 Lzma Compression Options
+=head3 Lzma and Xz Compression Options
 
 =over 5
 
@@ -1713,11 +1729,11 @@ By default, no comment field is written to the zip file.
 
 =item C<< Method => $method >>
 
-Controls which compression method is used. At present four compression
-methods are supported, namely Store (no compression at all), Deflate,
-Bzip2 and Lzma.
+Controls which compression method is used. At present the compression
+methods are supported are: Store (no compression at all), Deflate,
+Bzip2, Xz and Lzma.
 
-The symbols, ZIP_CM_STORE, ZIP_CM_DEFLATE, ZIP_CM_BZIP2 and ZIP_CM_LZMA
+The symbols, ZIP_CM_STORE, ZIP_CM_DEFLATE, ZIP_CM_BZIP2, ZIP_CM_XZ and ZIP_CM_LZMA
 are used to select the compression method.
 
 These constants are not imported by C<IO::Compress::Zip> by default.
@@ -1733,6 +1749,10 @@ content when C<IO::Compress::Bzip2> is not available.
 Note that to create Lzma content, the module C<IO::Compress::Lzma> must
 be installed. A fatal error will be thrown if you attempt to create Lzma
 content when C<IO::Compress::Lzma> is not available.
+
+Note that to create Xz content, the module C<IO::Compress::Xz> must
+be installed. A fatal error will be thrown if you attempt to create Xz
+content when C<IO::Compress::Xz> is not available.
 
 The default method is ZIP_CM_DEFLATE.
 
@@ -2121,3 +2141,4 @@ Copyright (c) 2005-2020 Paul Marquess. All rights reserved.
 
 This program is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.
+

@@ -9,14 +9,14 @@ use warnings;
 use bytes;
 
 use IO::File;
-use IO::Uncompress::RawInflate  2.095 ;
-use IO::Compress::Base::Common  2.095 qw(:Status );
-use IO::Uncompress::Adapter::Inflate  2.095 ;
-use IO::Uncompress::Adapter::Identity 2.095 ;
-use IO::Compress::Zlib::Extra 2.095 ;
-use IO::Compress::Zip::Constants 2.095 ;
+use IO::Uncompress::RawInflate  2.096 ;
+use IO::Compress::Base::Common  2.096 qw(:Status );
+use IO::Uncompress::Adapter::Inflate  2.096 ;
+use IO::Uncompress::Adapter::Identity 2.096 ;
+use IO::Compress::Zlib::Extra 2.096 ;
+use IO::Compress::Zip::Constants 2.096 ;
 
-use Compress::Raw::Zlib  2.095 () ;
+use Compress::Raw::Zlib  2.096 () ;
 
 BEGIN
 {
@@ -38,7 +38,7 @@ require Exporter ;
 
 our ($VERSION, @ISA, @EXPORT_OK, %EXPORT_TAGS, $UnzipError, %headerLookup);
 
-$VERSION = '2.095';
+$VERSION = '2.096';
 $UnzipError = '';
 
 @ISA    = qw(IO::Uncompress::RawInflate Exporter);
@@ -1159,14 +1159,14 @@ be installed.
 To read LZMA content, the module C<IO::Uncompress::UnLzma> must
 be installed.
 
-=item Zstandard (93)
-
-To read Zstandard content, the module C<IO::Uncompress::UnZstd> must
-be installed.
-
 =item Xz (95)
 
 To read Xz content, the module C<IO::Uncompress::UnXz> must
+be installed.
+
+=item Zstandard (93)
+
+To read Zstandard content, the module C<IO::Uncompress::UnZstd> must
 be installed.
 
 =back
@@ -1969,3 +1969,4 @@ Copyright (c) 2005-2020 Paul Marquess. All rights reserved.
 
 This program is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.
+
