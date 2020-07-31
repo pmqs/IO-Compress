@@ -66,7 +66,7 @@ use constant ZIP_CM_STORE                      => 0 ;
 use constant ZIP_CM_DEFLATE                    => 8 ;
 use constant ZIP_CM_BZIP2                      => 12 ;
 use constant ZIP_CM_LZMA                       => 14 ;
-use constant ZIP_CM_ZSTD                       => 93 ; # Not Supported yet
+use constant ZIP_CM_ZSTD                       => 93 ;
 use constant ZIP_CM_XZ                         => 95 ;
 use constant ZIP_CM_PPMD                       => 98 ; # Not Supported yet
 
@@ -120,8 +120,8 @@ use constant ZIP64_MIN_VERSION                 => 45;
             ZIP_CM_BZIP2()                     => 46,
             ZIP_CM_LZMA()                      => 63,
             ZIP_CM_PPMD()                      => 63,
-            ZIP_CM_ZSTD()                      => 63,
-            ZIP_CM_XZ()                        => 63,
+            ZIP_CM_ZSTD()                      => 20, # Winzip needs these to be 20
+            ZIP_CM_XZ()                        => 20,
             );
 
 

@@ -270,7 +270,7 @@ __END__
 
 =head1 NAME
 
-IO::Uncompress::AnyUncompress - Uncompress gzip, zip, bzip2, zstd, xz, lzma, lzip, lzf or lzop file/buffer
+IO::Uncompress::AnyUncompress - Uncompress gzip, zip, bzip2, zstd, xz, lzma, zstd, lzip, lzf or lzop file/buffer
 
 =head1 SYNOPSIS
 
@@ -346,6 +346,8 @@ The formats supported are:
 =item lzip
 
 =item xz
+
+=item zstd
 
 =back
 
@@ -1081,4 +1083,3 @@ Copyright (c) 2005-2020 Paul Marquess. All rights reserved.
 
 This program is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.
-

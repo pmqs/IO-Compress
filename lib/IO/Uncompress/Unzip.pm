@@ -29,6 +29,8 @@ BEGIN
           import  IO::Uncompress::Adapter::UnLzma } ;
     eval{ require IO::Uncompress::Adapter::UnXz ;
           import  IO::Uncompress::Adapter::UnXz } ;
+    eval{ require IO::Uncompress::Adapter::UnZstd ;
+          import  IO::Uncompress::Adapter::UnZstd } ;
 }
 
 
@@ -60,6 +62,7 @@ my %MethodNames = (
         ZIP_CM_LZMA()       => 'Lzma',
         ZIP_CM_STORE()      => 'Stored',
         ZIP_CM_XZ()         => 'Xz',
+        ZIP_CM_ZSTD()       => 'Zstd',
     );
 
 sub new
@@ -691,6 +694,17 @@ sub _readZipHeader($)
 
         *$self->{Uncomp} = $obj;
     }
+    elsif ($compressedMethod == ZIP_CM_ZSTD)
+    {
+        return $self->HeaderError("Unsupported Compression format $compressedMethod")
+            if ! defined $IO::Uncompress::Adapter::UnZstd::VERSION ;
+
+        *$self->{Type} = 'zip-zstd';
+
+        my $obj = IO::Uncompress::Adapter::UnZstd::mkUncompObject();
+
+        *$self->{Uncomp} = $obj;
+    }
     elsif ($compressedMethod == ZIP_CM_LZMA)
     {
         return $self->HeaderError("Unsupported Compression format $compressedMethod")
@@ -1143,6 +1157,11 @@ be installed.
 =item Lzma (14)
 
 To read LZMA content, the module C<IO::Uncompress::UnLzma> must
+be installed.
+
+=item Zstandard (93)
+
+To read Zstandard content, the module C<IO::Uncompress::UnZstd> must
 be installed.
 
 =item Xz (95)
@@ -1950,4 +1969,3 @@ Copyright (c) 2005-2020 Paul Marquess. All rights reserved.
 
 This program is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.
-

@@ -34,6 +34,11 @@ BEGIN
            require IO::Compress::Xz ;
            import  IO::Compress::Xz 2.095 ;
          } ;
+    eval { require IO::Compress::Adapter::Zstd ;
+           import  IO::Compress::Adapter::Zstd 2.095 ;
+           require IO::Compress::Zstd ;
+           import  IO::Compress::Zstd 2.095 ;
+         } ;
 }
 
 
@@ -50,7 +55,7 @@ $ZipError = '';
 
 push @{ $EXPORT_TAGS{all} }, @EXPORT_OK ;
 
-$EXPORT_TAGS{zip_method} = [qw( ZIP_CM_STORE ZIP_CM_DEFLATE ZIP_CM_BZIP2 ZIP_CM_LZMA ZIP_CM_XZ)];
+$EXPORT_TAGS{zip_method} = [qw( ZIP_CM_STORE ZIP_CM_DEFLATE ZIP_CM_BZIP2 ZIP_CM_LZMA ZIP_CM_XZ ZIP_CM_ZSTD)];
 push @{ $EXPORT_TAGS{all} }, @{ $EXPORT_TAGS{zip_method} };
 
 Exporter::export_ok_tags('all');
@@ -89,6 +94,10 @@ sub isMethodAvailable
     return 1
         if $method == ZIP_CM_XZ and
            defined $IO::Compress::Adapter::Xz::VERSION;
+
+    return 1
+        if $method == ZIP_CM_ZSTD and
+           defined $IO::Compress::Adapter::ZSTD::VERSION;
 
     return 0;
 }
@@ -155,6 +164,11 @@ sub mkComp
                                                                                  $got->getValue('extreme'),
                                                                                  0
                                                                                  );
+        *$self->{ZipData}{CRC32} = Compress::Raw::Zlib::crc32(undef);
+    }
+    elsif (*$self->{ZipData}{Method} == ZIP_CM_ZSTD) {
+        ($obj, $errstr, $errno) = IO::Compress::Adapter::Zstd::mkCompObject(defined $got->getValue('level') ? $got->getValue('level') : 3,
+                                                                           );
         *$self->{ZipData}{CRC32} = Compress::Raw::Zlib::crc32(undef);
     }
 
@@ -932,30 +946,19 @@ This module provides a Perl interface that allows writing zip
 compressed data to files or buffer.
 
 The primary purpose of this module is to provide streaming write access to
-zip files and buffers.
+zip files and buffers. It is not a general-purpose file archiver. If that
+is what you want, check out C<Archive::Zip> or C<Archive::Zip::SimpleZip>.
 
-At present the following compression methods are supported by IO::Compress::Zip
+At present the following compression methods are supported by IO::Compress::Zip,
+namely Store (no compression at all), Deflate, Bzip2 and LZMA.
+
+B<Note>
 
 =over 5
 
-=item Store (0)
+=item * To use Bzip2 compression, the module C<IO::Compress::Bzip2> must be installed.
 
-=item Deflate (8)
-
-=item Bzip2 (12)
-
-To read Bzip2 content, the module C<IO::Uncompress::Bunzip2> must
-be installed.
-
-=item Lzma (14)
-
-To read LZMA content, the module C<IO::Uncompress::UnLzma> must
-be installed.
-
-=item Xz (95)
-
-To read Xz content, the module C<IO::Uncompress::UnXz> must
-be installed.
+=item * To use LZMA compression, the module C<IO::Compress::Lzma> must be installed.
 
 =back
 
@@ -1580,7 +1583,7 @@ The default is 0.
 
 =back
 
-=head3 Lzma and Xz Compression Options
+=head3 Lzma Compression Options
 
 =over 5
 
@@ -1710,11 +1713,11 @@ By default, no comment field is written to the zip file.
 
 =item C<< Method => $method >>
 
-Controls which compression method is used. At present the compression
-methods are supported are: Store (no compression at all), Deflate,
-Bzip2, Xz and Lzma.
+Controls which compression method is used. At present four compression
+methods are supported, namely Store (no compression at all), Deflate,
+Bzip2 and Lzma.
 
-The symbols, ZIP_CM_STORE, ZIP_CM_DEFLATE, ZIP_CM_BZIP2, ZIP_CM_XZ and ZIP_CM_LZMA
+The symbols, ZIP_CM_STORE, ZIP_CM_DEFLATE, ZIP_CM_BZIP2 and ZIP_CM_LZMA
 are used to select the compression method.
 
 These constants are not imported by C<IO::Compress::Zip> by default.
@@ -1730,10 +1733,6 @@ content when C<IO::Compress::Bzip2> is not available.
 Note that to create Lzma content, the module C<IO::Compress::Lzma> must
 be installed. A fatal error will be thrown if you attempt to create Lzma
 content when C<IO::Compress::Lzma> is not available.
-
-Note that to create Xz content, the module C<IO::Compress::Xz> must
-be installed. A fatal error will be thrown if you attempt to create Xz
-content when C<IO::Compress::Xz> is not available.
 
 The default method is ZIP_CM_DEFLATE.
 
@@ -2122,4 +2121,3 @@ Copyright (c) 2005-2020 Paul Marquess. All rights reserved.
 
 This program is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.
-
