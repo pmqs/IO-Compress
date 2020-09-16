@@ -18,7 +18,7 @@ $AnyUncompressError = '';
 
 @ISA = qw(IO::Uncompress::Base Exporter);
 @EXPORT_OK = qw( $AnyUncompressError anyuncompress ) ;
-%EXPORT_TAGS = %IO::Uncompress::Base::DEFLATE_CONSTANTS ;
+%EXPORT_TAGS = %IO::Uncompress::Base::DEFLATE_CONSTANTS if keys %IO::Uncompress::Base::DEFLATE_CONSTANTS;
 push @{ $EXPORT_TAGS{all} }, @EXPORT_OK ;
 Exporter::export_ok_tags('all');
 
