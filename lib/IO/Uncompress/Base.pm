@@ -1485,33 +1485,35 @@ sub input_line_number
     return $last;
 }
 
-
-*BINMODE  = \&binmode;
-*SEEK     = \&seek; 
-*READ     = \&read;
-*sysread  = \&read;
-*TELL     = \&tell;
-*EOF      = \&eof;
-
-*FILENO   = \&fileno;
-*CLOSE    = \&close;
-
 sub _notAvailable
 {
     my $name = shift ;
     return sub { croak "$name Not Available: File opened only for intput" ; } ;
 }
 
+{
+    no warnings 'once';
 
-*print    = _notAvailable('print');
-*PRINT    = _notAvailable('print');
-*printf   = _notAvailable('printf');
-*PRINTF   = _notAvailable('printf');
-*write    = _notAvailable('write');
-*WRITE    = _notAvailable('write');
+    *BINMODE  = \&binmode;
+    *SEEK     = \&seek;
+    *READ     = \&read;
+    *sysread  = \&read;
+    *TELL     = \&tell;
+    *EOF      = \&eof;
 
-#*sysread  = \&read;
-#*syswrite = \&_notAvailable;
+    *FILENO   = \&fileno;
+    *CLOSE    = \&close;
+
+    *print    = _notAvailable('print');
+    *PRINT    = _notAvailable('print');
+    *printf   = _notAvailable('printf');
+    *PRINTF   = _notAvailable('printf');
+    *write    = _notAvailable('write');
+    *WRITE    = _notAvailable('write');
+
+    #*sysread  = \&read;
+    #*syswrite = \&_notAvailable;
+}
 
 
 

@@ -149,6 +149,7 @@ sub getExtraParams
 
 sub getInverseClass
 {
+    no warnings 'once';
     return ('IO::Uncompress::Inflate',
                 \$IO::Uncompress::Inflate::InflateError);
 }
