@@ -7,6 +7,9 @@
 *.tar.gz
 *.tmp
 
+!.appveyor.yml
+!.cirrus.yml
+!.github
 !.gitignore
 !.perltidyrc
 !.travis.yml
