@@ -7,8 +7,9 @@ use warnings;
 use bytes;
 
 use IO::Compress::Base 2.096 ;
-use IO::Compress::Base::Common  2.096 qw(:Status );
+use IO::Compress::Base::Common  2.096 qw(:Status :Parse);
 use IO::Compress::Adapter::Deflate 2.096 ;
+use Compress::Raw::Zlib  2.096 qw(Z_DEFLATED Z_DEFAULT_COMPRESSION Z_DEFAULT_STRATEGY);
 
 require Exporter ;
 
@@ -116,8 +117,6 @@ sub getExtraParams
     return getZlibParams();
 }
 
-use IO::Compress::Base::Common  2.096 qw(:Parse);
-use Compress::Raw::Zlib  2.096 qw(Z_DEFLATED Z_DEFAULT_COMPRESSION Z_DEFAULT_STRATEGY);
 our %PARAMS = (
             #'method'   => [IO::Compress::Base::Common::Parse_unsigned,  Z_DEFLATED],
             'level'     => [IO::Compress::Base::Common::Parse_signed,    Z_DEFAULT_COMPRESSION],
