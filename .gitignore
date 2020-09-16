@@ -1,6 +1,3 @@
-!.gitignore
-!.perltidyrc
-!.travis.yml
 
 *~
 .*
@@ -10,8 +7,11 @@
 *.tar.gz
 *.tmp
 
+!.gitignore
+!.perltidyrc
+!.travis.yml
+
 /IO-Compress-*
-!MANIFEST.SKIP
 /MYMETA.*
 /Makefile
 /Makefile.old
