@@ -6,7 +6,7 @@ use strict;
 use warnings;
 use bytes;
 
-use IO::Compress::Base::Common  2.096 ();
+use IO::Compress::Base::Common  2.096 qw(:Parse);
 
 use IO::Uncompress::Adapter::Inflate  2.096 ();
 
@@ -48,7 +48,6 @@ sub anyinflate
 
 sub getExtraParams
 {
-    use IO::Compress::Base::Common  2.096 qw(:Parse);
     return ( 'rawinflate' => [Parse_boolean,  0] ) ;
 }
 
