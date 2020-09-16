@@ -1,0 +1,14 @@
+.*
+*~
+!.gitignore
+!.perltidyrc
+!.travis.yml
+/blib
+/pm_to_blib
+/Makefile
+/Makefile.old
+/MANIFEST*
+!MANIFEST.SKIP
+/META.*
+/MYMETA.*
+/IO-Compress-*
