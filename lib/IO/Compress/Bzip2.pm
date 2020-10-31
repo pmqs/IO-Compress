@@ -40,7 +40,7 @@ sub bzip2
 }
 
 
-sub mkHeader 
+sub mkHeader
 {
     my $self = shift ;
     return '';
@@ -52,8 +52,8 @@ sub getExtraParams
     my $self = shift ;
 
     use IO::Compress::Base::Common  2.096 qw(:Parse);
-    
-    return (  
+
+    return (
             'blocksize100k' => [IO::Compress::Base::Common::Parse_unsigned,  1],
             'workfactor'    => [IO::Compress::Base::Common::Parse_unsigned,  0],
             'verbosity'     => [IO::Compress::Base::Common::Parse_boolean,   0],
@@ -66,7 +66,7 @@ sub ckParams
 {
     my $self = shift ;
     my $got = shift;
-    
+
     # check that BlockSize100K is a number between 1 & 9
     if ($got->parsed('blocksize100k')) {
         my $value = $got->getValue('blocksize100k');
@@ -101,7 +101,7 @@ sub mkComp
 
     return $self->saveErrorString(undef, $errstr, $errno)
         if ! defined $obj;
-    
+
     return $obj;
 }
 
@@ -133,7 +133,7 @@ sub getFileInfo
     my $self = shift ;
     my $params = shift;
     my $file = shift ;
-    
+
 }
 
 1;
@@ -822,4 +822,3 @@ Copyright (c) 2005-2020 Paul Marquess. All rights reserved.
 
 This program is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.
-

@@ -62,14 +62,14 @@ sub ckMagic
 
     *$self->{HeaderPending} = $magic ;
 
-    return $self->HeaderError("Header size is " . 
-                                        ZLIB_HEADER_SIZE . " bytes") 
+    return $self->HeaderError("Header size is " .
+                                        ZLIB_HEADER_SIZE . " bytes")
         if length $magic != ZLIB_HEADER_SIZE;
 
     #return $self->HeaderError("CRC mismatch.")
     return undef
         if ! $self->isZlibMagic($magic) ;
-                      
+
     *$self->{Type} = 'rfc1950';
     return $magic;
 }
@@ -88,7 +88,7 @@ sub chkTrailer
     my $trailer = shift;
 
     my $ADLER32 = unpack("N", $trailer) ;
-    *$self->{Info}{ADLER32} = $ADLER32;    
+    *$self->{Info}{ADLER32} = $ADLER32;
     return $self->TrailerError("CRC mismatch")
         if *$self->{Strict} && $ADLER32 != *$self->{Uncomp}->adler32() ;
 
@@ -102,7 +102,7 @@ sub isZlibMagic
     my $self = shift;
     my $buffer = shift ;
 
-    return 0 
+    return 0
         if length $buffer < ZLIB_HEADER_SIZE ;
 
     my $hdr = unpack("n", $buffer) ;
@@ -114,16 +114,16 @@ sub isZlibMagic
     my $cm =    bits($CMF, ZLIB_CMF_CM_OFFSET,    ZLIB_CMF_CM_BITS) ;
 
     # Only Deflate supported
-    return $self->HeaderError("Not Deflate (CM is $cm)") 
+    return $self->HeaderError("Not Deflate (CM is $cm)")
         if $cm != ZLIB_CMF_CM_DEFLATED ;
 
     # Max window value is 7 for Deflate.
     my $cinfo = bits($CMF, ZLIB_CMF_CINFO_OFFSET, ZLIB_CMF_CINFO_BITS) ;
-    return $self->HeaderError("CINFO > " . ZLIB_CMF_CINFO_MAX . 
-                              " (CINFO is $cinfo)") 
+    return $self->HeaderError("CINFO > " . ZLIB_CMF_CINFO_MAX .
+                              " (CINFO is $cinfo)")
         if $cinfo > ZLIB_CMF_CINFO_MAX ;
 
-    return 1;    
+    return 1;
 }
 
 sub bits
@@ -145,19 +145,19 @@ sub _readDeflateHeader
 #
 #        *$self->{HeaderPending} = $buffer ;
 #
-#        return $self->HeaderError("Header size is " . 
-#                                            ZLIB_HEADER_SIZE . " bytes") 
+#        return $self->HeaderError("Header size is " .
+#                                            ZLIB_HEADER_SIZE . " bytes")
 #            if length $buffer != ZLIB_HEADER_SIZE;
 #
 #        return $self->HeaderError("CRC mismatch.")
 #            if ! isZlibMagic($buffer) ;
 #    }
-                                        
+
     my ($CMF, $FLG) = unpack "C C", $buffer;
     my $FDICT = bits($FLG, ZLIB_FLG_FDICT_OFFSET,  ZLIB_FLG_FDICT_BITS ),
 
     my $cm = bits($CMF, ZLIB_CMF_CM_OFFSET, ZLIB_CMF_CM_BITS) ;
-    $cm == ZLIB_CMF_CM_DEFLATED 
+    $cm == ZLIB_CMF_CM_DEFLATED
         or return $self->HeaderError("Not Deflate (CM is $cm)") ;
 
     my $DICTID;
@@ -998,4 +998,3 @@ Copyright (c) 2005-2020 Paul Marquess. All rights reserved.
 
 This program is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.
-

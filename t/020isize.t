@@ -13,8 +13,8 @@ use bytes;
 use Test::More ;
 use CompTestUtils;
 
-BEGIN 
-{ 
+BEGIN
+{
     plan skip_all => "Lengthy Tests Disabled\n" .
                      "set COMPRESS_ZLIB_RUN_ALL to run this test suite"
         unless defined $ENV{COMPRESS_ZLIB_RUN_ALL} ;
@@ -33,7 +33,7 @@ BEGIN
     use_ok('IO::Compress::Gzip::Constants');
 }
 
-my $compressed ;    
+my $compressed ;
 my $expected_crc ;
 
 for my $wrap (0 .. 2)
@@ -59,7 +59,7 @@ for my $wrap (0 .. 2)
         else {
             $expected_isize = $offset - 1;
         }
-        
+
         sub gzipClosure
         {
             my $gzip = shift ;
@@ -70,7 +70,7 @@ for my $wrap (0 .. 2)
             my $buff = 'x' x $inc ;
             my $left = $max ;
 
-            return 
+            return
                 sub {
 
                     if ($max == 0 && $index == 0) {
@@ -147,12 +147,11 @@ for my $wrap (0 .. 2)
 
         my $gunzip_hdr = $gunzip->getHeaderInfo();
 
-        is $gunzip_hdr->{ISIZE}, $expected_isize, 
+        is $gunzip_hdr->{ISIZE}, $expected_isize,
             sprintf("  ISIZE is $expected_isize [0x%X]", $expected_isize);
-        is $gunzip_hdr->{CRC32}, $expected_crc, 
+        is $gunzip_hdr->{CRC32}, $expected_crc,
             sprintf("  CRC32 is $expected_crc [0x%X]", $expected_crc);
 
         $expected_crc = 0 ;
     }
 }
-

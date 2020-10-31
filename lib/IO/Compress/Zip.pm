@@ -24,9 +24,9 @@ BEGIN
            IO::Compress::Bzip2->import( 2.096 );
          } ;
 
-    eval { require IO::Compress::Adapter::Lzma ; 
+    eval { require IO::Compress::Adapter::Lzma ;
            IO::Compress::Adapter::Lzma->import( 2.096 );
-           require IO::Compress::Lzma ; 
+           require IO::Compress::Lzma ;
            IO::Compress::Lzma->import( 2.096 );
          } ;
 
@@ -2143,4 +2143,3 @@ Copyright (c) 2005-2020 Paul Marquess. All rights reserved.
 
 This program is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.
-

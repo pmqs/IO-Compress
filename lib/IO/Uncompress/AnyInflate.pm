@@ -74,9 +74,9 @@ sub mkUncomp
         if ! defined $obj;
 
     *$self->{Uncomp} = $obj;
-    
+
      my @possible = qw( Inflate Gunzip Unzip );
-     unshift @possible, 'RawInflate' 
+     unshift @possible, 'RawInflate'
         if 1 || $got->getValue('rawinflate');
 
      my $magic = $self->ckMagic( @possible );
@@ -112,7 +112,7 @@ sub ckMagic
 
         $self->pushBack(*$self->{HeaderPending})  ;
         *$self->{HeaderPending} = ''  ;
-    }    
+    }
 
     bless $self => $keep;
     return undef;
@@ -1002,4 +1002,3 @@ Copyright (c) 2005-2020 Paul Marquess. All rights reserved.
 
 This program is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.
-

@@ -9,12 +9,12 @@ task:
     - pkg info
     - pkg install -y gcc
     - pkg install -y perl5
-    - perl -V    
+    - perl -V
     - echo|cpan App::cpanminus
-    - cpanm --installdeps .    
+    - cpanm --installdeps .
   build_script:
     - perl Makefile.PL
-  test_script:    
+  test_script:
     - make test
 
 
@@ -24,12 +24,12 @@ task:
     matrix:
       image: catalina-xcode-11.3.1
       image: catalina-xcode-11.4.1
-      # image: catalina-xcode-11.5      
+      # image: catalina-xcode-11.5
   install_script:
-    - perl -V    
+    - perl -V
     - echo|sudo cpan App::cpanminus
-    - sudo /Users/anka/perl5/bin/cpanm --installdeps .        
+    - sudo /Users/anka/perl5/bin/cpanm --installdeps .
   build_script:
     - sudo perl Makefile.PL
-  test_script:    
+  test_script:
     - sudo make test

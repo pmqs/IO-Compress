@@ -38,7 +38,7 @@ BEGIN
 
 # Check zlib_version and ZLIB_VERSION are the same.
 SKIP: {
-    skip "TEST_SKIP_VERSION_CHECK is set", 1 
+    skip "TEST_SKIP_VERSION_CHECK is set", 1
         if $ENV{TEST_SKIP_VERSION_CHECK};
     is Compress::Zlib::zlib_version, ZLIB_VERSION,
         "ZLIB_VERSION matches Compress::Zlib::zlib_version" ;
@@ -47,13 +47,13 @@ SKIP: {
 {
     title "memGzip" ;
     # length of this string is 2 characters
-    my $s = "\x{df}\x{100}"; 
+    my $s = "\x{df}\x{100}";
 
     my $cs = memGzip(Encode::encode_utf8($s));
 
     # length stored at end of gzip file should be 4
     my ($crc, $len) = unpack ("VV", substr($cs, -8, 8));
-    
+
     is $len, 4, "  length is 4";
 }
 
@@ -65,7 +65,7 @@ SKIP: {
     is memGunzip(my $x = $co), $s, "  match uncompressed";
 
     utf8::upgrade($co);
-     
+
     my $un = memGunzip($co);
     ok $un, "  got uncompressed";
 
@@ -75,7 +75,7 @@ SKIP: {
 {
     title "compress/uncompress";
 
-    my $s = "\x{df}\x{100}";                                   
+    my $s = "\x{df}\x{100}";
     my $s_copy = $s ;
 
     my $ces = compress(Encode::encode_utf8($s_copy));
@@ -84,17 +84,17 @@ SKIP: {
 
     my $un = Encode::decode_utf8(uncompress($ces));
     is $un, $s, "  decode_utf8 ok";
- 
+
     utf8::upgrade($ces);
     $un = Encode::decode_utf8(uncompress($ces));
     is $un, $s, "  decode_utf8 ok";
- 
+
 }
 
 {
     title "gzopen" ;
 
-    my $s = "\x{df}\x{100}";                                   
+    my $s = "\x{df}\x{100}";
     my $byte_len = length( Encode::encode_utf8($s) );
     my ($uncomp) ;
 
@@ -139,4 +139,3 @@ SKIP: {
 
     ok ! $fil->gzclose, "  gzclose ok" ;
 }
-

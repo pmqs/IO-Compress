@@ -39,7 +39,7 @@ sub mkUncompObject
                                     WindowBits   => - MAX_WBITS );
     }
 
-    return (undef, "Could not create Inflation object: $status", $status) 
+    return (undef, "Could not create Inflation object: $status", $status)
         if $status != Z_OK ;
 
     return bless {'Inf'        => $inflate,
@@ -47,8 +47,8 @@ sub mkUncompObject
                   'UnCompSize' => 0,
                   'Error'      => '',
                   'ConsumesInput' => 1,
-                 } ;     
-    
+                 } ;
+
 }
 
 sub uncompr
@@ -67,7 +67,7 @@ sub uncompr
         $self->{Error} = "Inflation Error: $status";
         return STATUS_ERROR;
     }
-            
+
     return STATUS_OK        if $status == Z_BUF_ERROR ; # ???
     return STATUS_OK        if $status == Z_OK ;
     return STATUS_ENDSTREAM if $status == Z_STREAM_END ;
@@ -115,8 +115,8 @@ sub adler32
 sub sync
 {
     my $self = shift ;
-    ( $self->{Inf}->inflateSync(@_) == Z_OK) 
-            ? STATUS_OK 
+    ( $self->{Inf}->inflateSync(@_) == Z_OK)
+            ? STATUS_OK
             : STATUS_ERROR ;
 }
 
@@ -154,4 +154,3 @@ sub createDeflateStream
 
 
 __END__
-

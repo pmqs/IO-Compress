@@ -48,7 +48,7 @@ BEGIN {
                   'delta \N{GREEK SMALL LETTER DELTA}'
                 ) ;
 
-    my @encoded = map { Encode::encode_utf8($_) } @names; 
+    my @encoded = map { Encode::encode_utf8($_) } @names;
 
     my @n = @names;
 
@@ -107,7 +107,7 @@ BEGIN {
             or diag "Got " . Dumper(\@efs);
         is_deeply \@unzip_names, [@names], "Names round tripped"
             or diag "Got " . Dumper(\@unzip_names);
-    }    
+    }
 }
 
 
@@ -165,7 +165,7 @@ BEGIN {
 
     # Invalid UTF8
     my $name = "a\xFF\x{100}";
-    
+
     my $zip = IO::Compress::Zip->new( $file1,
                     Name =>  $name, Efs => 0 );
 
@@ -173,7 +173,7 @@ BEGIN {
     ok $zip->close(), "closed";
 
     my $u = IO::Uncompress::Unzip->new( $file1 )
-        or die "Cannot open $file1: $UnzipError";  
+        or die "Cannot open $file1: $UnzipError";
 
     ok $u->getHeaderInfo()->{Name} eq $name, "got bad filename";
 }
@@ -185,7 +185,7 @@ BEGIN {
     my $name = "\xF0\xA4\xAD";
 
     my $u = IO::Uncompress::Unzip->new( $filename, efs => 0 )
-        or die "Cannot open $filename: $UnzipError";  
+        or die "Cannot open $filename: $UnzipError";
 
     ok $u->getHeaderInfo()->{Name} eq $name, "got bad filename";
 }
@@ -195,7 +195,7 @@ BEGIN {
 
     my $filename = "t/files/bad-efs.zip" ;
     my $name = "\xF0\xA4\xAD";
-   
+
     eval { my $u = IO::Uncompress::Unzip->new( $filename, efs => 1 )
         or die "Cannot open $filename: $UnzipError" };
 
@@ -211,10 +211,10 @@ BEGIN {
 
     # Invalid UTF8
     my $name = "a\xFF\x{100}";
-    
+
     eval { my $zip = IO::Compress::Zip->new( $file1,
                     Name =>  $name, Efs => 1 ) } ;
 
-    like $@,  qr/Wide character in zip filename/, 
+    like $@,  qr/Wide character in zip filename/,
                  "  wide characters in zip filename";
 }

@@ -28,7 +28,7 @@ Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Ut tempus odio id
 
     writeWithGzip($outfile, $content)
         or return 0;
-    
+
     my $got ;
     readWithGzip($outfile, $got)
         or return 0;
@@ -53,7 +53,7 @@ sub readWithGzip
     if ( system("$comp $file >$outfile") == 0 )
     {
         $_[0] = readFile($outfile);
-        return 1 
+        return 1
     }
 
     diag "'$comp' failed: \$?=$? \$!=$!";
@@ -77,7 +77,7 @@ sub writeWithGzip
     unlink $file ;
     my $comp = "$GZIP -c $options $infile >$file" ;
 
-    return 1 
+    return 1
         if system($comp) == 0 ;
 
     diag "'$comp' failed: \$?=$? \$!=$!";
@@ -90,14 +90,14 @@ BEGIN {
     my $name = $^O =~ /mswin/i ? 'gzip.exe' : 'gzip';
     my $split = $^O =~ /mswin/i ? ";" : ":";
 
-    for my $dir (reverse split $split, $ENV{PATH})    
+    for my $dir (reverse split $split, $ENV{PATH})
     {
         $GZIP = File::Spec->catfile($dir,$name)
             if -x File::Spec->catfile($dir,$name)
     }
 
-    # Handle spaces in path to gzip 
-    $GZIP = "\"$GZIP\"" if defined $GZIP && $GZIP =~ /\s/;    
+    # Handle spaces in path to gzip
+    $GZIP = "\"$GZIP\"" if defined $GZIP && $GZIP =~ /\s/;
 
     plan(skip_all => "Cannot find $name")
         if ! $GZIP ;
@@ -105,7 +105,7 @@ BEGIN {
     plan(skip_all => "$name doesn't work as expected")
         if ! ExternalGzipWorks();
 
-    
+
     # use Test::NoWarnings, if available
     my $extra = 0 ;
     $extra = 1
@@ -143,5 +143,3 @@ Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Ut tempus odio id
     ok readWithGzip($file1, $got), "readWithGzip ok";
     is $got, $content, "got content";
 }
-
-

@@ -80,7 +80,7 @@ sub mkDeflateHdr($$$;$)
     return $hdr;
 }
 
-sub mkHeader 
+sub mkHeader
 {
     my $self = shift ;
     my $param = shift ;
@@ -89,7 +89,7 @@ sub mkHeader
     my $strategy = $param->getValue('strategy');
 
     my $lflag ;
-    $level = 6 
+    $level = 6
         if $level == Z_DEFAULT_COMPRESSION ;
 
     if (ZLIB_VERNUM >= 0x1210)
@@ -118,7 +118,7 @@ sub ckParams
 {
     my $self = shift ;
     my $got = shift;
-    
+
     $got->setValue('adler32' => 1);
     return 1 ;
 }
@@ -159,7 +159,7 @@ sub getFileInfo
     my $self = shift ;
     my $params = shift;
     my $file = shift ;
-    
+
 }
 
 
@@ -956,4 +956,3 @@ Copyright (c) 2005-2020 Paul Marquess. All rights reserved.
 
 This program is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.
-

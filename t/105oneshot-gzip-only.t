@@ -42,7 +42,7 @@ sub gzipGetHeader
     my $got ;
 
     ok IO::Compress::Gzip::gzip($in, \$out, %opts), "  gzip ok" ;
-    ok IO::Uncompress::Gunzip::gunzip(\$out, \$got), "  gunzip ok" 
+    ok IO::Uncompress::Gunzip::gunzip(\$out, \$got), "  gunzip ok"
         or diag $GunzipError ;
     is $got, $content, "  got expected content" ;
 
@@ -57,7 +57,7 @@ sub gzipGetHeader
     ok $gunz->close, "  closed ok" ;
 
     return $hdr ;
-    
+
 }
 
 {
@@ -73,7 +73,7 @@ sub gzipGetHeader
     $mtime = (stat($file1))[9];
     # make sure that the gzip file isn't created in the same
     # second as the input file
-    sleep 3 ; 
+    sleep 3 ;
     $hdr = gzipGetHeader($file1, $content);
 
     is $hdr->{Name}, $file1, "  Name is '$file1'";
@@ -83,7 +83,7 @@ sub gzipGetHeader
 
     writeFile($file1, $content);
     $mtime = (stat($file1))[9];
-    sleep 3 ; 
+    sleep 3 ;
     $hdr = gzipGetHeader($file1, $content, Name => "abcde");
 
     is $hdr->{Name}, "abcde", "  Name is 'abcde'" ;
@@ -108,7 +108,7 @@ sub gzipGetHeader
     title "Filehandle doesn't have default Name or Time" ;
     my $fh = IO::File->new( "< $file1" )
         or diag "Cannot open '$file1': $!\n" ;
-    sleep 3 ; 
+    sleep 3 ;
     my $before = time ;
     $hdr = gzipGetHeader($fh, $content);
     my $after = time ;
@@ -131,4 +131,3 @@ sub gzipGetHeader
 }
 
 # TODO add more error cases
-

@@ -29,8 +29,8 @@ push @EXPORT_OK, @IO::Compress::Adapter::Deflate::EXPORT_OK ;
     my %seen;
     foreach (keys %EXPORT_TAGS )
     {
-        push @{$EXPORT_TAGS{constants}}, 
-                 grep { !$seen{$_}++ } 
+        push @{$EXPORT_TAGS{constants}},
+                 grep { !$seen{$_}++ }
                  @{ $EXPORT_TAGS{$_} }
     }
     $EXPORT_TAGS{all} = $EXPORT_TAGS{constants} ;
@@ -42,7 +42,7 @@ push @EXPORT_OK, @IO::Compress::Adapter::Deflate::EXPORT_OK ;
 #push @{ $EXPORT_TAGS{all} }, @EXPORT_OK ;
 
 Exporter::export_ok_tags('all');
-              
+
 
 
 sub new
@@ -83,7 +83,7 @@ sub mkComp
    return $self->saveErrorString(undef, $errstr, $errno)
        if ! defined $obj;
 
-   return $obj;    
+   return $obj;
 }
 
 
@@ -124,18 +124,18 @@ our %PARAMS = (
 
             'crc32'     => [IO::Compress::Base::Common::Parse_boolean,   0],
             'adler32'   => [IO::Compress::Base::Common::Parse_boolean,   0],
-            'merge'     => [IO::Compress::Base::Common::Parse_boolean,   0], 
+            'merge'     => [IO::Compress::Base::Common::Parse_boolean,   0],
         );
-        
+
 sub getZlibParams
 {
-    return %PARAMS;    
+    return %PARAMS;
 }
 
 sub getInverseClass
 {
     no warnings 'once';
-    return ('IO::Uncompress::RawInflate', 
+    return ('IO::Uncompress::RawInflate',
                 \$IO::Uncompress::RawInflate::RawInflateError);
 }
 
@@ -144,7 +144,7 @@ sub getFileInfo
     my $self = shift ;
     my $params = shift;
     my $file = shift ;
-    
+
 }
 
 use Fcntl qw(SEEK_SET);
@@ -156,20 +156,20 @@ sub createMerge
     my $outType = shift ;
 
     my ($invClass, $error_ref) = $self->getInverseClass();
-    eval "require $invClass" 
+    eval "require $invClass"
         or die "aaaahhhh" ;
 
-    my $inf = $invClass->new( $outValue, 
-                             Transparent => 0, 
+    my $inf = $invClass->new( $outValue,
+                             Transparent => 0,
                              #Strict     => 1,
                              AutoClose   => 0,
                              Scan        => 1)
        or return $self->saveErrorString(undef, "Cannot create InflateScan object: $$error_ref" ) ;
 
     my $end_offset = 0;
-    $inf->scan() 
+    $inf->scan()
         or return $self->saveErrorString(undef, "Error Scanning: $$error_ref", $inf->errorNo) ;
-    $inf->zap($end_offset) 
+    $inf->zap($end_offset)
         or return $self->saveErrorString(undef, "Error Zapping: $$error_ref", $inf->errorNo) ;
 
     my $def = *$self->{Compress} = $inf->createDeflate();
@@ -181,7 +181,7 @@ sub createMerge
     #*$self->{CompSize} = U64->new(0, *$self->{UnCompSize_32bit});
 
 
-    if ( $outType eq 'buffer') 
+    if ( $outType eq 'buffer')
       { substr( ${ *$self->{Buffer} }, $end_offset) = '' }
     elsif ($outType eq 'handle' || $outType eq 'filename') {
         *$self->{FH} = *$inf->{FH} ;
@@ -189,8 +189,8 @@ sub createMerge
         *$self->{FH}->flush() ;
         *$self->{Handle} = 1 if $outType eq 'handle';
 
-        #seek(*$self->{FH}, $end_offset, SEEK_SET) 
-        *$self->{FH}->seek($end_offset, SEEK_SET) 
+        #seek(*$self->{FH}, $end_offset, SEEK_SET)
+        *$self->{FH}->seek($end_offset, SEEK_SET)
             or return $self->saveErrorString(undef, $!, $!) ;
     }
 
@@ -199,7 +199,7 @@ sub createMerge
 
 #### zlib specific methods
 
-sub deflateParams 
+sub deflateParams
 {
     my $self = shift ;
 
@@ -210,7 +210,7 @@ sub deflateParams
     return $self->saveErrorString(0, *$self->{Compress}{Error}, *$self->{Compress}{ErrorNo})
         if $status == STATUS_ERROR;
 
-    return 1;    
+    return 1;
 }
 
 
@@ -1011,4 +1011,3 @@ Copyright (c) 2005-2020 Paul Marquess. All rights reserved.
 
 This program is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.
-

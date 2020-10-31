@@ -72,7 +72,7 @@ sub mkUncomp
 
     return $self->saveErrorString(undef, $errstr, $errno)
         if ! defined $obj;
-    
+
     *$self->{Uncomp} = $obj;
 
     return 1;
@@ -88,15 +88,15 @@ sub ckMagic
     $self->smartReadExact(\$magic, 4);
 
     *$self->{HeaderPending} = $magic ;
-    
-    return $self->HeaderError("Header size is " . 
-                                        4 . " bytes") 
+
+    return $self->HeaderError("Header size is " .
+                                        4 . " bytes")
         if length $magic != 4;
 
     return $self->HeaderError("Bad Magic.")
         if ! isBzip2Magic($magic) ;
-                      
-        
+
+
     *$self->{Type} = 'bzip2';
     return $magic;
 }
@@ -117,7 +117,7 @@ sub readHeader
         'TrailerLength'     => 0,
         'Header'            => '$magic'
         };
-    
+
 }
 
 sub chkTrailer
@@ -911,4 +911,3 @@ Copyright (c) 2005-2020 Paul Marquess. All rights reserved.
 
 This program is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.
-

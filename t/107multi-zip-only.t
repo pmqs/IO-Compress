@@ -67,7 +67,7 @@ push @buffers, undef;
 {
     open F, ">>$zipfile";
     print F "trailing";
-    close F;                    
+    close F;
 }
 
 my $u = IO::Uncompress::Unzip->new( $zipfile, Transparent => 1, MultiStream => 0 )

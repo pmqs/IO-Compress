@@ -13,8 +13,8 @@ use Test::More ;
 use CompTestUtils;
 
 
-BEGIN 
-{ 
+BEGIN
+{
     plan(skip_all => "File::GlobMapper needs Perl 5.005 or better - you have
 Perl $]" )
         if $] < 5.005 ;
@@ -26,7 +26,7 @@ Perl $]" )
 
     plan tests => 68 + $extra ;
 
-    use_ok('File::GlobMapper') ; 
+    use_ok('File::GlobMapper') ;
 }
 
 {
@@ -38,7 +38,7 @@ Perl $]" )
     {
         $gm = File::GlobMapper->new("${delim}abc", '*.X');
         ok ! $gm, "  new failed" ;
-        is $File::GlobMapper::Error, "Unmatched $delim in input fileglob", 
+        is $File::GlobMapper::Error, "Unmatched $delim in input fileglob",
             "  catch unmatched $delim";
     }
 
@@ -46,11 +46,11 @@ Perl $]" )
     {
         $gm = File::GlobMapper->new("{${delim}abc}", '*.X');
         ok ! $gm, "  new failed" ;
-        is $File::GlobMapper::Error, "Unmatched $delim in input fileglob", 
+        is $File::GlobMapper::Error, "Unmatched $delim in input fileglob",
             "  catch unmatched $delim inside {}";
     }
 
-    
+
 }
 
 {
@@ -171,7 +171,7 @@ Perl $]" )
     touch map { "$tmpDir/$_.tmp" } qw( abc1 abc2 abc3 ) ;
 
     my $gm = File::GlobMapper->new("$tmpDir/*b(*).tmp", "$tmpDir/X-#2-#1-X");
-    ok $gm, "  created GlobMapper object" 
+    ok $gm, "  created GlobMapper object"
         or diag $File::GlobMapper::Error ;
 
     my $map = $gm->getFileMap() ;
@@ -279,7 +279,7 @@ Perl $]" )
     touch map { "$tmpDir/$_.tmp" } qw( abc1 abc2 abc3 ) ;
 
     my $map = File::GlobMapper::globmap("$tmpDir/*b*.tmp", "$tmpDir/X-#2-#1-X");
-    ok $map, "  got map" 
+    ok $map, "  got map"
         or diag $File::GlobMapper::Error ;
 
     is @{ $map }, 3, "  returned 3 maps";
@@ -305,4 +305,3 @@ Perl $]" )
 # {} and {,} are special cases
 # {ab*,de*}
 # {abc,{},{de,f}} => abc {} de f
-
