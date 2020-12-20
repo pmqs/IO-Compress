@@ -1732,10 +1732,10 @@ By default, no comment field is written to the zip file.
 =item C<< Method => $method >>
 
 Controls which compression method is used. At present the compression
-methods are supported are: Store (no compression at all), Deflate,
-Bzip2, Xz and Lzma.
+methods supported are: Store (no compression at all), Deflate,
+Bzip2, Zstd, Xz and Lzma.
 
-The symbols, ZIP_CM_STORE, ZIP_CM_DEFLATE, ZIP_CM_BZIP2, ZIP_CM_XZ and ZIP_CM_LZMA
+The symbols ZIP_CM_STORE, ZIP_CM_DEFLATE, ZIP_CM_BZIP2, ZIP_CM_ZSTD, ZIP_CM_XZ and ZIP_CM_LZMA
 are used to select the compression method.
 
 These constants are not imported by C<IO::Compress::Zip> by default.
@@ -1755,6 +1755,10 @@ content when C<IO::Compress::Lzma> is not available.
 Note that to create Xz content, the module C<IO::Compress::Xz> must
 be installed. A fatal error will be thrown if you attempt to create Xz
 content when C<IO::Compress::Xz> is not available.
+
+Note that to create Zstd content, the module C<IO::Compress::Zstd> must
+be installed. A fatal error will be thrown if you attempt to create Zstd
+content when C<IO::Compress::Zstd> is not available.
 
 The default method is ZIP_CM_DEFLATE.
 
