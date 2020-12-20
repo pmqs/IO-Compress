@@ -151,7 +151,7 @@ IO::Compress::Bzip2 - Write bzip2 files/buffers
     my $status = bzip2 $input => $output [,OPTS]
         or die "bzip2 failed: $Bzip2Error\n";
 
-    my $z = IO::Compress::Bzip2->new(  $output [,OPTS] )
+    my $z = IO::Compress::Bzip2->new( $output [,OPTS] )
         or die "bzip2 failed: $Bzip2Error\n";
 
     $z->print($string);
