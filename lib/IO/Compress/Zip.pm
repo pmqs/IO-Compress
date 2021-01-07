@@ -4,17 +4,17 @@ use strict ;
 use warnings;
 use bytes;
 
-use IO::Compress::Base::Common  2.096 qw(:Status );
-use IO::Compress::RawDeflate 2.096 ();
-use IO::Compress::Adapter::Deflate 2.096 ;
-use IO::Compress::Adapter::Identity 2.096 ;
-use IO::Compress::Zlib::Extra 2.096 ;
-use IO::Compress::Zip::Constants 2.096 ;
+use IO::Compress::Base::Common  2.100 qw(:Status );
+use IO::Compress::RawDeflate 2.100 ();
+use IO::Compress::Adapter::Deflate 2.100 ;
+use IO::Compress::Adapter::Identity 2.100 ;
+use IO::Compress::Zlib::Extra 2.100 ;
+use IO::Compress::Zip::Constants 2.100 ;
 
 use File::Spec();
 use Config;
 
-use Compress::Raw::Zlib  2.096 ();
+use Compress::Raw::Zlib  2.100 ();
 
 BEGIN
 {
@@ -47,7 +47,7 @@ require Exporter ;
 
 our ($VERSION, @ISA, @EXPORT_OK, %EXPORT_TAGS, %DEFLATE_CONSTANTS, $ZipError);
 
-$VERSION = '2.096';
+$VERSION = '2.100';
 $ZipError = '';
 
 @ISA = qw(IO::Compress::RawDeflate Exporter);
@@ -2143,7 +2143,7 @@ See the Changes file.
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (c) 2005-2020 Paul Marquess. All rights reserved.
+Copyright (c) 2005-2021 Paul Marquess. All rights reserved.
 
 This program is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.
