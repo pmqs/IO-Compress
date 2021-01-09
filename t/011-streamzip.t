@@ -25,7 +25,7 @@ BEGIN
     $extra = 1
         if eval { require Test::NoWarnings ;  import Test::NoWarnings; 1 };
 
-    plan tests => 56 + $extra ;
+    plan tests => 136 + $extra ;
 }
 
 
@@ -170,4 +170,36 @@ for my $method (qw(store deflate bzip2 lzma xz zstd))
             is $uncompressed, $hello1;
         }
     }
+}
+
+for my $level (0 ..9)
+{
+    {
+        title "streamzip level $level" ;
+
+        my ($infile, $outfile);
+        my $lex = LexFile->new( $infile, $outfile );
+
+        writeFile($infile, $hello1) ;
+        check "$Perl ${binDir}/streamzip -$level <$infile >$outfile";
+
+        my $uncompressed ;
+        unzip $outfile => \$uncompressed;
+        is $uncompressed, $hello1;
+    }
+
+    {
+        title "streamzip level $level- zipfile option" ;
+
+        my ($infile, $outfile);
+        my $lex = LexFile->new( $infile, $outfile );
+
+        writeFile($infile, $hello1) ;
+        check "$Perl ${binDir}/streamzip -zipfile $outfile -$level <$infile";
+
+        my $uncompressed ;
+        unzip $outfile => \$uncompressed;
+        is $uncompressed, $hello1;
+    }
+
 }
