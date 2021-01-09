@@ -25,7 +25,7 @@ BEGIN
     $extra = 1
         if eval { require Test::NoWarnings ;  import Test::NoWarnings; 1 };
 
-    plan tests => 8 + $extra ;
+    plan tests => 56 + $extra ;
 }
 
 
@@ -104,15 +104,70 @@ sub check
 }
 
 {
-    title "streamzip" ;
+    title "streamzip - zipfile option" ;
 
     my ($infile, $outfile);
     my $lex = LexFile->new( $infile, $outfile );
 
     writeFile($infile, $hello1) ;
-    check "$Perl ${binDir}/streamzip -zipfile=$outfile <$infile";
+    check "$Perl ${binDir}/streamzip -zipfile $outfile <$infile";
 
     my $uncompressed ;
     unzip $outfile => \$uncompressed;
     is $uncompressed, $hello1;
+}
+
+for my $method (qw(store deflate bzip2 lzma xz zstd))
+{
+    SKIP:
+    {
+        if ($method eq 'lzma')
+        {
+            eval { require IO::Compress::Lzma } ;
+            skip "Method 'lzma' needs IO::Compress::Lzma\n", 8
+                if $@;
+        }
+
+        if ($method eq 'zstd')
+        {
+            eval { require IO::Compress::Zstd } ;
+            skip "Method 'zstd' needs IO::Compress::Zstd\n", 8
+                if $@;
+        }
+
+        if ($method eq 'xz')
+        {
+            eval { require IO::Compress::Xz } ;
+            skip "Method 'zstd' needs IO::Compress::Xz\n", 8
+                if $@;
+        }
+
+        {
+            title "streamzip method $method" ;
+
+            my ($infile, $outfile);
+            my $lex = LexFile->new( $infile, $outfile );
+
+            writeFile($infile, $hello1) ;
+            check "$Perl ${binDir}/streamzip -method $method <$infile >$outfile";
+
+            my $uncompressed ;
+            unzip $outfile => \$uncompressed;
+            is $uncompressed, $hello1;
+        }
+
+        {
+            title "streamzip $method- zipfile option" ;
+
+            my ($infile, $outfile);
+            my $lex = LexFile->new( $infile, $outfile );
+
+            writeFile($infile, $hello1) ;
+            check "$Perl ${binDir}/streamzip -zipfile $outfile -method $method <$infile";
+
+            my $uncompressed ;
+            unzip $outfile => \$uncompressed;
+            is $uncompressed, $hello1;
+        }
+    }
 }
