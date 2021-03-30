@@ -383,8 +383,8 @@ sub mkHeader
     $hdr .= pack 'v', $method    ; # compression method (deflate)
     $hdr .= pack 'V', $time      ; # last mod date/time
     $hdr .= pack 'V', 0          ; # crc32               - 0 when streaming
-    $hdr .= pack 'V', $empty     ; # compressed length   - 0 when streaming
-    $hdr .= pack 'V', $empty     ; # uncompressed length - 0 when streaming
+    $hdr .= pack 'V', $empty     ; # compressed length   - 0 when streaming, FFFFFFFF when Zip64
+    $hdr .= pack 'V', $empty     ; # uncompressed length - 0 when streaming, FFFFFFFF when Zip64
     $hdr .= pack 'v', length $filename ; # filename length
     $hdr .= pack 'v', length $extra ; # extra length
 
@@ -492,18 +492,12 @@ sub mkTrailer
 
     my $zip64Payload = '';
 
-    # uncompressed length - only set zip64 if needed
-    if (*$self->{UnCompSize}->isAlmost64bit()) { #  || *$self->{ZipData}{Zip64}) {
-        $zip64Payload .= *$self->{UnCompSize}->getPacked_V64() ;
-    } else {
+    if (! *$self->{ZipData}{Zip64}) {
+        substr($ctl, 20, 4) = *$self->{CompSize}->getPacked_V32() ;
         substr($ctl, 24, 4) = *$self->{UnCompSize}->getPacked_V32() ;
     }
-
-    # compressed length - only set zip64 if needed
-    if (*$self->{CompSize}->isAlmost64bit()) { # || *$self->{ZipData}{Zip64}) {
-        $zip64Payload .= *$self->{CompSize}->getPacked_V64() ;
-    } else {
-        substr($ctl, 20, 4) = *$self->{CompSize}->getPacked_V32() ;
+    else {
+        $zip64Payload .= $sizes  ;
     }
 
     # Local Header offset
