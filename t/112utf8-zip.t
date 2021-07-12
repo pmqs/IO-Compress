@@ -26,7 +26,7 @@ BEGIN {
     plan skip_all => "Encode is not available"
         if $@ ;
 
-    plan skip_all => "Encode not woking in perl $]"
+    plan skip_all => "Encode not working in perl $]"
         if $] >= 5.008 && $] < 5.008004 ;
 
     # use Test::NoWarnings, if available
