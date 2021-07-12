@@ -130,7 +130,9 @@ sub chkTrailer
 sub isBzip2Magic
 {
     my $buffer = shift ;
-    return $buffer =~ /^BZh\d$/;
+
+                  # ASCII:  B   Z   h    0    9
+    return $buffer =~ qr/^\x42\x5A\x68[\x30-\x39]$/;
 }
 
 1 ;
