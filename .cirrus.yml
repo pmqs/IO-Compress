@@ -28,7 +28,7 @@ task:
   install_script:
     - perl -V
     - echo|sudo cpan App::cpanminus
-    - sudo /Users/anka/perl5/bin/cpanm --installdeps .
+    - sudo /Users/admin/perl5/bin/cpanm --installdeps .
   build_script:
     - sudo perl Makefile.PL
   test_script:
