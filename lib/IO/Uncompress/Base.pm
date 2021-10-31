@@ -1006,6 +1006,11 @@ sub nextStream
 {
     my $self = shift ;
 
+    # An uncompressed file cannot have a next stream, so
+    # return immediately.
+    return 0
+        if *$self->{Plain} ;
+
     my $status = $self->gotoNextStream();
     $status == 1
         or return $status ;
