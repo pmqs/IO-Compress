@@ -197,7 +197,7 @@ L<ftp://ftp.info-zip.org/pub/infozip/doc/>
 =head2 Gzip Resources
 
 The primary reference for gzip files is RFC 1952
-L<http://www.faqs.org/rfcs/rfc1952.html>
+L<https://datatracker.ietf.org/doc/html/rfc1952>
 
 The primary site for gzip is L<http://www.gzip.org>.
 
