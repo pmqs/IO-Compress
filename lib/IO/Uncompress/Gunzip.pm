@@ -11,7 +11,7 @@ use bytes;
 
 use IO::Uncompress::RawInflate 2.104 ;
 
-use Compress::Raw::Zlib 2.104 () ;
+use Compress::Raw::Zlib 2.103 () ;
 use IO::Compress::Base::Common 2.104 qw(:Status );
 use IO::Compress::Gzip::Constants 2.104 ;
 use IO::Compress::Zlib::Extra 2.104 ;

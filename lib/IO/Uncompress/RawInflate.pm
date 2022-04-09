@@ -5,7 +5,7 @@ use strict ;
 use warnings;
 use bytes;
 
-use Compress::Raw::Zlib  2.104 ;
+use Compress::Raw::Zlib  2.103 ;
 use IO::Compress::Base::Common  2.104 qw(:Status );
 
 use IO::Uncompress::Base  2.104 ;

@@ -42,7 +42,7 @@ $VERSION = '2.104';
 $UnzipError = '';
 
 @ISA    = qw(IO::Uncompress::RawInflate Exporter);
-@EXPORT_OK =2.104$UnzipError unzip );
+@EXPORT_OK = qw($UnzipError unzip );
 %EXPORT_TAGS = %IO::Uncompress::RawInflate::EXPORT_TAGS ;
 push @{ $EXPORT_TAGS{all} }, @EXPORT_OK ;
 Exporter::export_ok_tags('all');
