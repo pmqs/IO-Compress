@@ -1,6 +1,11 @@
 CHANGES
 -------
 
+  2.105 9 April 2022
+
+      * remove WeakDecrypt
+        95892a68780426909b75b4f3d465ff02e630834e
+
   2.104 9 April 2022
 
       * Sync zipdetails 2.100 from https://github.com/pmqs/zipdetails
