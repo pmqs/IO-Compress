@@ -1,6 +1,13 @@
 CHANGES
 -------
 
+  2.106 12 April 2022
+
+      * bin/zipdetails
+        sync 2.104 from https://github.com/pmqs/zipdetails
+        Tue Apr 12 15:39:59 2022 +0100
+        3fe7b8788ab816bebddfdfbb1462d3f439c6b2f1
+
   2.105 9 April 2022
 
       * remove WeakDecrypt
