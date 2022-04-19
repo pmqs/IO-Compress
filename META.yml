@@ -24,6 +24,7 @@ requires:
   Compress::Raw::Zlib: '2.103'
   Scalar::Util: '0'
   Encode: '0'
+  Time::Local: '0'
 resources:
   bugtracker: https://github.com/pmqs/IO-Compress/issues
   homepage: https://github.com/pmqs/IO-Compress

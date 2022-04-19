@@ -37,7 +37,8 @@
             "Compress::Raw::Bzip2" : "2.103",
             "Compress::Raw::Zlib" : "2.103",
             "Scalar::Util" : "0",
-            "Encode" :  "0"
+            "Encode" :  "0",
+            "Time::Local" : "0"
          }
       }
    },

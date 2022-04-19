@@ -29,6 +29,7 @@ WriteMakefile(
 		                    'Compress::Raw::Zlib'  => $::DEP_VERSION,
 		                    'Scalar::Util'  => 0,
                             'Encode'        => 0,
+                            'Time::Local'   => 0,
 		                    $] >= 5.005 && $] < 5.006
                                 ? ('File::BSDGlob' => 0)
                                 : () }

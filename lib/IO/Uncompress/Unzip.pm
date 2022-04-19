@@ -812,12 +812,10 @@ sub _dosToUnixTime
 	my $min  = ( ( $dt >> 5 ) & 0x3f );
 	my $sec  = ( ( $dt << 1 ) & 0x3e );
 
-
-    use POSIX 'mktime';
-
-    my $time_t = mktime( $sec, $min, $hour, $mday, $mon, $year, 0, 0, -1 );
+    use Time::Local ;
+    my $time_t = Time::Local::timegm( $sec, $min, $hour, $mday, $mon, $year);
     return 0 if ! defined $time_t;
-	return $time_t;
+    return $time_t;
 }
 
 #sub scanCentralDirectory
