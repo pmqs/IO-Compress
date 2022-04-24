@@ -85,20 +85,24 @@ sub isMethodAvailable
         if $method == ZIP_CM_STORE || $method == ZIP_CM_DEFLATE ;
 
     return 1
-        if $method == ZIP_CM_BZIP2 and
-           defined $IO::Compress::Adapter::Bzip2::VERSION;
+        if $method == ZIP_CM_BZIP2 &&
+           defined $IO::Compress::Adapter::Bzip2::VERSION &&
+           defined &{ "IO::Compress::Adapter::Bzip2::mkRawZipCompObject" };
 
     return 1
-        if $method == ZIP_CM_LZMA and
-           defined $IO::Compress::Adapter::Lzma::VERSION;
+        if $method == ZIP_CM_LZMA &&
+           defined $IO::Compress::Adapter::Lzma::VERSION &&
+           defined &{ "IO::Compress::Adapter::Lzma::mkRawZipCompObject" };
 
     return 1
-        if $method == ZIP_CM_XZ and
-           defined $IO::Compress::Adapter::Xz::VERSION;
+        if $method == ZIP_CM_XZ &&
+           defined $IO::Compress::Adapter::Xz::VERSION &&
+           defined &{ "IO::Compress::Adapter::Xz::mkRawZipCompObject" };
 
     return 1
-        if $method == ZIP_CM_ZSTD and
-           defined $IO::Compress::Adapter::ZSTD::VERSION;
+        if $method == ZIP_CM_ZSTD &&
+           defined $IO::Compress::Adapter::ZSTD::VERSION &&
+           defined &{ "IO::Compress::Adapter::ZSTD::mkRawZipCompObject" };
 
     return 0;
 }
