@@ -813,9 +813,10 @@ sub _dosToUnixTime
 	my $sec  = ( ( $dt << 1 ) & 0x3e );
 
     use Time::Local ;
-    my $time_t = Time::Local::timegm( $sec, $min, $hour, $mday, $mon, $year);
+    my $time_t = Time::Local::timelocal( $sec, $min, $hour, $mday, $mon, $year);
     return 0 if ! defined $time_t;
     return $time_t;
+
 }
 
 #sub scanCentralDirectory
