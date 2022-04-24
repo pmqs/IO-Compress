@@ -107,7 +107,8 @@ Usage:
   producer | streamzip [OPTIONS] | consumer
   producer | streamzip [OPTIONS] -zipfile output.zip
 
-Stream data from stdin, compress into a Zip container, and stream to stdout.
+Stream data from stdin, compress into a Zip container, and either stream to stdout, or
+write to a named file.
 
 OPTIONS
 
@@ -131,7 +132,7 @@ OPTIONS
                     zstd     Use LZMA compression [needs IO::Compress::Zstd]
   -version        Display version number [$VERSION]
 
-Copyright (c) 2019-2021 Paul Marquess. All rights reserved.
+Copyright (c) 2019-2022 Paul Marquess. All rights reserved.
 
 This program is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.
@@ -287,7 +288,7 @@ Paul Marquess F<pmqs@cpan.org>.
 
 =head1 COPYRIGHT
 
-Copyright (c) 2019-2021 Paul Marquess. All rights reserved.
+Copyright (c) 2019-2022 Paul Marquess. All rights reserved.
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
