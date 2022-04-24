@@ -148,6 +148,9 @@ for my $method (qw(store deflate bzip2 lzma xz zstd))
         {
             title "streamzip method $method" ;
 
+            skip "streaming unzip not supported with zstd\n", 7
+                if $method eq 'zstd' ;
+
             my ($infile, $outfile);
             my $lex = LexFile->new( $infile, $outfile );
 

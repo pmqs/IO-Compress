@@ -12,7 +12,7 @@ use IO::Compress::Zip qw(zip
 
 use Getopt::Long;
 
-my $VERSION = '1.002';
+my $VERSION = '1.00';
 
 my $compression_method = ZIP_CM_DEFLATE;
 my $stream = 0;
@@ -50,6 +50,10 @@ if ($compression_method == ZIP_CM_DEFLATE && defined $level)
 {
     push @extraOpts, (Level => $level)
 }
+
+# force streaming zip file when writing to stdout.
+$stream = 1
+    if $zipfile eq '-';
 
 zip '-' => $zipfile,
            Name   => $memberName,
