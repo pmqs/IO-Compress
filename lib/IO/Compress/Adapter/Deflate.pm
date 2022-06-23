@@ -40,6 +40,29 @@ sub mkCompObject
                  } ;
 }
 
+sub mkCompObject1
+{
+    my $crc32    = shift ;
+    my $adler32  = shift ;
+    my $level    = shift ;
+    my $strategy = shift ;
+
+    my ($def, $status) = Compress::Raw::Zlib::Deflate->new(
+                                -AppendOutput   => 1,
+                                -CRC32          => $crc32,
+                                -ADLER32        => $adler32,
+                                -Level          => $level,
+                                -Strategy       => $strategy,
+                                -WindowBits     => MAX_WBITS);
+
+    return (undef, "Cannot create Deflate object: $status", $status)
+        if $status != Z_OK;
+
+    return bless {'Def'        => $def,
+                  'Error'      => '',
+                 } ;
+}
+
 sub compr
 {
     my $self = shift ;

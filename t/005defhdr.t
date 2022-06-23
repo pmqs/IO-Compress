@@ -168,13 +168,15 @@ EOM
 
         my $hdr1 = ReadHeaderInfoZlib($string, %$opts);
 
+        # zlib-ng with Level 1 sets the CINFO value to 5 for some reason. All others use expected value of 7
+        my $cinfoValue =  Compress::Raw::Zlib::is_zlibng() && defined $opts->{'-Level'} && $opts->{'-Level'} == 1 ? 5 : 7;
         is $hdr->{CM},     8, "  CM is 8";
-        is $hdr->{CINFO},  7, "  CINFO is 7";
+        is $hdr->{CINFO},  $cinfoValue, "  CINFO is $cinfoValue";
         is $hdr->{FDICT},  0, "  FDICT is 0";
 
         while (my ($k, $v) = each %$expect)
         {
-            if (ZLIB_VERNUM >= 0x1220)
+            if (Compress::Raw::Zlib::is_zlibng() || ZLIB_VERNUM >= 0x1220)
               { is $hdr->{$k}, $v, "  $k is $v" }
             else
               { ok 1, "  Skip test for $k" }
@@ -357,4 +359,3 @@ EOM
         ok $gunz->close ;
     }
 }
-

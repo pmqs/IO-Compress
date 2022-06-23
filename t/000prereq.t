@@ -86,9 +86,9 @@ BEGIN
         }
     }
 
-    # need zlib 1.2.0 or better
+    # need zlib 1.2.0 or better or zlib-ng
 
-    cmp_ok Compress::Raw::Zlib::ZLIB_VERNUM(), ">=", 0x1200
+    ok Compress::Raw::Zlib::is_zlibng() || Compress::Raw::Zlib::ZLIB_VERNUM() >= 0x1200
         or diag "IO::Compress needs zlib 1.2.0 or better, you have " . Compress::Raw::Zlib::zlib_version();
 
     use_ok('Scalar::Util') ;
