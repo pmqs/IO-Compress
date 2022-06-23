@@ -1057,12 +1057,24 @@ See L<File::GlobMapper|File::GlobMapper> for more details.
 If the C<$input_filename_or_reference> parameter is any other type,
 C<undef> will be returned.
 
-In addition, if C<$input_filename_or_reference> is a simple filename,
-the default values for
-the C<Name>, C<Time>, C<TextFlag>, C<ExtAttr>, C<exUnixN> and C<exTime> options will be sourced from that file.
+In addition, if C<$input_filename_or_reference> corresponds to a filename
+from the filesystem, a number of zip file header fields will be populated by default
+using the following attributes from the input file
+
+=over 5
+
+=item * the full filename contained in C<$input_filename_or_reference>
+
+=item * the file protection attributes
+
+=item * the UID/GID for the file
+
+=item * the file timestamps
+
+=back
 
 If you do not want to use these defaults they can be overridden by
-explicitly setting the C<Name>, C<Time>, C<TextFlag>, C<ExtAttr>, C<exUnixN> and C<exTime> options or by setting the
+explicitly setting one, or more, of the C<Name>, C<Time>, C<TextFlag>, C<ExtAttr>, C<exUnixN> and C<exTime> options or by setting the
 C<Minimal> parameter.
 
 =head3 The C<$output_filename_or_reference> parameter
