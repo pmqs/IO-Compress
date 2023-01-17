@@ -839,7 +839,8 @@ Unix variants and unknown Operating Systems.
 This parameter allows additional metadata to be stored in the ExtraField in
 the gzip header. An RFC 1952 compliant ExtraField consists of zero or more
 subfields. Each subfield consists of a two byte header followed by the
-subfield data.
+subfield data. (The RFC 16-bit subfield length (LEN) is calculated 
+automatically and will be included in the generated gzip data)
 
 The list of subfields can be supplied in any of the following formats
 
@@ -960,7 +961,18 @@ The ID header in an C<ExtraField> sub-field can consist of any two bytes.
 
 =head2 Examples
 
-TODO
+```
+use IO::Compress::Gzip qw(gzip $GzipError);
+gzip \"payload" => "test.gz", 
+	Name       => "test", 
+	Comment    => "springtime", 
+	ExtraField => [ "xy" => "flowers", "ok"=>"bees"],
+	OS_Code => 2,
+	HeaderCRC => 0,
+	TextFlag => 1,
+	Time => 42,
+  or die "Cannot create gzip file: $GzipError" ;
+```
 
 =head1 Methods
 
@@ -1228,7 +1240,7 @@ See L<IO::Compress::FAQ|IO::Compress::FAQ/"Compressed files and Net::FTP">
 =head1 SUPPORT
 
 General feedback/questions/bug reports should be sent to
-L<https://github.com/pmqs/IO-Copress/issues> (preferred) or
+L<https://github.com/pmqs/IO-Compress/issues> (preferred) or
 L<https://rt.cpan.org/Public/Dist/Display.html?Name=IO-Copress>.
 
 =head1 SEE ALSO
