@@ -8,12 +8,12 @@ use bytes;
 
 require Exporter ;
 
-use IO::Compress::RawDeflate 2.201 () ;
-use IO::Compress::Adapter::Deflate 2.201 ;
+use IO::Compress::RawDeflate 2.204 () ;
+use IO::Compress::Adapter::Deflate 2.204 ;
 
-use IO::Compress::Base::Common  2.201 qw(:Status );
-use IO::Compress::Gzip::Constants 2.201 ;
-use IO::Compress::Zlib::Extra 2.201 ;
+use IO::Compress::Base::Common  2.204 qw(:Status );
+use IO::Compress::Gzip::Constants 2.204 ;
+use IO::Compress::Zlib::Extra 2.204 ;
 
 BEGIN
 {
@@ -25,7 +25,7 @@ BEGIN
 
 our ($VERSION, @ISA, @EXPORT_OK, %EXPORT_TAGS, %DEFLATE_CONSTANTS, $GzipError);
 
-$VERSION = '2.201';
+$VERSION = '2.204';
 $GzipError = '' ;
 
 @ISA    = qw(IO::Compress::RawDeflate Exporter);
@@ -839,8 +839,7 @@ Unix variants and unknown Operating Systems.
 This parameter allows additional metadata to be stored in the ExtraField in
 the gzip header. An RFC 1952 compliant ExtraField consists of zero or more
 subfields. Each subfield consists of a two byte header followed by the
-subfield data. (The RFC 16-bit subfield length (LEN) is calculated 
-automatically and will be included in the generated gzip data)
+subfield data.
 
 The list of subfields can be supplied in any of the following formats
 
@@ -961,18 +960,7 @@ The ID header in an C<ExtraField> sub-field can consist of any two bytes.
 
 =head2 Examples
 
-```
-use IO::Compress::Gzip qw(gzip $GzipError);
-gzip \"payload" => "test.gz", 
-	Name       => "test", 
-	Comment    => "springtime", 
-	ExtraField => [ "xy" => "flowers", "ok"=>"bees"],
-	OS_Code => 2,
-	HeaderCRC => 0,
-	TextFlag => 1,
-	Time => 42,
-  or die "Cannot create gzip file: $GzipError" ;
-```
+TODO
 
 =head1 Methods
 
@@ -1240,7 +1228,7 @@ See L<IO::Compress::FAQ|IO::Compress::FAQ/"Compressed files and Net::FTP">
 =head1 SUPPORT
 
 General feedback/questions/bug reports should be sent to
-L<https://github.com/pmqs/IO-Compress/issues> (preferred) or
+L<https://github.com/pmqs/IO-Copress/issues> (preferred) or
 L<https://rt.cpan.org/Public/Dist/Display.html?Name=IO-Copress>.
 
 =head1 SEE ALSO
@@ -1279,7 +1267,7 @@ See the Changes file.
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (c) 2005-2022 Paul Marquess. All rights reserved.
+Copyright (c) 2005-2023 Paul Marquess. All rights reserved.
 
 This program is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.
