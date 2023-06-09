@@ -421,7 +421,7 @@ C<InputLength> option.
 
 =back
 
-=head2 Examples
+=head2 OneShot Examples
 
 To read the contents of the file C<file1.txt.Compressed> and write the
 uncompressed data to the file C<file1.txt>.
@@ -481,6 +481,9 @@ The format of the constructor for IO::Uncompress::AnyInflate is shown below
     my $z = IO::Uncompress::AnyInflate->new( $input [OPTS] )
         or die "IO::Uncompress::AnyInflate failed: $AnyInflateError\n";
 
+The constructor takes one mandatory parameter, C<$input>, defined below, and
+zero or more C<OPTS>, defined in L<Constructor Options>.
+
 Returns an C<IO::Uncompress::AnyInflate> object on success and undef on failure.
 The variable C<$AnyInflateError> will contain an error message on failure.
 
@@ -492,6 +495,20 @@ use either of these forms
 
     $line = $z->getline();
     $line = <$z>;
+
+Below is a simple exaple of using the OO interface to read the compressed file
+C<myfile.Compressed> and write its contents to stdout.
+
+    my $filename = "myfile.Compressed";
+    my $z = IO::Uncompress::AnyInflate->new($filename)
+        or die "IO::Uncompress::AnyInflate failed: $AnyInflateError\n";
+
+    while (<$z>) {
+        print $_;
+    }
+    $z->close();
+
+See L</EXAMPLES> for further examples
 
 The mandatory parameter C<$input> is used to determine the source of the
 compressed data. This parameter can take one of three forms.
@@ -688,10 +705,6 @@ If the C<Strict> is on it will automatically enable this option.
 Defaults to 0.
 
 =back
-
-=head2 Examples
-
-TODO
 
 =head1 Methods
 
