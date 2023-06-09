@@ -1,6 +1,6 @@
 name: Windows build
 
-on: [push, pull_request]
+on: [push, pull_request, workflow_dispatch]
 
 jobs:
   build:
@@ -25,14 +25,18 @@ jobs:
 #           - '5.12'
 #           - '5.10'
 #           - '5.8'
+        distribution:
+            - 'default'
+            - 'strawberry'
 
-    name: Perl ${{ matrix.perl }}
+    name: Perl ${{ matrix.perl }} distribution:${{ matrix.distribution }}
     steps:
     - uses: actions/checkout@v1
     - name: Setup perl
       uses: shogo82148/actions-setup-perl@v1
       with:
         perl-version: ${{ matrix.perl }}
+        distribution: ${{ matrix.distribution }}
     - name: Perl version
       run: perl -V
     - name: Install dependencies
