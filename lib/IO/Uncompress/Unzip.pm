@@ -9,14 +9,14 @@ use warnings;
 use bytes;
 
 use IO::File;
-use IO::Uncompress::RawInflate  2.204 ;
-use IO::Compress::Base::Common  2.204 qw(:Status );
-use IO::Uncompress::Adapter::Inflate  2.204 ;
-use IO::Uncompress::Adapter::Identity 2.204 ;
-use IO::Compress::Zlib::Extra 2.204 ;
-use IO::Compress::Zip::Constants 2.204 ;
+use IO::Uncompress::RawInflate  2.205 ;
+use IO::Compress::Base::Common  2.205 qw(:Status );
+use IO::Uncompress::Adapter::Inflate  2.205 ;
+use IO::Uncompress::Adapter::Identity 2.205 ;
+use IO::Compress::Zlib::Extra 2.205 ;
+use IO::Compress::Zip::Constants 2.205 ;
 
-use Compress::Raw::Zlib  2.204 () ;
+use Compress::Raw::Zlib  2.205 () ;
 
 BEGIN
 {
@@ -24,13 +24,13 @@ BEGIN
    local $SIG{__DIE__};
 
     eval{ require IO::Uncompress::Adapter::Bunzip2 ;
-          IO::Uncompress::Adapter::Bunzip2->import() } ;
+          IO::Uncompress::Adapter::Bunzip2->import(2.205) } ;
     eval{ require IO::Uncompress::Adapter::UnLzma ;
-          IO::Uncompress::Adapter::UnLzma->import() } ;
+          IO::Uncompress::Adapter::UnLzma->import(2.205) } ;
     eval{ require IO::Uncompress::Adapter::UnXz ;
-          IO::Uncompress::Adapter::UnXz->import() } ;
+          IO::Uncompress::Adapter::UnXz->import(2.205) } ;
     eval{ require IO::Uncompress::Adapter::UnZstd ;
-          IO::Uncompress::Adapter::UnZstd->import() } ;
+          IO::Uncompress::Adapter::UnZstd->import(2.205) } ;
 }
 
 
@@ -38,7 +38,7 @@ require Exporter ;
 
 our ($VERSION, @ISA, @EXPORT_OK, %EXPORT_TAGS, $UnzipError, %headerLookup);
 
-$VERSION = '2.204';
+$VERSION = '2.205';
 $UnzipError = '';
 
 @ISA    = qw(IO::Uncompress::RawInflate Exporter);

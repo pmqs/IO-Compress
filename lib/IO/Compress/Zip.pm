@@ -4,41 +4,41 @@ use strict ;
 use warnings;
 use bytes;
 
-use IO::Compress::Base::Common  2.204 qw(:Status );
-use IO::Compress::RawDeflate 2.204 ();
-use IO::Compress::Adapter::Deflate 2.204 ;
-use IO::Compress::Adapter::Identity 2.204 ;
-use IO::Compress::Zlib::Extra 2.204 ;
-use IO::Compress::Zip::Constants 2.204 ;
+use IO::Compress::Base::Common  2.205 qw(:Status );
+use IO::Compress::RawDeflate 2.205 ();
+use IO::Compress::Adapter::Deflate 2.205 ;
+use IO::Compress::Adapter::Identity 2.205 ;
+use IO::Compress::Zlib::Extra 2.205 ;
+use IO::Compress::Zip::Constants 2.205 ;
 
 use File::Spec();
 use Config;
 
-use Compress::Raw::Zlib  2.204 ();
+use Compress::Raw::Zlib  2.205 ();
 
 BEGIN
 {
     eval { require IO::Compress::Adapter::Bzip2 ;
-           IO::Compress::Adapter::Bzip2->import( 2.201 );
+           IO::Compress::Adapter::Bzip2->import( 2.205 );
            require IO::Compress::Bzip2 ;
-           IO::Compress::Bzip2->import( 2.201 );
+           IO::Compress::Bzip2->import( 2.205 );
          } ;
 
     eval { require IO::Compress::Adapter::Lzma ;
-           IO::Compress::Adapter::Lzma->import( 2.201 );
+           IO::Compress::Adapter::Lzma->import( 2.205 );
            require IO::Compress::Lzma ;
-           IO::Compress::Lzma->import( 2.201 );
+           IO::Compress::Lzma->import( 2.205 );
          } ;
 
     eval { require IO::Compress::Adapter::Xz ;
-           IO::Compress::Adapter::Xz->import( 2.201 );
+           IO::Compress::Adapter::Xz->import( 2.205 );
            require IO::Compress::Xz ;
-           IO::Compress::Xz->import( 2.201 );
+           IO::Compress::Xz->import( 2.205 );
          } ;
     eval { require IO::Compress::Adapter::Zstd ;
-           IO::Compress::Adapter::Zstd->import( 2.201 );
+           IO::Compress::Adapter::Zstd->import( 2.205 );
            require IO::Compress::Zstd ;
-           IO::Compress::Zstd->import( 2.201 );
+           IO::Compress::Zstd->import( 2.205 );
          } ;
 }
 
@@ -47,7 +47,7 @@ require Exporter ;
 
 our ($VERSION, @ISA, @EXPORT_OK, %EXPORT_TAGS, %DEFLATE_CONSTANTS, $ZipError);
 
-$VERSION = '2.204';
+$VERSION = '2.205';
 $ZipError = '';
 
 @ISA = qw(IO::Compress::RawDeflate Exporter);

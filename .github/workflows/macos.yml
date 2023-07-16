@@ -1,6 +1,11 @@
 name: Macos build
 
-on: [push, pull_request, workflow_dispatch]
+on:
+  workflow_dispatch:
+  push:
+  pull_request:
+  schedule:
+    - cron: '01 01 * * 6'    # Run every Saturday
 
 jobs:
   build:
@@ -10,6 +15,7 @@ jobs:
     strategy:
       matrix:
         perl:
+          - 'develop'
           - '5.38'
           - '5.36'
           - '5.34'
