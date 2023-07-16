@@ -1,6 +1,24 @@
 CHANGES
 -------
 
+  2.205 16 July 2023
+
+      * 2.205
+        Sun, 16 Jul 2023 20:26:06 +0100
+        5f8450648f1915451b0a7ccdd551ec84e18cb05c
+
+      * add perl 5.38
+        Thu, 13 Jul 2023 11:13:24 +0100
+        1dc60a0d48e74f3b707dc4f5c1f0b7b8bf54b10b
+
+      * add on workflow_dispatch
+        Fri, 9 Jun 2023 16:25:09 +0100
+        f99b28e94b29446a60e2f91c762a0f407d7725d4
+
+      * Add some OO examples
+        Fri, 9 Jun 2023 16:18:54 +0100
+        45457e70f8ad202196f20305ae4f8ee48e3cbded
+
   2.204 8 February 2022
 
       * Update Gzip.pm
@@ -12,7 +30,7 @@ CHANGES
         https://github.com/pmqs/Compress-Raw-Zlib/issues/17
         c42da1483767bc8afbdb2d8b03ecda7b67b4d022
 
-      
+
   2.201 25 June 2022
 
       * Disable zib header tests
