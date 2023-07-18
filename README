@@ -22,7 +22,7 @@ IO-Compress supports reading and writing of the following compressed data format
   * RFC 1952 (i.e. gzip)
   * zip
 
-There are a number of optional companion modules for IO-Compress that extend
+There are a number of companion modules for IO-Compress that extend
 the suite of compression formats available.
 
  * IO-Compress-Zstd
@@ -76,8 +76,7 @@ SUPPORT
 -------
 
 General feedback/questions/bug reports should be sent to
-https://github.com/pmqs/IO-Compress/issues (preferred) or
-https://rt.cpan.org/Public/Dist/Display.html?Name=IO-Compress.
+https://github.com/pmqs/IO-Compress/issues
 
 FEEDBACK
 --------
