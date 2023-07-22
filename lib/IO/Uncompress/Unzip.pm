@@ -24,13 +24,13 @@ BEGIN
    local $SIG{__DIE__};
 
     eval{ require IO::Uncompress::Adapter::Bunzip2 ;
-          IO::Uncompress::Adapter::Bunzip2->import(2.205) } ;
+          IO::Uncompress::Adapter::Bunzip2->VERSION(2.205) } ;
     eval{ require IO::Uncompress::Adapter::UnLzma ;
-          IO::Uncompress::Adapter::UnLzma->import(2.205) } ;
+          IO::Uncompress::Adapter::UnLzma->VERSION(2.205) } ;
     eval{ require IO::Uncompress::Adapter::UnXz ;
-          IO::Uncompress::Adapter::UnXz->import(2.205) } ;
+          IO::Uncompress::Adapter::UnXz->VERSION(2.205) } ;
     eval{ require IO::Uncompress::Adapter::UnZstd ;
-          IO::Uncompress::Adapter::UnZstd->import(2.205) } ;
+          IO::Uncompress::Adapter::UnZstd->VERSION(2.205) } ;
 }
 
 

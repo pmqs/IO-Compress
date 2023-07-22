@@ -19,26 +19,26 @@ use Compress::Raw::Zlib  2.205 ();
 BEGIN
 {
     eval { require IO::Compress::Adapter::Bzip2 ;
-           IO::Compress::Adapter::Bzip2->import( 2.205 );
+           IO::Compress::Adapter::Bzip2->VERSION( 2.205 );
            require IO::Compress::Bzip2 ;
-           IO::Compress::Bzip2->import( 2.205 );
+           IO::Compress::Bzip2->VERSION( 2.205 );
          } ;
 
     eval { require IO::Compress::Adapter::Lzma ;
-           IO::Compress::Adapter::Lzma->import( 2.205 );
+           IO::Compress::Adapter::Lzma->VERSION( 2.205 );
            require IO::Compress::Lzma ;
-           IO::Compress::Lzma->import( 2.205 );
+           IO::Compress::Lzma->VERSION( 2.205 );
          } ;
 
     eval { require IO::Compress::Adapter::Xz ;
-           IO::Compress::Adapter::Xz->import( 2.205 );
+           IO::Compress::Adapter::Xz->VERSION( 2.205 );
            require IO::Compress::Xz ;
-           IO::Compress::Xz->import( 2.205 );
+           IO::Compress::Xz->VERSION( 2.205 );
          } ;
     eval { require IO::Compress::Adapter::Zstd ;
-           IO::Compress::Adapter::Zstd->import( 2.205 );
+           IO::Compress::Adapter::Zstd->VERSION( 2.205 );
            require IO::Compress::Zstd ;
-           IO::Compress::Zstd->import( 2.205 );
+           IO::Compress::Zstd->VERSION( 2.205 );
          } ;
 }
 
