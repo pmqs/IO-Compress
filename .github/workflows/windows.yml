@@ -38,12 +38,14 @@ jobs:
 
     name: Perl ${{ matrix.perl }} distribution:${{ matrix.distribution }}
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v4
     - name: Setup perl
       uses: shogo82148/actions-setup-perl@v1
       with:
         perl-version: ${{ matrix.perl }}
         distribution: ${{ matrix.distribution }}
+    - name: Install packages
+      run: choco install make
     - name: Perl version
       run: perl -V
     - name: Install dependencies
