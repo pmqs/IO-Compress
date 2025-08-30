@@ -636,7 +636,7 @@ Compress::Zlib - Interface to zlib compression library
     $d->msg() ;
     $d->get_Strategy();
     $d->get_Level();
-    $d->get_BufSize();
+    $d->get_Bufsize();
 
     ($i, $status) = inflateInit( [OPT] ) ;
     $status = $i->inflate($input, $output [, $eof]) ;
@@ -647,7 +647,7 @@ Compress::Zlib - Interface to zlib compression library
     $i->total_in() ;
     $i->total_out() ;
     $i->msg() ;
-    $d->get_BufSize();
+    $d->get_Bufsize();
 
     $dest = compress($source) ;
     $dest = uncompress($source) ;
