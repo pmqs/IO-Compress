@@ -37,9 +37,9 @@ jobs:
         distribution:
             - 'default'
             - 'strawberry'
-    exclude:
-      - perl: '5.42'
-        distribution: 'strawberry'
+      exclude:
+        - perl: '5.42'
+          distribution: 'strawberry'
 
     name: Perl ${{ matrix.perl }} distribution:${{ matrix.distribution }}
     steps:
