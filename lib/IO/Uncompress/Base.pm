@@ -23,7 +23,7 @@ use List::Util ();
 use Carp ;
 
 %EXPORT_TAGS = ( );
-push @{ $EXPORT_TAGS{all} }, @EXPORT_OK ;
+$EXPORT_TAGS{all} = [ defined $EXPORT_TAGS{all} ? @{ $EXPORT_TAGS{all} } : (), @EXPORT_OK ] ;
 
 sub smartRead
 {

@@ -19,7 +19,7 @@ $InflateError = '';
 @ISA    = qw(IO::Uncompress::RawInflate Exporter);
 @EXPORT_OK = qw( $InflateError inflate ) ;
 %EXPORT_TAGS = %IO::Uncompress::RawInflate::DEFLATE_CONSTANTS ;
-push @{ $EXPORT_TAGS{all} }, @EXPORT_OK ;
+$EXPORT_TAGS{all} = [ defined $EXPORT_TAGS{all} ? @{ $EXPORT_TAGS{all} } : (), @EXPORT_OK ] ;
 Exporter::export_ok_tags('all');
 
 
