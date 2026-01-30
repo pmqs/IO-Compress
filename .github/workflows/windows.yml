@@ -43,7 +43,7 @@ jobs:
 
     name: Perl ${{ matrix.perl }} distribution:${{ matrix.distribution }}
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - name: Setup perl
       uses: shogo82148/actions-setup-perl@v1
       with:
