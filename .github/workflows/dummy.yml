@@ -80,7 +80,7 @@ jobs:
 
   list-windows:
     name: set perl version for windows
-    runs-on: macos-latest
+    runs-on: windows-latest
     steps:
       - uses: shogo82148/actions-setup-perl@v1
       - id: set-matrix
