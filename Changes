@@ -3,6 +3,14 @@ CHANGES
 
   2.215 31 January 2026
 
+      * Fix version check in 000prereq.t
+        Fri Jan 30 11:59:07 2026 +0000
+        4fb2a081607db9285970edcfdcf50a94f504b378
+
+      * Update Changes for 2.215
+        Fri Jan 30 11:55:16 2026 +0000
+        b9cf3c64724584be2b739f6d26909eb4c90b7d2e
+
       * Update version to 2.215 & change copyright year to 2026
         Fri Jan 30 11:52:41 2026 +0000
         2634d1c3a6e2ed9b0cee109c262d0ccf81a3bf91
