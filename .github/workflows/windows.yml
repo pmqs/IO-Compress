@@ -34,8 +34,8 @@ jobs:
             print "\t$v\n";
           }
 
-          set_output(matrix => { [perl => [@versions], distribution => ['default']]],
-                                 [perl => [@available_strawberry_perls], distribution => ['strawberry']]]
+          set_output(matrix => { [perl => [@versions], distribution => ['default']],
+                                 [perl => [@available_strawberry_perls], distribution => ['strawberry']]
                                } );
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
