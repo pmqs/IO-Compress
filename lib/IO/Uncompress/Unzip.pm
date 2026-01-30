@@ -9,12 +9,12 @@ use warnings;
 use bytes;
 
 use IO::File;
-use IO::Uncompress::RawInflate  2.215 ;
-use IO::Compress::Base::Common  2.215 qw(:Status );
-use IO::Uncompress::Adapter::Inflate  2.215 ;
-use IO::Uncompress::Adapter::Identity 2.215 ;
-use IO::Compress::Zlib::Extra 2.215 ;
-use IO::Compress::Zip::Constants 2.215 ;
+use IO::Uncompress::RawInflate  2.216 ;
+use IO::Compress::Base::Common  2.216 qw(:Status );
+use IO::Uncompress::Adapter::Inflate  2.216 ;
+use IO::Uncompress::Adapter::Identity 2.216 ;
+use IO::Compress::Zlib::Extra 2.216 ;
+use IO::Compress::Zip::Constants 2.216 ;
 
 use Compress::Raw::Zlib  2.214 () ;
 
@@ -24,7 +24,7 @@ BEGIN
    local $SIG{__DIE__};
 
     eval{ require IO::Uncompress::Adapter::Bunzip2 ;
-          IO::Uncompress::Adapter::Bunzip2->VERSION(2.215) } ;
+          IO::Uncompress::Adapter::Bunzip2->VERSION(2.216) } ;
     eval{ require IO::Uncompress::Adapter::UnLzma ;
           IO::Uncompress::Adapter::UnLzma->VERSION(2.214) } ;
     eval{ require IO::Uncompress::Adapter::UnXz ;
@@ -38,7 +38,7 @@ require Exporter ;
 
 our ($VERSION, @ISA, @EXPORT_OK, %EXPORT_TAGS, $UnzipError, %headerLookup);
 
-$VERSION = '2.215';
+$VERSION = '2.216';
 $UnzipError = '';
 
 @ISA    = qw(IO::Uncompress::RawInflate Exporter);

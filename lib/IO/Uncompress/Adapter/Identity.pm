@@ -4,12 +4,12 @@ use warnings;
 use strict;
 use bytes;
 
-use IO::Compress::Base::Common  2.215 qw(:Status);
+use IO::Compress::Base::Common  2.216 qw(:Status);
 use IO::Compress::Zip::Constants ;
 
 our ($VERSION);
 
-$VERSION = '2.215';
+$VERSION = '2.216';
 
 use Compress::Raw::Zlib  2.214 ();
 
