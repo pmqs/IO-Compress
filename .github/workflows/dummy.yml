@@ -8,35 +8,35 @@ on:
     - cron: '01 01 * * 6'    # Run every Saturday
 
 jobs:
-
-  list-linux:
-    name: set perl version for linux
-    runs-on: linux-latest
-    steps:
-      - uses: shogo82148/actions-setup-perl@v1
-      - id: set-matrix
-        name: list available perl versions
-        shell: perl {0}
-        run: |
-          use Actions::Core;
-          set_output(matrix => {perl => ['5.42.0']});
-    outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
-
-  run-linux:
-    runs-on: linux-latest
-    needs: list-linux
-    strategy:
-      fail-fast: false
-      matrix: ${{fromJson(needs.list.outputs.matrix)}}
-    steps:
-      - uses: actions/checkout@v6
-      - name: Setup perl
-        uses: shogo82148/actions-setup-perl@v1
-        with:
-          perl-version: ${{ matrix.perl }}
-      - name: Perl version
-        run: perl -V
+#
+#   list-linux:
+#     name: set perl version for linux
+#     runs-on: linux-latest
+#     steps:
+#       - uses: shogo82148/actions-setup-perl@v1
+#       - id: set-matrix
+#         name: list available perl versions
+#         shell: perl {0}
+#         run: |
+#           use Actions::Core;
+#           set_output(matrix => {perl => ['5.42.0']});
+#     outputs:
+#       matrix: ${{ steps.set-matrix.outputs.matrix }}
+#
+#   run-linux:
+#     runs-on: linux-latest
+#     needs: list-linux
+#     strategy:
+#       fail-fast: false
+#       matrix: ${{fromJson(needs.list.outputs.matrix)}}
+#     steps:
+#       - uses: actions/checkout@v6
+#       - name: Setup perl
+#         uses: shogo82148/actions-setup-perl@v1
+#         with:
+#           perl-version: ${{ matrix.perl }}
+#       - name: Perl version
+#         run: perl -V
 
 
   list-macos:
