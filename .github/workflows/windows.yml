@@ -28,7 +28,7 @@ jobs:
           }
 
           # Don't want anything less then 5.8
-          @versions = grep { ! /5\.6\.*/ } @versions;
+          # @versions = grep { ! /5\.6\.*/ } @versions;
 
           # set_output(matrix => { perl => [@versions], distribution => ['default']});
           set_output(matrix => { perl => [@versions]});
