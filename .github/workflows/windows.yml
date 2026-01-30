@@ -32,7 +32,6 @@ jobs:
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
 
-
 #   list-strawberry:
 #     name: list available strawberry perl versions
 #     runs-on: windows-latest
@@ -60,7 +59,7 @@ jobs:
 
   run:
     runs-on: windows-latest
-    # needs: list-default
+    needs: list-default
     strategy:
       fail-fast: false
       matrix: ${{fromJson(needs.list.outputs.matrix)}}
