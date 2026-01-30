@@ -1,4 +1,4 @@
-name: Macos build
+name: Dummy build
 
 on:
   workflow_dispatch:
@@ -39,8 +39,8 @@ jobs:
 #         run: perl -V
 
 
-  list-macos:
-    name: set perl version for macos
+  list:
+    name: list available perl versions
     runs-on: macos-latest
     steps:
       - uses: shogo82148/actions-setup-perl@v1
@@ -51,20 +51,20 @@ jobs:
           use Actions::Core;
 
           print "Version available\n";
-          my @versions = perl_versions();
+          my @versions = grep { ! /^5\.6\./ } perl_versions();
           @versions = '5.42.0';
           for my $v (@versions) {
             print "\t$v\n";
           }
-            #   # Don't want anything less then 5.8
-            #   @versions = grep { ! /^5\.6\.*/ } @versions;
+          # Don't want anything less then 5.8
+          #   @versions = grep { ! /^5\.6\.*/ } @versions;
           set_output(matrix => {perl => [@versions]});
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
 
-  run-macos:
+  run:
     runs-on: macos-latest
-    needs: list-macos
+    needs: list
     strategy:
       fail-fast: false
       matrix: ${{fromJson(needs.list.outputs.matrix)}}
@@ -76,6 +76,51 @@ jobs:
           perl-version: ${{ matrix.perl }}
       - name: Perl version
         run: perl -V
+      - name: Install dependencies
+        run: cpanm --quiet --installdeps --notest .
+      - name: Build
+        run: perl Makefile.PL && make
+      - name: Test
+        run: make test
+
+#
+#   list-macos:
+#     name: set perl version for macos
+#     runs-on: macos-latest
+#     steps:
+#       - uses: shogo82148/actions-setup-perl@v1
+#       - id: set-matrix
+#         name: list available perl versions
+#         shell: perl {0}
+#         run: |
+#           use Actions::Core;
+#
+#           print "Version available\n";
+#           my @versions = perl_versions();
+#           @versions = '5.42.0';
+#           for my $v (@versions) {
+#             print "\t$v\n";
+#           }
+#             #   # Don't want anything less then 5.8
+#             #   @versions = grep { ! /^5\.6\.*/ } @versions;
+#           set_output(matrix => {perl => [@versions]});
+#     outputs:
+#       matrix: ${{ steps.set-matrix.outputs.matrix }}
+#
+#   run-macos:
+#     runs-on: macos-latest
+#     needs: list-macos
+#     strategy:
+#       fail-fast: false
+#       matrix: ${{fromJson(needs.list.outputs.matrix)}}
+#     steps:
+#       - uses: actions/checkout@v6
+#       - name: Setup perl
+#         uses: shogo82148/actions-setup-perl@v1
+#         with:
+#           perl-version: ${{ matrix.perl }}
+#       - name: Perl version
+#         run: perl -V
 
 
 #   list3:
