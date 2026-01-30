@@ -11,7 +11,7 @@ jobs:
 
   list-default:
     name: list available default perl versions
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     steps:
       - uses: shogo82148/actions-setup-perl@v1
       - id: set-matrix
@@ -20,18 +20,14 @@ jobs:
         run: |
           use Actions::Core;
 
+          print "Version available\n";
           my @versions = perl_versions();
-
-          print "Default Perl Versions available\n";
           for my $v (@versions) {
             print "\t$v\n";
           }
-
           # Don't want anything less then 5.8
-          # @versions = grep { ! /5\.6\.*/ } @versions;
-
-          # set_output(matrix => { perl => [@versions], distribution => ['default']});
-          set_output(matrix => { perl => [@versions]});
+          @versions = grep { ! /5\.6\.*/ } @versions;
+          set_output(matrix => {perl => [@versions]});
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
 
@@ -62,13 +58,11 @@ jobs:
 #       matrix: ${{ steps.set-matrix.outputs.matrix }}
 
   run:
-    runs-on: windows-latest
-    # needs: [list-default]
-    # needs: [list-default, list-strawberry]
+    runs-on: ubuntu-latest
+    needs: list-default
     strategy:
       fail-fast: false
       matrix: ${{fromJson(needs.list.outputs.matrix)}}
-    name: Perl ${{ matrix.perl }} with 'default' distribution
     steps:
       - uses: actions/checkout@v6
       - name: Setup perl
