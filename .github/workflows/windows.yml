@@ -27,16 +27,15 @@ jobs:
           }
           # Don't want anything less then 5.8
           @versions = grep { ! /5\.6\.*/ } @versions;
-          
+
           my @available_strawberry_perls = perl_versions(platform => 'win32', distribution => 'strawberry');
           print "Strawberry Versions Available\n";
           for my $v (@available_strawberry_perls) {
             print "\t$v\n";
           }
 
-
-          set_output(matrix => { [perl => [@versions], distribution => ['default']]
-                                 [perl => [@available_strawberry_perls], distribution => ['strawberry']]
+          set_output(matrix => { [perl => [@versions], distribution => ['default']]],
+                                 [perl => [@available_strawberry_perls], distribution => ['strawberry']]]
                                } );
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
