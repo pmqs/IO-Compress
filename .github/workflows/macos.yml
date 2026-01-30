@@ -8,7 +8,8 @@ on:
     - cron: '01 01 * * 6'    # Run every Saturday
 
 jobs:
- list:
+
+  list:
     name: list available perl versions
     runs-on: macos-latest
     steps:
