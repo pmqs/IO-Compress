@@ -96,15 +96,26 @@ jobs:
         run: |
           use Actions::Core;
 
-          print "Version available\n";
-          my @versions = perl_versions();
-          for my $v (@versions) {
+          print "Default Version available\n";
+          my @default_versions = perl_versions();
+          for my $v (@default_versions) {
             print "\t$v\n";
           }
           # Don't want anything less then 5.8
-          @versions = grep { ! /^5\.6\.*/ } @versions;
-          @versions = ('5.42.0');
-          set_output(matrix => {perl => [@versions], distribution => ['strawberry', 'default'] });
+          @default_versions = grep { ! /^5\.6\.*/ } @default_versions;
+          @default_versions = ('5.42.0');
+
+          print "Strawberry Version available\n";
+          my @strawberry_versions = perl_versions();
+          for my $v (@strawberry_versions) {
+            print "\t$v\n";
+          }
+          # Don't want anything less then 5.8
+          @strawberry_versions = grep { ! /^5\.6\.*/ } @strawberry_versions;
+          @strawberry_versions = ('5.42.0');
+
+          set_output(matrix => {[ perl => [@default_versions],    distribution => ['default'] ],
+                                [ perl => [@strawberry_versions], distribution => ['strawberry'] ] });
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
 
