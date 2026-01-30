@@ -109,31 +109,6 @@ jobs:
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
 
-  run-windows-default:
-    name: Perl ${{ matrix.perl }} on '${{ matrix.distribution }}'
-    runs-on: windows-latest
-    needs: list-windows-default
-    strategy:
-      fail-fast: false
-      matrix: ${{fromJson(needs.list-windows-default.outputs.matrix)}}
-    steps:
-      - uses: actions/checkout@v6
-      - name: Setup perl
-        uses: shogo82148/actions-setup-perl@v1
-        with:
-          perl-version: ${{ matrix.perl }}
-          distribution: ${{ matrix.distribution }}
-      - name: Install packages
-        run: choco install make
-      - name: Perl version
-        run: perl -V
-      - name: Install dependencies
-        run: cpanm --quiet --installdeps --notest .
-      - name: Build
-        run: perl Makefile.PL && make
-      - name: Test
-        run: make test
-
 
   list-windows-strawberry:
     name: perl version for windows strawberry
@@ -159,13 +134,13 @@ jobs:
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
 
-  run-windows-strawberry:
+  run-windows:
     name: Perl ${{ matrix.perl }} on '${{ matrix.distribution }}'
     runs-on: windows-latest
-    needs: list-windows-strawberry
+    needs: [list-windows-default, list-windows-strawberry]
     strategy:
       fail-fast: false
-      matrix: ${{fromJson(needs.list-windows-strawberry.outputs.matrix)}}
+      matrix: ${{fromJson(needs.list-windows-default.outputs.matrix)}}
     steps:
       - uses: actions/checkout@v6
       - name: Setup perl
@@ -183,3 +158,30 @@ jobs:
         run: perl Makefile.PL && make
       - name: Test
         run: make test
+
+
+#
+#   run-windows-strawberry:
+#     name: Perl ${{ matrix.perl }} on '${{ matrix.distribution }}'
+#     runs-on: windows-latest
+#     needs: list-windows-strawberry
+#     strategy:
+#       fail-fast: false
+#       matrix: ${{fromJson(needs.list-windows-strawberry.outputs.matrix)}}
+#     steps:
+#       - uses: actions/checkout@v6
+#       - name: Setup perl
+#         uses: shogo82148/actions-setup-perl@v1
+#         with:
+#           perl-version: ${{ matrix.perl }}
+#           distribution: ${{ matrix.distribution }}
+#       - name: Install packages
+#         run: choco install make
+#       - name: Perl version
+#         run: perl -V
+#       - name: Install dependencies
+#         run: cpanm --quiet --installdeps --notest .
+#       - name: Build
+#         run: perl Makefile.PL && make
+#       - name: Test
+#         run: make test
