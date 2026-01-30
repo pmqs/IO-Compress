@@ -8,54 +8,60 @@ on:
     - cron: '01 01 * * 6'    # Run every Saturday
 
 jobs:
-  build:
 
+  list:
+    name: list available perl versions
     runs-on: windows-latest
-
-    strategy:
-      matrix:
-        perl:
-          # - 'develop'
-          - '5.42'
-          - '5.40'
-          - '5.38'
-          - '5.36'
-          # - '5.34'
-          # - '5.32'
-          # - '5.30'
-          # - '5.28'
-          # - '5.26'
-          # - '5.24'
-          # - '5.22'
-          # - '5.20'
-          # - '5.18'
-          # - '5.16'
-          # - '5.14'
-          # - '5.12'
-          # - '5.10'
-          # - '5.8'
-        distribution:
-            - 'default'
-            - 'strawberry'
-        exclude:
-          - perl: '5.42'
-            distribution: 'strawberry'
-
-    name: Perl ${{ matrix.perl }} distribution:${{ matrix.distribution }}
     steps:
-    - uses: actions/checkout@v6
-    - name: Setup perl
-      uses: shogo82148/actions-setup-perl@v1
-      with:
-        perl-version: ${{ matrix.perl }}
-        distribution: ${{ matrix.distribution }}
-    - name: Install packages
-      run: choco install make
-    - name: Perl version
-      run: perl -V
-    - name: Install dependencies
-      run: cpanm --installdeps --notest .
-    - name: Build
-      run: perl Makefile.PL && make
-    - name: Test
-      run: make test
+      - uses: shogo82148/actions-setup-perl@v1
+      - id: set-matrix
+        name: list available perl versions
+        shell: perl {0}
+        run: |
+          use Actions::Core;
+
+          print "Default Perl Versions available\n";
+          my @versions = perl_versions();
+          for my $v (@versions) {
+            print "\t$v\n";
+          }
+          # Don't want anything less then 5.8
+          @versions = grep { ! /5\.6\.*/ } @versions;
+          
+          my @available_strawberry_perls = perl_versions(platform => 'win32', distribution => 'strawberry');
+          print "Strawberry Versions Available\n";
+          for my $v (@available_strawberry_perls) {
+            print "\t$v\n";
+          }
+
+
+          set_output(matrix => { [perl => [@versions], distribution => ['default']]
+                                 [perl => [@available_strawberry_perls], distribution => ['strawberry']]
+                               } );
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+
+  run:
+    runs-on: windows-latest
+    needs: list
+    strategy:
+      fail-fast: false
+      matrix: ${{fromJson(needs.list.outputs.matrix)}}
+    name: Perl ${{ matrix.perl }} with '${{ matrix.distribution }}'' distribution
+    steps:
+      - uses: actions/checkout@v6
+      - name: Setup perl
+        uses: shogo82148/actions-setup-perl@v1
+        with:
+          perl-version: ${{ matrix.perl }}
+          distribution: ${{ matrix.distribution }}
+      - name: Install packages
+        run: choco install make
+      - name: Perl version
+        run: perl -V
+      - name: Install dependencies
+        run: cpanm --quiet --installdeps --notest .
+      - name: Build
+        run: perl Makefile.PL && make
+      - name: Test
+        run: make test
