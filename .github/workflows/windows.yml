@@ -11,7 +11,7 @@ jobs:
 
   list-default:
     name: list available default perl versions
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
       - uses: shogo82148/actions-setup-perl@v1
       - id: set-matrix
