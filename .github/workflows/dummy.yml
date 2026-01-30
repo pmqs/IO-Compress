@@ -39,7 +39,7 @@ jobs:
 #         run: perl -V
 
 
-  list:
+  lister:
     name: list available perl versions
     runs-on: macos-latest
     steps:
@@ -62,9 +62,9 @@ jobs:
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
 
-  run:
+  runner:
     runs-on: macos-latest
-    needs: list
+    needs: lister
     strategy:
       fail-fast: false
       matrix: ${{fromJson(needs.list.outputs.matrix)}}
