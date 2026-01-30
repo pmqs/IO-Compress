@@ -123,8 +123,16 @@ jobs:
         with:
           perl-version: ${{ matrix.perl }}
           distribution: ${{ matrix.distribution }}
+      - name: Install packages
+        run: choco install make
       - name: Perl version
         run: perl -V
+      - name: Install dependencies
+        run: cpanm --quiet --installdeps --notest .
+      - name: Build
+        run: perl Makefile.PL && make
+      - name: Test
+        run: make test
 
 
   list-windows-strawberry:
@@ -165,5 +173,13 @@ jobs:
         with:
           perl-version: ${{ matrix.perl }}
           distribution: ${{ matrix.distribution }}
+      - name: Install packages
+        run: choco install make
       - name: Perl version
         run: perl -V
+      - name: Install dependencies
+        run: cpanm --quiet --installdeps --notest .
+      - name: Build
+        run: perl Makefile.PL && make
+      - name: Test
+        run: make test
