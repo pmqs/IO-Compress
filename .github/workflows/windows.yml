@@ -63,7 +63,7 @@ jobs:
 
   run:
     runs-on: windows-latest
-    needs: [list-default]
+    # needs: [list-default]
     # needs: [list-default, list-strawberry]
     strategy:
       fail-fast: false
