@@ -86,7 +86,7 @@ jobs:
 
 
   list-windows-default:
-    name: set perl version for windows
+    name: Get perl versions for windows default
     runs-on: windows-latest
     steps:
       - uses: shogo82148/actions-setup-perl@v1
@@ -105,8 +105,7 @@ jobs:
           @default_versions = grep { ! /^5\.6\.*/ } @default_versions;
           @default_versions = ('5.42.0');
 
-
-          set_output(matrix => {perl => [@default_versions],    distribution => ['default'] });,
+          set_output(matrix => {perl => [@default_versions],    distribution => ['default'] });
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
 
@@ -129,7 +128,7 @@ jobs:
 
 
   list-windows-strawberry:
-    name: set perl version for windows
+    name: Get perl version for windows strawberry
     runs-on: windows-latest
     steps:
       - uses: shogo82148/actions-setup-perl@v1
