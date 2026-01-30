@@ -9,9 +9,9 @@ on:
 
 jobs:
 
-  # list-default:
-  list1:
-    name: list available default perl versions
+
+  list-windows-default:
+    name: perl versions for windows default
     runs-on: windows-latest
     steps:
       - uses: shogo82148/actions-setup-perl@v1
@@ -21,57 +21,77 @@ jobs:
         run: |
           use Actions::Core;
 
-          print "Version available\n";
-          my @versions = perl_versions();
-          for my $v (@versions) {
+          print "Default Version available\n";
+          my @default_versions = perl_versions();
+          for my $v (@default_versions) {
             print "\t$v\n";
           }
           # Don't want anything less then 5.8
-          @versions = grep { ! /^5\.6\.*/ } @versions;
-          # set_output(matrix => {perl => [@versions]});
-          set_output(matrix => {perl => ['5.42.0']});
+          # also, 5.40.3 is failing
+          my $skip = join '|', map { quotemeta $_ }
+                               qw( 5.6.
+                                   5.40.3
+                                   );
+          @default_versions = grep { ! /^$skip/ } @default_versions;
+
+          set_output(matrix => {perl => [@default_versions],    distribution => ['default'] });
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
 
-#   list-strawberry:
-#     name: list available strawberry perl versions
-#     runs-on: windows-latest
-#     steps:
-#       - uses: shogo82148/actions-setup-perl@v1
-#       - id: set-matrix
-#         name: list available strawberry perl versions
-#         shell: perl {0}
-#         run: |
-#           use Actions::Core;
-#
-#           my @versions = perl_versions(platform => 'win32', distribution => 'strawberry');
-#
-#           print "Strawberry Versions Available\n";
-#           for my $v (@versions) {
-#             print "\t$v\n";
-#             }
-#
-#           # Don't want anything less then 5.8
-#           @versions = grep { ! /5\.6\.*/ } @versions;
-#
-#           set_output(matrix => { perl => [@versions], distribution => ['strawberry']});
-#     outputs:
-#       matrix: ${{ steps.set-matrix.outputs.matrix }}
 
-  run:
+  list-windows-strawberry:
+    name: perl version for windows strawberry
     runs-on: windows-latest
-    needs: list1
-    # needs: list-default
+    steps:
+      - uses: shogo82148/actions-setup-perl@v1
+      - id: set-matrix
+        name: list available perl versions
+        shell: perl {0}
+        run: |
+          use Actions::Core;
+
+          print "Strawberry Version available\n";
+          my @strawberry_versions = perl_versions();
+          for my $v (@strawberry_versions) {
+            print "\t$v\n";
+          }
+
+          # Lots of random failures with strawberry perl
+          my $skip = join '|', map { quotemeta $_ }
+                               qw( 5.40.
+                                   5.38.
+                                   5.28.
+                                   5.24.
+                                   5.22.
+                                   5.30.
+                                   5.18.
+                                   5.16.
+                                   4.14.
+                                   5.12.
+                                   5.10.
+                                   5.8.
+                                   5.6.
+                                 );
+          @strawberry_versions = grep { ! /^$skip/ } @strawberry_versions;
+
+          set_output(matrix => {perl => [@strawberry_versions], distribution => ['strawberry'] });
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+
+  run-windows-default:
+    name: Perl ${{ matrix.perl }} on '${{ matrix.distribution }}'
+    runs-on: windows-latest
+    needs: list-windows-default
     strategy:
       fail-fast: false
-      matrix: ${{fromJson(needs.list.outputs.matrix)}}
+      matrix: ${{ fromJson(needs.list-windows-default.outputs.matrix )}}
     steps:
+      - uses: actions/checkout@v6
       - name: Setup perl
         uses: shogo82148/actions-setup-perl@v1
         with:
           perl-version: ${{ matrix.perl }}
-          # distribution: default
-      - uses: actions/checkout@v6
+          distribution: ${{ matrix.distribution }}
       - name: Install packages
         run: choco install make
       - name: Perl version
@@ -84,28 +104,27 @@ jobs:
         run: make test
 
 
-
-  # run-strawberry:
-  #   runs-on: windows-latest
-  #   needs: list
-  #   strategy:
-  #     fail-fast: false
-  #     matrix: ${{fromJson(needs.list.outputs.matrix)}}
-  #   name: Perl ${{ matrix.perl }} with '{{ matrix.distribution }}' distribution
-  #   steps:
-  #     - uses: actions/checkout@v6
-  #     - name: Setup perl
-  #       uses: shogo82148/actions-setup-perl@v1
-  #       with:
-  #         perl-version: ${{ matrix.perl }}
-  #         distribution: ${{ matrix.distribution }}
-  #     - name: Install packages
-  #       run: choco install make
-  #     - name: Perl version
-  #       run: perl -V
-  #     - name: Install dependencies
-  #       run: cpanm --quiet --installdeps --notest .
-  #     - name: Build
-  #       run: perl Makefile.PL && make
-  #     - name: Test
-  #       run: make test
+  run-windows-strawberry:
+    name: Perl ${{ matrix.perl }} on '${{ matrix.distribution }}'
+    runs-on: windows-latest
+    needs: list-windows-strawberry
+    strategy:
+      fail-fast: false
+      matrix: ${{fromJson(needs.list-windows-strawberry.outputs.matrix)}}
+    steps:
+      - uses: actions/checkout@v6
+      - name: Setup perl
+        uses: shogo82148/actions-setup-perl@v1
+        with:
+          perl-version: ${{ matrix.perl }}
+          distribution: ${{ matrix.distribution }}
+      - name: Install packages
+        run: choco install make
+      - name: Perl version
+        run: perl -V
+      - name: Install dependencies
+        run: cpanm --quiet --installdeps --notest .
+      - name: Build
+        run: perl Makefile.PL && make
+      - name: Test
+        run: make test
