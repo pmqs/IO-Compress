@@ -39,53 +39,53 @@ jobs:
 #         run: perl -V
 
 
-  list-macos:
-    name: list available perl versions
-    runs-on: macos-latest
-    steps:
-      - uses: shogo82148/actions-setup-perl@v1
-      - id: set-matrix
-        name: list available perl versions
-        shell: perl {0}
-        run: |
-          use Actions::Core;
+#   list-macos:
+#     name: list available perl versions
+#     runs-on: macos-latest
+#     steps:
+#       - uses: shogo82148/actions-setup-perl@v1
+#       - id: set-matrix
+#         name: list available perl versions
+#         shell: perl {0}
+#         run: |
+#           use Actions::Core;
+#
+#           print "Version available\n";
+#           my @versions = grep { ! /^5\.6\./ } perl_versions();
+#           for my $v (@versions) {
+#             print "\t$v\n";
+#           }
+#           # Don't want anything less then 5.8
+#           @versions = grep { ! /^5\.6\.*/ } @versions;
+#           @versions = '5.42.0';
+#           set_output(matrix => {perl => [@versions]});
+#     outputs:
+#       matrix: ${{ steps.set-matrix.outputs.matrix }}
+#
+#   run-macos:
+#     runs-on: macos-latest
+#     needs: list-macos
+#     strategy:
+#       fail-fast: false
+#       matrix: ${{fromJson(needs.list-macos.outputs.matrix)}}
+#     steps:
+#       - uses: actions/checkout@v6
+#       - name: Setup perl
+#         uses: shogo82148/actions-setup-perl@v1
+#         with:
+#           perl-version: ${{ matrix.perl }}
+#       - name: Perl version
+#         run: perl -V
+#     #   - name: Install dependencies
+#     #     run: cpanm --quiet --installdeps --notest .
+#     #   - name: Build
+#     #     run: perl Makefile.PL && make
+#     #   - name: Test
+#     #     run: make test
 
-          print "Version available\n";
-          my @versions = grep { ! /^5\.6\./ } perl_versions();
-          for my $v (@versions) {
-            print "\t$v\n";
-          }
-          # Don't want anything less then 5.8
-          @versions = grep { ! /^5\.6\.*/ } @versions;
-          @versions = '5.42.0';
-          set_output(matrix => {perl => [@versions]});
-    outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
-
-  run-macos:
-    runs-on: macos-latest
-    needs: list-macos
-    strategy:
-      fail-fast: false
-      matrix: ${{fromJson(needs.list-macos.outputs.matrix)}}
-    steps:
-      - uses: actions/checkout@v6
-      - name: Setup perl
-        uses: shogo82148/actions-setup-perl@v1
-        with:
-          perl-version: ${{ matrix.perl }}
-      - name: Perl version
-        run: perl -V
-    #   - name: Install dependencies
-    #     run: cpanm --quiet --installdeps --notest .
-    #   - name: Build
-    #     run: perl Makefile.PL && make
-    #   - name: Test
-    #     run: make test
 
 
-
-  list-windows:
+  list-windows-default:
     name: set perl version for windows
     runs-on: windows-latest
     steps:
@@ -105,6 +105,40 @@ jobs:
           @default_versions = grep { ! /^5\.6\.*/ } @default_versions;
           @default_versions = ('5.42.0');
 
+
+          set_output(matrix => {perl => [@default_versions],    distribution => ['default'] });,
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+
+  run-windows-default:
+    name: Perl ${{ matrix.perl }} on '${{ matrix.distribution }}'
+    runs-on: windows-latest
+    needs: list-windows-default
+    strategy:
+      fail-fast: false
+      matrix: ${{fromJson(needs.list-windows.outputs.matrix)}}
+    steps:
+      - uses: actions/checkout@v6
+      - name: Setup perl
+        uses: shogo82148/actions-setup-perl@v1
+        with:
+          perl-version: ${{ matrix.perl }}
+          distribution: ${{ matrix.distribution }}
+      - name: Perl version
+        run: perl -V
+
+
+  list-windows-strawberry:
+    name: set perl version for windows
+    runs-on: windows-latest
+    steps:
+      - uses: shogo82148/actions-setup-perl@v1
+      - id: set-matrix
+        name: list available perl versions
+        shell: perl {0}
+        run: |
+          use Actions::Core;
+
           print "Strawberry Version available\n";
           my @strawberry_versions = perl_versions();
           for my $v (@strawberry_versions) {
@@ -114,15 +148,14 @@ jobs:
           @strawberry_versions = grep { ! /^5\.6\.*/ } @strawberry_versions;
           @strawberry_versions = ('5.42.0');
 
-          set_output(matrix => {[ perl => [@default_versions],    distribution => ['default'] ],
-                                [ perl => [@strawberry_versions], distribution => ['strawberry'] ] });
+          set_output(matrix => {perl => [@strawberry_versions], distribution => ['strawberry'] });
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
 
-  run-windows:
+  run-windows-strawberry:
     name: Perl ${{ matrix.perl }} on '${{ matrix.distribution }}'
     runs-on: windows-latest
-    needs: list-windows
+    needs: list-windows-strawberry
     strategy:
       fail-fast: false
       matrix: ${{fromJson(needs.list-windows.outputs.matrix)}}
