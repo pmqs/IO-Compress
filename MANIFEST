@@ -160,6 +160,8 @@ t/files/testfile1.odt
 t/files/encrypt-aes.zip
 t/files/encrypt-standard.zip
 t/files/jar.zip
+t/files/time-zero.zip
+t/files/time-invalid.zip
 t/globmapper.t
 t/Test/Builder.pm
 t/Test/More.pm
