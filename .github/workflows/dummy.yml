@@ -86,7 +86,7 @@ jobs:
 
 
   list-windows-default:
-    name: Get perl versions for windows default
+    name: perl versions for windows default
     runs-on: windows-latest
     steps:
       - uses: shogo82148/actions-setup-perl@v1
@@ -115,7 +115,7 @@ jobs:
     needs: list-windows-default
     strategy:
       fail-fast: false
-      matrix: ${{fromJson(needs.list-windows.outputs.matrix)}}
+      matrix: ${{fromJson(needs.list-windows-default.outputs.matrix)}}
     steps:
       - uses: actions/checkout@v6
       - name: Setup perl
@@ -128,7 +128,7 @@ jobs:
 
 
   list-windows-strawberry:
-    name: Get perl version for windows strawberry
+    name: perl version for windows strawberry
     runs-on: windows-latest
     steps:
       - uses: shogo82148/actions-setup-perl@v1
@@ -157,7 +157,7 @@ jobs:
     needs: list-windows-strawberry
     strategy:
       fail-fast: false
-      matrix: ${{fromJson(needs.list-windows.outputs.matrix)}}
+      matrix: ${{fromJson(needs.list-windows-strawberry.outputs.matrix)}}
     steps:
       - uses: actions/checkout@v6
       - name: Setup perl
