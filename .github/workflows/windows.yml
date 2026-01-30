@@ -9,7 +9,8 @@ on:
 
 jobs:
 
-  list-default:
+  # list-default:
+  list1:
     name: list available default perl versions
     runs-on: windows-latest
     steps:
@@ -59,7 +60,8 @@ jobs:
 
   run:
     runs-on: windows-latest
-    needs: list-default
+    needs: list1
+    # needs: list-default
     strategy:
       fail-fast: false
       matrix: ${{fromJson(needs.list.outputs.matrix)}}
@@ -68,7 +70,7 @@ jobs:
         uses: shogo82148/actions-setup-perl@v1
         with:
           perl-version: ${{ matrix.perl }}
-          distribution: default
+          # distribution: default
       - uses: actions/checkout@v6
       - name: Install packages
         run: choco install make
