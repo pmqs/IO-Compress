@@ -62,9 +62,9 @@ jobs:
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
 
-  tun0-macos:
+  run-macos:
     runs-on: macos-latest
-    needs: lister
+    needs: list-macos
     strategy:
       fail-fast: false
       matrix: ${{fromJson(needs.list-macos.outputs.matrix)}}
