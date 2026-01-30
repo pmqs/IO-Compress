@@ -49,7 +49,15 @@ jobs:
         shell: perl {0}
         run: |
           use Actions::Core;
-          set_output(matrix => {perl => ['5.42.0']});
+
+          print "Version available\n";
+          my @versions = perl_versions();
+          for my $v (@versions) {
+            print "\t$v\n";
+          }
+          # Don't want anything less then 5.8
+          @versions = grep { ! /^5\.6\.*/ } @versions;
+          set_output(matrix => {perl => [@versions]});
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
 
@@ -71,7 +79,7 @@ jobs:
 
   list-windows:
     name: set perl version for windows
-    runs-on: windows-latest
+    runs-on: macos-latest
     steps:
       - uses: shogo82148/actions-setup-perl@v1
       - id: set-matrix
@@ -79,7 +87,15 @@ jobs:
         shell: perl {0}
         run: |
           use Actions::Core;
-          set_output(matrix => {perl => ['5.42.0']});
+
+          print "Version available\n";
+          my @versions = perl_versions();
+          for my $v (@versions) {
+            print "\t$v\n";
+          }
+          # Don't want anything less then 5.8
+          @versions = grep { ! /^5\.6\.*/ } @versions;
+          set_output(matrix => {perl => [@versions]});
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
 
