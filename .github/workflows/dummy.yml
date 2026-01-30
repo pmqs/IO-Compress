@@ -56,8 +56,8 @@ jobs:
           for my $v (@versions) {
             print "\t$v\n";
           }
-        #   # Don't want anything less then 5.8
-        #   @versions = grep { ! /^5\.6\.*/ } @versions;
+            #   # Don't want anything less then 5.8
+            #   @versions = grep { ! /^5\.6\.*/ } @versions;
           set_output(matrix => {perl => [@versions]});
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
