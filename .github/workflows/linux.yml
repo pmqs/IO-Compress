@@ -19,7 +19,15 @@ jobs:
         shell: perl {0}
         run: |
           use Actions::Core;
-          set_output(matrix => {perl => [perl_versions()]});
+
+          print "Version available\n";
+          my @versions = perl_versions();
+          for my $v (@versions) {
+            print "\t$v\n";
+          }
+          # Don't want anything less then 5.8
+          @versions = grep { ! /5\.6\.*/ } @versions
+          set_output(matrix => {perl => [@ersions]});
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
 
