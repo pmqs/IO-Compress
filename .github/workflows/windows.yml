@@ -10,7 +10,7 @@ on:
 jobs:
 
   list-default:
-    name: list available perl versions
+    name: list available default perl versions
     runs-on: windows-latest
     steps:
       - uses: shogo82148/actions-setup-perl@v1
@@ -36,7 +36,7 @@ jobs:
 
 
   list-strawberry:
-    name: list available perl versions
+    name: list available strawberry perl versions
     runs-on: windows-latest
     steps:
       - uses: shogo82148/actions-setup-perl@v1
@@ -62,7 +62,8 @@ jobs:
 
   run:
     runs-on: windows-latest
-    needs: [list-default, list-strawberry]
+    needs: [list-default]
+    # needs: [list-default, list-strawberry]
     strategy:
       fail-fast: false
       matrix: ${{fromJson(needs.list.outputs.matrix)}}
