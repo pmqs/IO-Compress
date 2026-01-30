@@ -59,7 +59,7 @@ jobs:
 #       matrix: ${{ steps.set-matrix.outputs.matrix }}
 
   run:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     # needs: list-default
     strategy:
       fail-fast: false
