@@ -1,4 +1,4 @@
-name: Windows build
+6name: Windows build
 
 on:
   workflow_dispatch:
@@ -20,25 +20,17 @@ jobs:
         run: |
           use Actions::Core;
 
-          print "Default Perl Versions available\n";
           my @versions = perl_versions();
+
+          print "Default Perl Versions available\n";
           for my $v (@versions) {
             print "\t$v\n";
           }
 
           # Don't want anything less then 5.8
           @versions = grep { ! /5\.6\.*/ } @versions;
-#
-#           my @available_strawberry_perls = perl_versions(platform => 'win32', distribution => 'strawberry');
-#           print "Strawberry Versions Available\n";
-#           for my $v (@available_strawberry_perls) {
-#             print "\t$v\n";
-#           }
 
-          # set_output(matrix => { [perl => [@versions],                   distribution => 'default'],
-          #                        [perl => [@available_strawberry_perls], distribution => 'strawberry']
-          #                      } );
-          set_output(matrix => { perl => [@versions], distribution => ['default']]);
+          set_output(matrix => { perl => [@versions], distribution => ['default']});
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
 
@@ -54,24 +46,17 @@ jobs:
         run: |
           use Actions::Core;
 
-          # print "Default Perl Versions available\n";
-          # my @versions = perl_versions();
-          # for my $v (@versions) {
-          #   print "\t$v\n";
-          # }
+          my @versions = perl_versions(platform => 'win32', distribution => 'strawberry');
 
-          my @available_strawberry_perls = perl_versions(platform => 'win32', distribution => 'strawberry');
           print "Strawberry Versions Available\n";
-          for my $v (@available_strawberry_perls) {
+          for my $v (@versions) {
             print "\t$v\n";
             }
 
           # Don't want anything less then 5.8
-          @available_strawberry_perls = grep { ! /5\.6\.*/ } @versions;
+          @versions = grep { ! /5\.6\.*/ } @versions;
 
-          set_output(matrix => { perl => [@available_strawberry_perls]],
-                                 distribution => ['strawberry']
-                               } );
+          set_output(matrix => { perl => [@versions], distribution => ['strawberry']});
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
 
