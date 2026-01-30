@@ -9,7 +9,7 @@ on:
 
 jobs:
 
-  list:
+  list-default:
     name: list available perl versions
     runs-on: windows-latest
     steps:
@@ -42,31 +42,6 @@ jobs:
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
 
-  run:
-    runs-on: windows-latest
-    needs: list
-    strategy:
-      fail-fast: false
-      matrix: ${{fromJson(needs.list.outputs.matrix)}}
-    name: Perl ${{ matrix.perl }} with '${{ matrix.distribution }}' distribution
-    steps:
-      - uses: actions/checkout@v6
-      - name: Setup perl
-        uses: shogo82148/actions-setup-perl@v1
-        with:
-          perl-version: ${{ matrix.perl }}
-          distribution: ${{ matrix.distribution }}
-      - name: Install packages
-        run: choco install make
-      - name: Perl version
-        run: perl -V
-      - name: Install dependencies
-        run: cpanm --quiet --installdeps --notest .
-      - name: Build
-        run: perl Makefile.PL && make
-      - name: Test
-        run: make test
-
 
   list-strawberry:
     name: list available perl versions
@@ -74,7 +49,7 @@ jobs:
     steps:
       - uses: shogo82148/actions-setup-perl@v1
       - id: set-matrix
-        name: list available perl versions
+        name: list available strawberry perl versions
         shell: perl {0}
         run: |
           use Actions::Core;
@@ -100,13 +75,13 @@ jobs:
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
 
-  run-strawberry:
+  run:
     runs-on: windows-latest
-    needs: list
+    needs: [list-default, list-strawberry]
     strategy:
       fail-fast: false
       matrix: ${{fromJson(needs.list.outputs.matrix)}}
-    name: Perl ${{ matrix.perl }} with '{{ matrix.distribution }}' distribution
+    name: Perl ${{ matrix.perl }} with '${{ matrix.distribution }}' distribution
     steps:
       - uses: actions/checkout@v6
       - name: Setup perl
@@ -124,3 +99,30 @@ jobs:
         run: perl Makefile.PL && make
       - name: Test
         run: make test
+
+
+
+  # run-strawberry:
+  #   runs-on: windows-latest
+  #   needs: list
+  #   strategy:
+  #     fail-fast: false
+  #     matrix: ${{fromJson(needs.list.outputs.matrix)}}
+  #   name: Perl ${{ matrix.perl }} with '{{ matrix.distribution }}' distribution
+  #   steps:
+  #     - uses: actions/checkout@v6
+  #     - name: Setup perl
+  #       uses: shogo82148/actions-setup-perl@v1
+  #       with:
+  #         perl-version: ${{ matrix.perl }}
+  #         distribution: ${{ matrix.distribution }}
+  #     - name: Install packages
+  #       run: choco install make
+  #     - name: Perl version
+  #       run: perl -V
+  #     - name: Install dependencies
+  #       run: cpanm --quiet --installdeps --notest .
+  #     - name: Build
+  #       run: perl Makefile.PL && make
+  #     - name: Test
+  #       run: make test
