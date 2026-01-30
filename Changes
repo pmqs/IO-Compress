@@ -1,6 +1,16 @@
 CHANGES
 -------
 
+  2.216 31 January 2026
+
+      * Update version to 2.216
+        Fri Jan 30 22:20:17 2026 +0000
+        e88105b0fc002346dfcd9b501525bf454c83bf92
+
+      * IO::Compress @2.215: t/006zip.t fails due to missing test files #67
+        Fri Jan 30 22:11:20 2026 +0000
+        5e67a654844f4e05b3fefc54b2bc3b2041994d25
+
   2.215 31 January 2026
 
       * Fix version check in 000prereq.t
