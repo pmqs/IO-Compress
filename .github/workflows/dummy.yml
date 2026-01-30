@@ -131,7 +131,7 @@ jobs:
             print "\t$v\n";
           }
 
-          # ;ots of random failures with strawberry perl
+          # Lots of random failures with strawberry perl
           my $skip = join '|', map { quotemeta $_ }
                                qw( 5.40.
                                    5.38.
@@ -147,7 +147,7 @@ jobs:
                                    5.8.
                                    5.6.
                                  );
-          @strawberry_versions = grep { ! /^$skip/ } @default_versions;
+          @strawberry_versions = grep { ! /^$skip/ } @strawberry_versions;
 
           set_output(matrix => {perl => [@strawberry_versions], distribution => ['strawberry'] });
     outputs:
