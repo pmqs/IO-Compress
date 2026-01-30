@@ -140,7 +140,7 @@ jobs:
     needs: [list-windows-default, list-windows-strawberry]
     strategy:
       fail-fast: false
-      matrix: ${{fromJson(needs.list-windows-default.outputs.matrix)}}
+      matrix: ${{ fromJson(needs.list-windows-default.outputs.matrix )}} ${{ fromJson(needs.list-windows-strawberry.outputs.matrix )}}
     steps:
       - uses: actions/checkout@v6
       - name: Setup perl
