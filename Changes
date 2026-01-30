@@ -1,6 +1,20 @@
 CHANGES
 -------
 
+  2.215 31 January 2026
+
+      * Update version to 2.215 & change copyright year to 2026
+        Fri Jan 30 11:52:41 2026 +0000
+        2634d1c3a6e2ed9b0cee109c262d0ccf81a3bf91
+
+      * Add tests for handling zero and invalid datetime values in unzip functionality. Fix for #65
+        Sat Oct 25 19:52:01 2025 +0100
+        739698a7b1bb6814d1aa3c4a1b81374b16a9fea5
+
+      * Enhance _dosToUnixTime to handle zero and invalid datetime values; add tests for edge cases. Fixes #65
+        Sat Oct 25 19:50:08 2025 +0100
+        fd28c1d2374eee9811f6d0c5bddc0957abdf1da8
+
   2.214 24 October 2025
 
       * version 2.214
