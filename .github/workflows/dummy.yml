@@ -104,12 +104,12 @@ jobs:
           # Don't want anything less then 5.8
           @versions = grep { ! /^5\.6\.*/ } @versions;
           @versions = ('5.42.0');
-          set_output(matrix => {perl => [@versions], distribution => ['strawberry'] });
+          set_output(matrix => {perl => [@versions], distribution => ['strawberry', 'default'] });
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
 
   run-windows:
-    name: Run Perl ${{ matrix.perl }} on ${{ matrix.distribution }} distribution
+    name: Perl ${{ matrix.perl }} on '${{ matrix.distribution }}'
     runs-on: windows-latest
     needs: list-windows
     strategy:
