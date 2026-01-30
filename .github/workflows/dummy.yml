@@ -104,7 +104,7 @@ jobs:
           # Don't want anything less then 5.8
           @versions = grep { ! /^5\.6\.*/ } @versions;
           @versions = ('5.42.0');
-          set_output(matrix => {perl => [@versions], distribution => 'strawberry' });
+          set_output(matrix => {perl => [@versions], distribution => ['strawberry'] });
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
 
