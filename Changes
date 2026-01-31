@@ -1,6 +1,16 @@
 CHANGES
 -------
 
+  2.217 31 January 2026
+
+    * Delete GZIP environment variable before running interop tests Fixes #24
+      Sat Jan 31 12:22:30 2026 +0000
+      6304ffa76606030467900b17de088504ce026a0d
+
+    * Update version to 2.217
+      Sat Jan 31 11:36:36 2026 +0000
+      6405df64a348fd953a0ddebb30422d20e2c1bd9f
+
   2.216 31 January 2026
 
       * Update version to 2.216
