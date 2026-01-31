@@ -5,12 +5,12 @@ use strict;
 use bytes;
 
 
-use IO::Compress::Base::Common  2.216 qw(:Status);
+use IO::Compress::Base::Common  2.217 qw(:Status);
 use IO::Compress::Zip::Constants ;
 
 our ($VERSION);
 
-$VERSION = '2.216';
+$VERSION = '2.217';
 
 sub mkDecryptObject
 {
@@ -54,7 +54,7 @@ use Data::Peek;
     my $status = $self->{Inner}->uncompr($from, $to, $eof);
 # warn "OUTER uncompressed \n"; DHexDump ($$to);
 
-# use Compress::Raw::Zlib  2.214 qw(Z_OK Z_BUF_ERROR Z_STREAM_END );
+# use Compress::Raw::Zlib  2.217 qw(Z_OK Z_BUF_ERROR Z_STREAM_END );
 
     # TODO - need to understand status from other compressors like bzip2, identiry etc
     return $status
