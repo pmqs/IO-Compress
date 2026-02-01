@@ -1,7 +1,15 @@
 CHANGES
 -------
 
-  2.217 31 January 2026
+  2.217 1 February 2026
+
+    * Update release date in README
+      Sun Feb 1 11:02:46 2026 +0000
+      ce5ff6ea860443bc27ca180993852eb6ef1a63e8
+
+    * Refresh zipdetails from https://github.com/pmqs/zipdetails
+      Sun Feb 1 10:58:21 2026 +0000
+      0fa7ba236438fb2e022f9f2bb92caac25f075cc5
 
     * Delete GZIP environment variable before running interop tests Fixes #24
       Sat Jan 31 12:22:30 2026 +0000
