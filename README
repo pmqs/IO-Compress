@@ -118,7 +118,7 @@ To help me help you, I need all of the following information:
     module into a fresh directory and keep a log of all the steps, including
     the setting of configuration environment variables (if applicable).
 
-        [edit config.in or set environment varialbes, if necessary]
+        [edit config.in or set environment variables, if necessary]
         perl Makefile.PL
         make
         make test TEST_VERBOSE=1
