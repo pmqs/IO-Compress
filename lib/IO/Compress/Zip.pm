@@ -570,7 +570,7 @@ sub mkFinalTrailer
         $z64e .= U64::pack_V64 $entries   ; # entries in central dir
         $z64e .= U64::pack_V64 $cd_len    ; # size of central dir
         $z64e .= *$self->{ZipData}{Offset}->getPacked_V64() ; # offset to start central dir
-        $z64e .= *$self->{ZipData}{extrafieldzip64}  # otional extra field
+        $z64e .= *$self->{ZipData}{extrafieldzip64}  # optional extra field
             if defined *$self->{ZipData}{extrafieldzip64} ;
 
         $z64e  = pack("V", ZIP64_END_CENTRAL_REC_HDR_SIG) # signature
@@ -810,7 +810,7 @@ sub getFileInfo
         $params->setValue('mtime' => $mtime) ;
         $params->setValue('atime' => $atime) ;
         $params->setValue('ctime' => undef) ; # No Creation time
-        # TODO - see if can fillout creation time on non-Unix
+        # TODO - see if can fill out creation time on non-Unix
     }
 
     # NOTE - Unix specific code alert
