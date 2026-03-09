@@ -306,7 +306,7 @@ sub zap
     my $headerLength = *$self->{Info}{HeaderLength};
     my $block_offset =  $headerLength + *$self->{Uncomp}->getLastBlockOffset();
     $_[0] = $headerLength + *$self->{Uncomp}->getEndOffset();
-    #printf "# End $_[0], headerlen $headerLength \n";;
+    #printf "# End $_[0], headerlen $headerLength \n";
     #printf "# block_offset $block_offset %x\n", $block_offset;
     my $byte ;
     ( $self->smartSeek($block_offset) &&

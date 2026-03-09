@@ -89,7 +89,7 @@ sub parseRawExtra
                                            $strict, $gzipMode );
         return $bad if $bad ;
         push @$extraRef, [$id => substr($data, $offset, $subLen)]
-            if defined $extraRef;;
+            if defined $extraRef;
 
         $offset += $subLen ;
     }

@@ -8,7 +8,7 @@ use warnings;
 
 use IO::Compress::Base::Common 2.219 ;
 
-use IO::File (); ;
+use IO::File ();
 use Scalar::Util ();
 
 #use File::Glob;
