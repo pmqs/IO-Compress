@@ -54,6 +54,6 @@
          "web" : "https://github.com/pmqs/IO-Compress"
       }
    },
-   "version" : "2.218",
+   "version" : "2.219",
    "x_serialization_backend" : "JSON::PP version 2.97001"
 }
