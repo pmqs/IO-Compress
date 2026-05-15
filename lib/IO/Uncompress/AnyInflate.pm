@@ -77,7 +77,7 @@ sub mkUncomp
 
      my @possible = qw( Inflate Gunzip Unzip );
      unshift @possible, 'RawInflate'
-        if 1 || $got->getValue('rawinflate');
+        if $got->getValue('rawinflate');
 
      my $magic = $self->ckMagic( @possible );
 
