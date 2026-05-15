@@ -157,8 +157,8 @@ sub fastForward
 
     while ($offset > 0)
     {
-        $c = length $offset
-            if length $offset < $c ;
+        $c = $offset
+            if $offset < $c ;
 
         $offset -= $c;
 
