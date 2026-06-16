@@ -192,10 +192,10 @@ sub whatIs ($;$)
     return 'undef'  if ! defined $_[0] && $undef ;
 
     if (ref $_[0]) {
-        return ''       if blessed($_[0]); # is an object
         #return ''       if UNIVERSAL::isa($_[0], 'UNIVERSAL'); # is an object
         return 'buffer' if UNIVERSAL::isa($_[0], 'SCALAR');
         return 'array'  if UNIVERSAL::isa($_[0], 'ARRAY')  && $extended ;
+        return ''       if blessed($_[0]); # is an object
         return 'hash'   if UNIVERSAL::isa($_[0], 'HASH')   && $hash ;
         return 'code'   if UNIVERSAL::isa($_[0], 'CODE')   && $wantCode ;
         return '';
