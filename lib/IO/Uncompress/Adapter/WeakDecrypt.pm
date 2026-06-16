@@ -5,12 +5,12 @@ use strict;
 use bytes;
 
 
-use IO::Compress::Base::Common  2.220 qw(:Status);
+use IO::Compress::Base::Common  2.221 qw(:Status);
 use IO::Compress::Zip::Constants ;
 
 our ($VERSION);
 
-$VERSION = '2.220';
+$VERSION = '2.221';
 
 sub mkDecryptObject
 {
