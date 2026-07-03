@@ -4,17 +4,17 @@ use strict ;
 use warnings;
 use bytes;
 
-use IO::Compress::Base::Common  2.221 qw(:Status );
-use IO::Compress::RawDeflate 2.221 ();
-use IO::Compress::Adapter::Deflate 2.221 ;
-use IO::Compress::Adapter::Identity 2.221 ;
-use IO::Compress::Zlib::Extra 2.221 ;
-use IO::Compress::Zip::Constants 2.221 ;
+use IO::Compress::Base::Common  2.222 qw(:Status );
+use IO::Compress::RawDeflate 2.222 ();
+use IO::Compress::Adapter::Deflate 2.222 ;
+use IO::Compress::Adapter::Identity 2.222 ;
+use IO::Compress::Zlib::Extra 2.222 ;
+use IO::Compress::Zip::Constants 2.222 ;
 
 use File::Spec();
 use Config;
 
-use Compress::Raw::Zlib  2.218 ();
+use Compress::Raw::Zlib  2.222 ();
 
 BEGIN
 {
@@ -47,7 +47,7 @@ require Exporter ;
 
 our ($VERSION, @ISA, @EXPORT_OK, %EXPORT_TAGS, %DEFLATE_CONSTANTS, $ZipError);
 
-$VERSION = '2.221';
+$VERSION = '2.222';
 $ZipError = '';
 
 @ISA = qw(IO::Compress::RawDeflate Exporter);

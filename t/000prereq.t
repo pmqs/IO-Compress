@@ -28,11 +28,12 @@ BEGIN
     my $DEP_VERSION = '2.218';
     my @DEP_NAMES = qw(
 			Compress::Raw::Bzip2
-			Compress::Raw::Zlib
             );
 
-    my $VERSION = '2.221';
+    my $VERSION = '2.222';
     my @NAMES = qw(
+			Compress::Raw::Zlib
+
 			Compress::Zlib
 
             IO::Compress::Adapter::Bzip2
