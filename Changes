@@ -1,6 +1,20 @@
 CHANGES
 -------
 
+  2.222 3 July 2026
+
+    * Update to version 2.222
+      Fri Jul 3 13:08:15 2026 +0100
+      68f1713d94521e8990fa92f7947d0f5f92ead6ce
+
+    * Tag `:constants` no longer exports all constants Fixes #78, #64
+      Fri Jul 3 11:55:19 2026 +0100
+      a2a91df2d64c5731287e6ca9ad47462cd8907f32
+
+    * Bump actions/checkout from 6 to 7
+      Fri Jul 3 00:06:22 2026 +0100
+      941a75e143d7fc707483a30fc4b8097f406485e5
+
   2.221 16 June 2026
 
     * Version 2.221
