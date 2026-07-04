@@ -1,7 +1,12 @@
 CHANGES
 -------
 
-  2.222 3 July 2026
+  2.223 4 July 2026
+
+    * * Error:  Compress::Raw::Zlib version 2.222 required--this is only version 2.221
+      * Update to version 2.223 Fixes #79
+      Sat Jul 4 09:16:41 2026 +0100
+      b9031b0fc30ad378e6cfda5c3dfbede82ec6ac59
 
     * Update to version 2.222
       Fri Jul 3 13:08:15 2026 +0100
