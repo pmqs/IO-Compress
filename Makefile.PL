@@ -26,8 +26,8 @@ WriteMakefile(
     (
       $ENV{SKIP_FOR_CORE}
         ? ()
-	    : (PREREQ_PM   => { 'Compress::Raw::Bzip2' => $::DEP_ZLIB_VERSION,
-		                    'Compress::Raw::Zlib'  => $::DEP_BZIP2_VERSION,
+	    : (PREREQ_PM   => { 'Compress::Raw::Bzip2' => $::DEP_BZIP2_VERSION,
+		                    'Compress::Raw::Zlib'  => $::DEP_ZLIB_VERSION,
 		                    'Scalar::Util'  => 0,
                             'Encode'        => 0,
                             'Time::Local'   => 0,
