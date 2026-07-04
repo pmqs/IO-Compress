@@ -3,6 +3,10 @@ CHANGES
 
   2.223 4 July 2026
 
+    * Fix typo in Makefile.PL Fixes #79
+      Sat Jul 4 09:22:42 2026 +0100
+      5e2d96044b22be0c6cd0ba408b671281d15e5a9c
+
     * * Error:  Compress::Raw::Zlib version 2.222 required--this is only version 2.221
       * Update to version 2.223 Fixes #79
       Sat Jul 4 09:16:41 2026 +0100
