@@ -26,7 +26,7 @@ BEGIN
 our ($Error);
 
 our ($VERSION, @EXPORT_OK);
-$VERSION = '1.001';
+$VERSION = '1.002';
 @EXPORT_OK = qw( globmap );
 
 our $BEGIN_DELIM = "\xFF";
