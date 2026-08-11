@@ -103,10 +103,7 @@ sub run
             my $foo = "1234567890";
 
             ok syswrite($io, $foo, length($foo)) == length($foo) ;
-            if ( $] < 5.6 )
-              { is $io->syswrite($foo, length $foo), length $foo }
-            else
-              { is $io->syswrite($foo), length $foo }
+            is $io->syswrite($foo), length $foo;
             ok $io->syswrite($foo, length($foo)) == length $foo;
             ok $io->write($foo, length($foo), 5) == 5;
             ok $io->write("xxx\n", 100, -1) == 1;
