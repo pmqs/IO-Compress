@@ -14,6 +14,10 @@ use ExtUtils::MakeMaker 5.16 ;
 UpDowngrade(getPerlFiles('MANIFEST'))
     unless $ENV{PERL_CORE};
 
+# Old ExtUtils::MakeMakers may have literal _ in their VERSIONs. Strip it out
+# so we can use normal numeric comparisons: '6.57_02' -> 6.5702
+(my $mm_version = ExtUtils::MakeMaker->VERSION) =~ tr/_//d;
+
 WriteMakefile(
     NAME         => 'IO::Compress',
     VERSION_FROM => 'lib/IO/Compress/Base.pm',
@@ -54,7 +58,7 @@ WriteMakefile(
         : ()
     ),
 
-     ( eval { ExtUtils::MakeMaker->VERSION(6.46) }
+     ( $mm_version >= 6.46
         ? ( META_MERGE  => {
 
                 "meta-spec" => { version => 2 },
@@ -82,7 +86,7 @@ WriteMakefile(
         : ()
     ),
 
-    ((ExtUtils::MakeMaker->VERSION() gt '6.30') ?
+    ($mm_version >= 6.30 ?
         ('LICENSE'  => 'perl')         : ()),
 
 ) ;
