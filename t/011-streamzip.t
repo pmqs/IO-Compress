@@ -17,9 +17,6 @@ use IO::Uncompress::Unzip 'unzip' ;
 
 BEGIN
 {
-    plan(skip_all => "Needs Perl 5.005 or better - you have Perl $]" )
-        if $] < 5.005 ;
-
     # use Test::NoWarnings, if available
     my $extra = 0 ;
     $extra = 1

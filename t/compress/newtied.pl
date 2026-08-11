@@ -10,9 +10,6 @@ our ($BadPerl, $UncompressClass);
 
 BEGIN
 {
-    plan(skip_all => "Extra Tied Filehandle needs Perl 5.6 or better - you have Perl $]" )
-        if $] < 5.006 ;
-
     my $tests ;
 
     $BadPerl = ($] >= 5.006 and $] <= 5.008) ;

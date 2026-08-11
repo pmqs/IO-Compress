@@ -17,9 +17,6 @@ use IO::Compress::Bzip2 'bzip2' ;
 
 BEGIN
 {
-    plan(skip_all => "Examples needs Perl 5.005 or better - you have Perl $]" )
-        if $] < 5.005 ;
-
     # use Test::NoWarnings, if available
     my $extra = 0 ;
     $extra = 1
