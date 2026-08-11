@@ -35,18 +35,12 @@ WriteMakefile(
 		                    'Scalar::Util'  => 0,
                             'Encode'        => 0,
                             'Time::Local'   => 0,
-		                    $] >= 5.005 && $] < 5.006
-                                ? ('File::BSDGlob' => 0)
-                                : () }
+                          }
 	      )
     ),
 
-    (
-    $] >= 5.005
-        ? (ABSTRACT => 'IO Interface to compressed data files/buffers',
-            AUTHOR  => 'Paul Marquess <pmqs@cpan.org>')
-        : ()
-    ),
+    ABSTRACT => 'IO Interface to compressed data files/buffers',
+    AUTHOR   => 'Paul Marquess <pmqs@cpan.org>',
 
     INSTALLDIRS => ($] >= 5.009 && $] < 5.011 ? 'perl' : 'site'),
 
