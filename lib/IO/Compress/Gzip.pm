@@ -1,7 +1,5 @@
 package IO::Compress::Gzip ;
 
-require 5.006 ;
-
 use strict ;
 use warnings;
 use bytes;

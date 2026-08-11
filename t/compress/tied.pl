@@ -11,9 +11,6 @@ our ($BadPerl, $UncompressClass);
 
 BEGIN
 {
-    plan(skip_all => "Tied Filehandle needs Perl 5.005 or better" )
-        if $] < 5.005 ;
-
     # use Test::NoWarnings, if available
     my $extra = 0 ;
     $extra = 1

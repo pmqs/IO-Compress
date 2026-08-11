@@ -1,8 +1,5 @@
 
 package IO::Uncompress::Gunzip ;
-
-require 5.006 ;
-
 # for RFC1952
 
 use strict ;
