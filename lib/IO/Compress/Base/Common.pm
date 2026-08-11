@@ -89,9 +89,7 @@ sub getEncoding($$$)
 }
 
 our ($needBinmode);
-$needBinmode = ($^O eq 'MSWin32' ||
-                    ($] >= 5.006 && eval ' ${^UNICODE} || ${^UTF8LOCALE} '))
-                    ? 1 : 1 ;
+$needBinmode = 1;
 
 sub setBinModeInput($)
 {
