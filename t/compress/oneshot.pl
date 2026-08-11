@@ -115,7 +115,7 @@ sub run
             # Threaded 5.6.x seems to have a problem comparing filehandles.
             use Config;
 
-            skip 'Cannot compare filehandles with threaded $]', 2
+            skip "Cannot compare filehandles with threaded $]", 2
                 if $] >= 5.006  && $] < 5.007 && $Config{useithreads};
 
             my $lex = LexFile->new( my $out_file );
