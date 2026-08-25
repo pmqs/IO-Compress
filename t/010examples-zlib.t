@@ -34,7 +34,7 @@ $Inc = '"-MExtUtils::testlib"'
     if ! $ENV{PERL_CORE} && eval " require ExtUtils::testlib; " ;
 
 my $Perl = ($ENV{'FULLPERL'} or $^X or 'perl') ;
-$Perl = qq["$Perl"] if $^O eq 'MSWin32' ;
+$Perl = qq["$Perl"] ;
 
 $Perl = "$Perl $Inc -w" ;
 #$Perl .= " -Mblib " ;
