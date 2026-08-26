@@ -48,7 +48,7 @@ PREREQUISITES
 Before you can build IO-Compress you need to have the following
 installed on your system:
 
-    * Perl 5.006 or better.
+    * Perl 5.008 or better.
     * Compress::Raw::Zlib
     * Compress::Raw::Bzip2
 

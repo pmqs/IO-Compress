@@ -12,14 +12,7 @@ BEGIN
 {
     my $tests ;
 
-    $BadPerl = ($] >= 5.006 and $] <= 5.008) ;
-
-    if ($BadPerl) {
-        $tests = 78 ;
-    }
-    else {
-        $tests = 84 ;
-    }
+    $tests = 84 ;
 
     # use Test::NoWarnings, if available
     my $extra = 0 ;

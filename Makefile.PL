@@ -1,7 +1,8 @@
 #! perl -w
 
 use strict ;
-require 5.006 ;
+use warnings;
+require 5.008 ;
 
 $::VERSION = '2.222' ;
 $::DEP_ZLIB_VERSION = '2.222';
@@ -10,9 +11,6 @@ $::DEP_BZIP2_VERSION = '2.218';
 use lib '.';
 use private::MakeUtil;
 use ExtUtils::MakeMaker 5.16 ;
-
-UpDowngrade(getPerlFiles('MANIFEST'))
-    unless $ENV{PERL_CORE};
 
 # Old ExtUtils::MakeMakers may have literal _ in their VERSIONs. Strip it out
 # so we can use normal numeric comparisons: '6.57_02' -> 6.5702

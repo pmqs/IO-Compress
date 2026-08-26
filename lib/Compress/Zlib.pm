@@ -1,7 +1,7 @@
 
 package Compress::Zlib;
 
-require 5.006 ;
+require 5.008 ;
 require Exporter;
 use Carp ;
 use IO::Handle ;
