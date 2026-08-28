@@ -4,9 +4,9 @@ use strict ;
 use warnings;
 require 5.008 ;
 
-$::VERSION = '2.222' ;
-$::DEP_ZLIB_VERSION = '2.222';
-$::DEP_BZIP2_VERSION = '2.218';
+$::VERSION = '2.224' ;
+$::DEP_ZLIB_VERSION = '2.224';
+$::DEP_BZIP2_VERSION = '2.224';
 
 use lib '.';
 use private::MakeUtil;

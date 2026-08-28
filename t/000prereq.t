@@ -25,9 +25,9 @@ BEGIN
         if eval { require Test::NoWarnings ;  Test::NoWarnings->import; 1 };
 
 
-    my $VERSION           = '2.222';
-    my $DEP_ZLIB_VERSION  = '2.222';
-    my $DEP_BZIP2_VERSION = '2.218';
+    my $VERSION           = '2.224';
+    my $DEP_ZLIB_VERSION  = '2.224';
+    my $DEP_BZIP2_VERSION = '2.224';
 
     my @DEP_ZLIB_NAMES = qw(
 			Compress::Raw::Zlib
