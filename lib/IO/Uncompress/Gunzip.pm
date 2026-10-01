@@ -44,7 +44,10 @@ sub gunzip
 
 sub getExtraParams
 {
-    return ( 'parseextra' => [IO::Compress::Base::Common::Parse_boolean,  0] ) ;
+    return (
+        'parseextra'    => [IO::Compress::Base::Common::Parse_boolean,  0],
+        'newstreamhook' => [IO::Compress::Base::Common::Parse_code,     undef],
+        ) ;
 }
 
 sub ckParams
@@ -54,6 +57,8 @@ sub ckParams
 
     # gunzip always needs crc32
     $got->setValue('crc32' => 1);
+
+    *$self->{'newstreamhook'} = $got->getValue('newstreamhook');
 
     return 1;
 }
@@ -232,7 +237,7 @@ sub _readGzipHeader($)
 
     *$self->{Type} = 'rfc1952';
 
-    return {
+    my $info = {
         'Type'          => 'rfc1952',
         'FingerprintLength'  => 2,
         'HeaderLength'  => length $keep,
@@ -263,7 +268,15 @@ sub _readGzipHeader($)
         #'CompSize'=> $compsize,
         #'CRC32'=> $CRC32,
         #'OrigSize'=> $ISIZE,
-      }
+      };
+
+    if (*$self->{'newstreamhook'})
+    {
+        my $cb = *$self->{'newstreamhook'} ;
+        $cb->($info);
+    }
+
+    return $info;
 }
 
 
