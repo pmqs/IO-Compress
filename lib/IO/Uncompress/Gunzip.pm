@@ -44,7 +44,10 @@ sub gunzip
 
 sub getExtraParams
 {
-    return ( 'parseextra' => [IO::Compress::Base::Common::Parse_boolean,  0] ) ;
+    return (
+        'parseextra'    => [IO::Compress::Base::Common::Parse_boolean,  0],
+        'newstreamhook' => [IO::Compress::Base::Common::Parse_code,     undef],
+        ) ;
 }
 
 sub ckParams
@@ -54,6 +57,8 @@ sub ckParams
 
     # gunzip always needs crc32
     $got->setValue('crc32' => 1);
+
+    *$self->{'newstreamhook'} = $got->getValue('newstreamhook');
 
     return 1;
 }
@@ -232,7 +237,7 @@ sub _readGzipHeader($)
 
     *$self->{Type} = 'rfc1952';
 
-    return {
+    my $info = {
         'Type'          => 'rfc1952',
         'FingerprintLength'  => 2,
         'HeaderLength'  => length $keep,
@@ -263,7 +268,15 @@ sub _readGzipHeader($)
         #'CompSize'=> $compsize,
         #'CRC32'=> $CRC32,
         #'OrigSize'=> $ISIZE,
-      }
+      };
+
+    if (*$self->{'newstreamhook'})
+    {
+        my $cb = *$self->{'newstreamhook'} ;
+        $cb->($info);
+    }
+
+    return $info;
 }
 
 
@@ -753,6 +766,15 @@ If set to 0, the contents of the output parameter of the C<read> method
 will be overwritten by the uncompressed data.
 
 Defaults to 0.
+
+=item C<< NewStreamHook => \&hook >>
+The C<hook> sub will only be invoked when the C<MultiStream> option is enabled and the
+code has detected a new gzip header.
+
+Ther equivalent data that is returned by C<getHeaderInfo>will be passed into C<hook>
+
+A single parameter is passed into the C<hook> sub that consists of the data returned by
+running the C<getHeaderInfo> method on th enew gzip stream.
 
 =item C<< Strict => 0|1 >>
 
