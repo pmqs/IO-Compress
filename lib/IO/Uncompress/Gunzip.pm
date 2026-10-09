@@ -767,6 +767,15 @@ will be overwritten by the uncompressed data.
 
 Defaults to 0.
 
+=item C<< NewStreamHook => \&hook >>
+The C<hook> sub will only be invoked when the C<MultiStream> option is enabled and the
+code has detected a new gzip header.
+
+Ther equivalent data that is returned by C<getHeaderInfo>will be passed into C<hook>
+
+A single parameter is passed into the C<hook> sub that consists of the data returned by
+running the C<getHeaderInfo> method on th enew gzip stream.
+
 =item C<< Strict => 0|1 >>
 
 This option controls whether the extra checks defined below are used when

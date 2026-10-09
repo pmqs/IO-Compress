@@ -20,7 +20,7 @@ BEGIN {
         if eval { require Test::NoWarnings ;  Test::NoWarnings->import; 1 };
 
 
-    plan tests => 918 + $extra ;
+    plan tests => 924 + $extra ;
 
     use_ok('Compress::Raw::Zlib') ;
     use_ok('IO::Compress::Gzip::Constants') ;
@@ -986,4 +986,78 @@ EOM
         like $GzipError, "/$error/";
         ok ! $x ;
     }
+}
+
+{
+    title "NewStreamHook - one stream";
+
+    # my $lex = LexFile->new( my $name );
+
+    my $name = "/tmp/fred.gz";
+
+    my $gz = IO::Compress::Gzip->new( $name, Name => "first" )
+            or diag "GzipError is $GzipError" ;
+
+    $gz->write("abcd");
+
+    $gz->close() ;
+
+    my @names ;
+
+    my $gunzip = IO::Uncompress::Gunzip->new( $name,
+            MultiStream   => 1,
+            Append        => 1,
+            NewStreamHook =>
+                sub
+                {
+                    my $info = shift;
+                    push @names, $info->{Name};
+                }
+            )
+            or diag "GunzipError is $GunzipError" ;
+
+    my $data;
+    1 while $gunzip->read($data) > 0;
+
+    is $data, "abcd" ;
+
+    is_deeply \@names, ["first"], "NewStreamHook called with correct names" ;
+}
+
+
+{
+    title "NewStreamHook - two streams";
+
+    my $lex = LexFile->new( my $name );
+
+    my $gz = IO::Compress::Gzip->new( $name, Name => "first" )
+            or diag "GzipError is $GzipError" ;
+
+    $gz->write("abcd");
+
+    $gz->newStream( Name => "second" );
+    $gz->write("efgh");
+
+    $gz->close() ;
+
+    my @names ;
+
+    my $gunzip = IO::Uncompress::Gunzip->new( $name,
+            MultiStream   => 1,
+            Append        => 1,
+            NewStreamHook =>
+                sub
+                {
+                    my $info = shift;
+                    push @names, $info->{Name};
+                }
+            )
+            or diag "GunzipError is $GunzipError" ;
+
+    my $data;
+    1 while $gunzip->read($data) > 0;
+
+    is $data, "abcdefgh" ;
+
+    is_deeply \@names, ["first", "second"], "NewStreamHook called with correct names" ;
 }
