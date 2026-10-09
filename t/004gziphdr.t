@@ -735,10 +735,9 @@ EOM
 }
 
 my $Name = "fred" ;
-    my $truncated ;
 for my $index ( GZIP_MIN_HEADER_SIZE ..  GZIP_MIN_HEADER_SIZE + length($Name) -1)
 {
-    title "Header Corruption - Truncated in Name";
+    title "Header Corruption - Truncated in Name - index $index";
     my $string = <<EOM;
 some text
 EOM
@@ -754,8 +753,7 @@ EOM
     ok ! $g
 	or print "# $g\n" ;
 
-    like $GunzipError, '/^Header Error: Truncated in FNAME Section/';
-
+    like $GunzipError, '/^Header Error: (Truncated in FNAME Section|No NULL termination found in FNAME)/';
 }
 
 my $Comment = "comment" ;
@@ -780,8 +778,7 @@ EOM
     ok ! $g
 	or print "# $g\n" ;
 
-    like $GunzipError, '/^Header Error: Truncated in FCOMMENT Section/';
-
+    like $GunzipError, '/^Header Error: (Truncated in FCOMMENT Section|No NULL termination found in FCOMMENT)/';
 }
 
 for my $index ( GZIP_MIN_HEADER_SIZE ..  GZIP_MIN_HEADER_SIZE + GZIP_FHCRC_SIZE -1)
