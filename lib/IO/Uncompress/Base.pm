@@ -201,7 +201,7 @@ sub smartReadToDelim
     my $self = shift ;
     my $out = shift ;
     my $delim = shift ;
-    my $max_size = shift // 64 * 1024  ; # 64k
+    my $max_size = shift || 64 * 1024  ; # 64k
 
     $$out = '' ;
     my $got = '';
