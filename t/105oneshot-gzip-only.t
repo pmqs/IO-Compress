@@ -132,9 +132,7 @@ sub gzipGetHeader
 
     use IO::Uncompress::Gunzip qw($GunzipError gunzip) ;
 
-    # my $lex = LexFile->new( my $name );
-
-    my $name = "/tmp/fred.gz";
+    my $lex = LexFile->new( my $name );
 
     my $gz = IO::Compress::Gzip->new( $name, Name => "first" )
             or diag "GzipError is $GzipError" ;
