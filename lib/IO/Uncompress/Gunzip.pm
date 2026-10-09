@@ -190,14 +190,16 @@ sub _readGzipHeader($)
 
     my $origname ;
     if ($flag & GZIP_FLG_FNAME) {
-        $origname = "" ;
-        while (1) {
-            $self->smartReadExact(\$buffer, 1)
-                or return $self->TruncatedHeader("FNAME");
-            last if $buffer eq GZIP_NULL_BYTE ;
-            $origname .= $buffer
-        }
-        $keep .= $origname . GZIP_NULL_BYTE ;
+        $self->smartReadToDelim(\$origname, GZIP_NULL_BYTE) != STATUS_ERROR
+            or return $self->TruncatedHeader("FNAME");
+
+        $keep .= $origname  ;
+
+        return $self->HeaderError("No NULL termination found in FNAME")
+            if  substr($origname, -1, 1) ne GZIP_NULL_BYTE ;
+
+        # remove the terminating GZIP_NULL_BYTE
+        $origname = substr($origname, 0, -1);
 
         return $self->HeaderError("Non ISO 8859-1 Character found in Name")
             if *$self->{Strict} && $origname =~ /$GZIP_FNAME_INVALID_CHAR_RE/o ;
@@ -205,14 +207,16 @@ sub _readGzipHeader($)
 
     my $comment ;
     if ($flag & GZIP_FLG_FCOMMENT) {
-        $comment = "";
-        while (1) {
-            $self->smartReadExact(\$buffer, 1)
-                or return $self->TruncatedHeader("FCOMMENT");
-            last if $buffer eq GZIP_NULL_BYTE ;
-            $comment .= $buffer
-        }
-        $keep .= $comment . GZIP_NULL_BYTE ;
+        $self->smartReadToDelim(\$comment, GZIP_NULL_BYTE) != STATUS_ERROR
+            or return $self->TruncatedHeader("FCOMMENT");
+
+        $keep .= $comment  ;
+
+        return $self->HeaderError("No NULL termination found in FCOMMENT")
+            if  substr($comment, -1, 1) ne GZIP_NULL_BYTE ;
+
+        # remove the terminating GZIP_NULL_BYTE
+        $comment = substr($comment, 0, -1);
 
         return $self->HeaderError("Non ISO 8859-1 Character found in Comment")
             if *$self->{Strict} && $comment =~ /$GZIP_FCOMMENT_INVALID_CHAR_RE/o ;

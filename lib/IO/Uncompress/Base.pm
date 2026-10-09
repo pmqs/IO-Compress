@@ -196,6 +196,32 @@ sub smartReadExact
     return $_[0]->smartRead($_[1], $_[2]) == $_[2];
 }
 
+sub smartReadToDelim
+{
+    my $self = shift ;
+    my $out = shift ;
+    my $delim = shift ;
+    my $max_size = shift || 64 * 1024  ; # 64k
+
+    $$out = '' ;
+    my $got = '';
+
+    my $status = $self->smartRead(\$got, $max_size) >= 0
+        or return STATUS_ERROR ;
+
+    if ((my $ix = index($got, $delim)) >= 0)
+    {
+        $$out .= substr($got, 0, $ix + length($delim)) ;
+        $self->pushBack(substr($got, $ix + length($delim) )) ;
+    }
+    else
+    {
+        $$out = $got ;
+    }
+
+    return length $$out;
+}
+
 sub smartEof
 {
     my ($self) = $_[0];
