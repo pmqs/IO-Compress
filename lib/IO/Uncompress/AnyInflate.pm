@@ -6,22 +6,22 @@ use strict;
 use warnings;
 use bytes;
 
-use IO::Compress::Base::Common 2.224 qw(:Parse);
+use IO::Compress::Base::Common 2.225 qw(:Parse);
 
-use IO::Uncompress::Adapter::Inflate  2.224 ();
+use IO::Uncompress::Adapter::Inflate  2.225 ();
 
 
-use IO::Uncompress::Base  2.224 ;
-use IO::Uncompress::Gunzip  2.224 ;
-use IO::Uncompress::Inflate  2.224 ;
-use IO::Uncompress::RawInflate  2.224 ;
-use IO::Uncompress::Unzip  2.224 ;
+use IO::Uncompress::Base  2.225 ;
+use IO::Uncompress::Gunzip  2.225 ;
+use IO::Uncompress::Inflate  2.225 ;
+use IO::Uncompress::RawInflate  2.225 ;
+use IO::Uncompress::Unzip  2.225 ;
 
 require Exporter ;
 
 our ($VERSION, @ISA, @EXPORT_OK, %EXPORT_TAGS, $AnyInflateError);
 
-$VERSION = '2.224';
+$VERSION = '2.225';
 $AnyInflateError = '';
 
 @ISA = qw(IO::Uncompress::Base Exporter);
