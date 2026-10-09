@@ -20,7 +20,7 @@ BEGIN {
         if eval { require Test::NoWarnings ;  Test::NoWarnings->import; 1 };
 
 
-    plan tests => 924 + $extra ;
+    plan tests => 928 + $extra ;
 
     use_ok('Compress::Raw::Zlib') ;
     use_ok('IO::Compress::Gzip::Constants') ;
@@ -1055,4 +1055,57 @@ EOM
     is $data, "abcdefgh" ;
 
     is_deeply \@names, ["first", "second"], "NewStreamHook called with correct names" ;
+}
+
+{
+    title "Tets really long FNAME field";
+    # https://github.com/pmqs/IO-Compress/issues/86
+
+    my $lex = LexFile->new( my $name );
+
+    my $fname = "x" x (1 + (1024 * 64));
+
+    my $gz = IO::Compress::Gzip->new( $name, Name => $fname )
+            or diag "GzipError is $GzipError" ;
+
+    $gz->write("abcd");
+
+    $gz->newStream( Name => "second" );
+    $gz->write("efgh");
+
+    $gz->close() ;
+
+    my @names ;
+
+    my $gunzip = IO::Uncompress::Gunzip->new( $name);
+
+    like $GunzipError, '/Header Error: No NULL termination found in FNAME/', "Got expected error" ;
+
+}
+
+{
+    title "Tets really long COMMENT field";
+    # https://github.com/pmqs/IO-Compress/issues/86
+
+    my $lex = LexFile->new( my $name );
+
+    my $fname = "fred";
+    my $comment = "x" x (1 + (1024 * 64));
+
+    my $gz = IO::Compress::Gzip->new( $name, Name => $fname, Comment => $comment )
+            or diag "GzipError is $GzipError" ;
+
+    $gz->write("abcd");
+
+    $gz->newStream( Name => "second" );
+    $gz->write("efgh");
+
+    $gz->close() ;
+
+    my @names ;
+
+    my $gunzip = IO::Uncompress::Gunzip->new( $name);
+
+    like $GunzipError, '/Header Error: No NULL termination found in FCOMMENT/', "Got expected error" ;
+
 }
